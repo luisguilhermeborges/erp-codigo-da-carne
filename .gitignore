@@ -1,0 +1,33 @@
+# Dependências (Nunca envie a pasta node_modules!)
+node_modules/
+.pnp
+.pnp.js
+
+# Pasta de distribuição (Arquivos gerados pelo build)
+dist/
+build/
+
+# Logs de erro
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Arquivos de ambiente (Muito importante para o futuro MongoDB)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Arquivos do Editor / VS Code
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Sistema Operacional
+.DS_Store
+Thumbs.db
