@@ -1,14 +1,22 @@
 import React from 'react';
 
-const WelcomeBanner = () => (
-  <div className="bg-[#0a0b1e] rounded-[3rem] p-10 mb-10 flex justify-between items-center shadow-2xl border border-white/5 relative overflow-hidden">
-    <div className="z-10">
-      <h1 className="text-3xl font-bold text-white mb-2">Bem-vindo, <span className="text-blue-500">Código da Carne</span></h1>
-      <p className="text-slate-400 text-sm font-medium">Gestão de Inventário e Pedidos entre Unidades</p>
+const BannerBoasVindas = () => {
+  // LÓGICA DE HORÁRIO: Poderia ser adicionada aqui uma saudação dinâmica (Bom dia/Boa tarde).
+  return (
+    <div className="bg-[#0a0b1e] p-12 rounded-[3.5rem] text-white relative overflow-hidden shadow-2xl shadow-blue-900/20">
+      {/* DECORAÇÃO: Elemento visual de fundo para dar profundidade ao design. */}
+      <div className="absolute top-[-20%] right-[-10%] w-96 h-96 bg-blue-600/20 rounded-full blur-[100px]"></div>
+      
+      <div className="relative z-10">
+        <h1 className="text-4xl md:text-5xl font-black mb-4 tracking-tighter uppercase italic">
+          Olá, <span className="text-blue-500">Equipe</span>
+        </h1>
+        <p className="text-blue-200/60 text-sm font-bold uppercase tracking-[0.4em] max-w-md leading-relaxed">
+          Bem-vindo ao centro de controle operacional Código da Carne.
+        </p>
+      </div>
     </div>
-    <div className="bg-blue-600/10 border border-blue-500/20 py-2 px-6 rounded-2xl z-10">
-      <span className="text-blue-500 text-[10px] font-black uppercase tracking-widest">Sistema Ativo</span>
-    </div>
-  </div>
-);
-export default WelcomeBanner;
+  );
+};
+
+export default BannerBoasVindas;
