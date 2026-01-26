@@ -1,83 +1,89 @@
+/* src/App.css */
+
+/* Reset e Fontes */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
 :root {
-  --bg-main: #f8fafc;
-  --sidebar-dark: #1a1c23;
-  --accent-blue: #3b82f6;
-  --accent-green: #10b981;
-  --accent-orange: #f59e0b;
-  --accent-red: #ef4444;
+  --sidebar-dark: #0a0b1e;
+  --accent-blue: #2563eb;
+  --bg-light: #f8fafc;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-
-.mbm-dashboard { display: flex; height: 100vh; background: var(--bg-main); }
-
-/* Sidebar */
-.mbm-sidebar {
-  width: 260px;
-  background: var(--sidebar-dark);
-  color: white;
-  padding: 30px 20px;
+body {
+  background-color: var(--bg-light);
+  color: var(--text-main);
+  overflow: hidden; /* Evita scroll duplo na página toda */
 }
 
-.sidebar-logo h2 { color: var(--accent-blue); letter-spacing: 2px; }
-.sidebar-logo p { font-size: 0.7rem; opacity: 0.6; margin-bottom: 40px; }
-
-.sidebar-nav button {
-  width: 100%;
-  padding: 15px;
-  background: none;
-  border: none;
-  color: #a0aec0;
-  text-align: left;
-  cursor: pointer;
-  border-radius: 8px;
-  margin-bottom: 10px;
-}
-
-.sidebar-nav button.active { background: #2d3748; color: white; }
-
-/* Main Content */
-.mbm-content { flex: 1; padding: 40px; overflow-y: auto; }
-
-/* Banner */
-.mbm-banner {
-  background: linear-gradient(90deg, #1e293b 0%, #334155 100%);
-  padding: 30px;
-  border-radius: 16px;
-  color: white;
+/* Layout Principal MBM */
+.mbm-dashboard {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
+  height: 100vh;
+  width: 100vw;
 }
 
-.active-time-widget {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 15px;
-  border-radius: 12px;
-  text-align: right;
+.mbm-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  position: relative;
 }
 
-.active-time-widget span { display: block; font-size: 0.7rem; opacity: 0.8; }
-.active-time-widget strong { font-size: 1.2rem; color: var(--accent-green); }
-
-/* Grid & Cards */
-.status-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 30px; }
-
-.status-card { background: white; padding: 20px; border-radius: 12px; border-bottom: 4px solid #ddd; }
-.status-card.blue { border-color: var(--accent-blue); }
-.status-card.orange { border-color: var(--accent-orange); }
-.status-card.green { border-color: var(--accent-green); }
-.status-card.red { border-color: var(--accent-red); }
-
-/* Selector */
-.unit-selector { display: flex; gap: 10px; margin-bottom: 20px; }
-.unit-selector button {
-  padding: 8px 15px;
-  border-radius: 20px;
-  border: 1px solid #cbd5e1;
-  background: white;
-  cursor: pointer;
+.page-wrapper {
+  padding: 40px;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
 }
 
-.data-card { background: white; padding: 30px; border-radius: 16px; margin-top: 30px; min-height: 200px; }
+/* REMOVER SETAS NATIVAS DOS INPUTS DE NÚMERO */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+}
+
+input[type=number] {
+  -moz-appearance: textfield !important;
+}
+
+/* Custom Scrollbar para o Carrinho e Tabelas */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.2);
+  border-radius: 10px;
+}
+
+/* Animações de Transição */
+.animate-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Estilos de inputs de quantidade para ficarem limpos */
+.qtd-input {
+  outline: none;
+  border: none;
+  background: transparent;
+  font-weight: 900;
+  text-align: center;
+}

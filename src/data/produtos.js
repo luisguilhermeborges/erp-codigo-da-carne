@@ -1,43 +1,124 @@
-export const PRODUCT_DATABASE = [
-  // LA DUQUESA (DIA A DIA)
-  { id: 1, code: '101', name: 'Carne Moída Patinho', unit: 'kg', category: 'La Duquesa (Dia a Dia)', price: 42.90 },
-  { id: 2, code: '102', name: 'Bife de Coxão Mole', unit: 'kg', category: 'La Duquesa (Dia a Dia)', price: 48.50 },
-  { id: 3, code: '103', name: 'Acém em Cubos', unit: 'kg', category: 'La Duquesa (Dia a Dia)', price: 35.90 },
-  { id: 4, code: '104', name: 'Filé de Frango Grelhado', unit: 'kg', category: 'La Duquesa (Dia a Dia)', price: 24.90 },
-  { id: 5, code: '105', name: 'Bisteca Suína', unit: 'kg', category: 'La Duquesa (Dia a Dia)', price: 28.00 },
-
-  // LA REINA (LINHA DE ENTRADA CHURRASCO)
-  { id: 6, code: '201', name: 'Linguiça Toscana Artesanal', unit: 'kg', category: 'La Reina', price: 32.00 },
-  { id: 7, code: '202', name: 'Coração de Frango Temperado', unit: 'kg', category: 'La Reina', price: 38.90 },
-  { id: 8, code: '203', name: 'Pão de Alho Tradicional', unit: 'un', category: 'La Reina', price: 16.50 },
-  { id: 9, code: '204', name: 'Queijo Coalho Premium', unit: 'un', category: 'La Reina', price: 22.00 },
-  { id: 10, code: '205', name: 'Asinha de Frango Marinada', unit: 'kg', category: 'La Reina', price: 29.90 },
-
-  // LA DUQUESA (INTERMEDIÁRIA)
-  { id: 11, code: '301', name: 'Bife Ancho Angus', unit: 'kg', category: 'La Duquesa (Intermediária)', price: 98.00 },
-  { id: 12, code: '302', name: 'Bife de Chorizo Angus', unit: 'kg', category: 'La Duquesa (Intermediária)', price: 92.00 },
-  { id: 13, code: '303', name: 'Fraldinha Grill Selection', unit: 'kg', category: 'La Duquesa (Intermediária)', price: 79.00 },
-  { id: 14, code: '304', name: 'Maminha Angus', unit: 'kg', category: 'La Duquesa (Intermediária)', price: 68.00 },
-  { id: 15, code: '305', name: 'Short Rib Angus', unit: 'kg', category: 'La Duquesa (Intermediária)', price: 85.00 },
-
-  // CÓDIGO SERIES (SUPERIOR)
-  { id: 16, code: '401', name: 'Picanha Wagyu A5', unit: 'kg', category: 'Código Series', price: 590.00 },
-  { id: 17, code: '402', name: 'Tomahawk Dry Aged', unit: 'kg', category: 'Código Series', price: 185.00 },
-  { id: 18, code: '403', name: 'Prime Rib Wagyu', unit: 'kg', category: 'Código Series', price: 320.00 },
-  { id: 19, code: '404', name: 'T-Bone Premium', unit: 'kg', category: 'Código Series', price: 145.00 },
-  { id: 20, code: '405', name: 'Flat Iron Reserva', unit: 'kg', category: 'Código Series', price: 110.00 },
-
-  // ITENS SECOS
-  { id: 21, code: '501', name: 'Sal de Parrilla Original', unit: 'un', category: 'Itens Secos', price: 24.00 },
-  { id: 22, code: '502', name: 'Carvão Vegetal 5kg', unit: 'un', category: 'Itens Secos', price: 35.00 },
-  { id: 23, code: '503', name: 'Farofa Artesanal Caseira', unit: 'un', category: 'Itens Secos', price: 18.00 },
-  { id: 24, code: '504', name: 'Azeite Extra Virgem', unit: 'un', category: 'Itens Secos', price: 42.00 },
-  { id: 25, code: '505', name: 'Molho Barbecue Defumado', unit: 'un', category: 'Itens Secos', price: 26.00 },
-
-  // BEBIDAS
-  { id: 26, code: '601', name: 'Cerveja IPA Artesanal', unit: 'un', category: 'Bebidas', price: 18.00 },
-  { id: 27, code: '602', name: 'Vinho Malbec Reserva', unit: 'un', category: 'Bebidas', price: 89.00 },
-  { id: 28, code: '603', name: 'Água Mineral c/ Gás', unit: 'un', category: 'Bebidas', price: 5.00 },
-  { id: 29, code: '604', name: 'Refrigerante Lata', unit: 'un', category: 'Bebidas', price: 7.00 },
-  { id: 30, code: '605', name: 'Suco de Uva Integral', unit: 'un', category: 'Bebidas', price: 22.00 },
+export const categoriasProdutos = [
+  {
+    id: 'dia-a-dia',
+    nome: 'Dia a Dia',
+    itens: [
+      { codigo: 'DA001', nome: 'Coxão Mole', preco: 38.90, unidade: 'kg' },
+      { codigo: 'DA002', nome: 'Patinho Moído', preco: 34.50, unidade: 'kg' },
+      { codigo: 'DA003', nome: 'Músculo Bovino', preco: 29.90, unidade: 'kg' },
+      { codigo: 'DA004', nome: 'Acém em Cubos', preco: 31.00, unidade: 'kg' },
+      { codigo: 'DA005', nome: 'Filé de Frango', preco: 22.90, unidade: 'kg' },
+      { codigo: 'DA006', nome: 'Sobrecoxa Desossada', preco: 19.80, unidade: 'kg' },
+      { codigo: 'DA007', nome: 'Bisteca Suína', preco: 24.50, unidade: 'kg' },
+      { codigo: 'DA008', nome: 'Carne Moída Especial', preco: 28.00, unidade: 'kg' },
+      { codigo: 'DA009', nome: 'Lagarto em Fatias', preco: 42.00, unidade: 'kg' },
+      { codigo: 'DA010', nome: 'Fraldinha p/ Panela', preco: 39.90, unidade: 'kg' },
+      { codigo: 'DA011', nome: 'Alcatra em Bifes', preco: 52.00, unidade: 'kg' },
+      { codigo: 'DA012', nome: 'Contra Filé Inteiro', preco: 58.00, unidade: 'kg' },
+      { codigo: 'DA013', nome: 'Patinho em Tiras', preco: 36.00, unidade: 'kg' },
+      { codigo: 'DA014', nome: 'Coxão Duro', preco: 37.50, unidade: 'kg' },
+      { codigo: 'DA015', nome: 'Peito de Frango Cubos', preco: 21.00, unidade: 'kg' },
+      { codigo: 'DA016', nome: 'Lombo Suíno', preco: 26.00, unidade: 'kg' },
+      { codigo: 'DA017', nome: 'Ponta de Peito', preco: 28.50, unidade: 'kg' },
+      { codigo: 'DA018', nome: 'Paleta Bovina', preco: 30.00, unidade: 'kg' },
+      { codigo: 'DA019', nome: 'Coração de Frango', preco: 18.00, unidade: 'kg' },
+      { codigo: 'DA020', nome: 'Tulipa de Frango', preco: 25.00, unidade: 'kg' },
+      { codigo: 'DA021', nome: 'Carne de Sol', preco: 45.00, unidade: 'kg' },
+      { codigo: 'DA022', nome: 'Carne Seca Desfiada', preco: 62.00, unidade: 'kg' },
+      { codigo: 'DA023', nome: 'Bife de Fígado', preco: 15.00, unidade: 'kg' },
+      { codigo: 'DA024', nome: 'Língua Bovina', preco: 28.00, unidade: 'kg' },
+      { codigo: 'DA025', nome: 'Rabo Bovino', preco: 35.00, unidade: 'kg' }
+    ]
+  },
+  {
+    id: 'la-reina',
+    nome: 'La Reina',
+    itens: [
+      { codigo: 'LR001', nome: 'Picanha La Reina', preco: 149.00, unidade: 'kg' },
+      { codigo: 'LR002', nome: 'Chorizo La Reina', preco: 89.00, unidade: 'kg' },
+      { codigo: 'LR003', nome: 'Ancho La Reina', preco: 92.00, unidade: 'kg' },
+      { codigo: 'LR004', nome: 'Maminha La Reina', preco: 75.00, unidade: 'kg' },
+      { codigo: 'LR005', nome: 'Bombom de Alcatra', preco: 68.00, unidade: 'kg' },
+      { codigo: 'LR006', nome: 'T-Bone La Reina', preco: 95.00, unidade: 'kg' },
+      { codigo: 'LR007', nome: 'Porterhouse Especial', preco: 110.00, unidade: 'kg' },
+      { codigo: 'LR008', nome: 'Shoulder Steak', preco: 58.00, unidade: 'kg' },
+      { codigo: 'LR009', nome: 'Flat Iron', preco: 62.00, unidade: 'kg' },
+      { codigo: 'LR010', nome: 'Prime Rib La Reina', preco: 125.00, unidade: 'kg' },
+      { codigo: 'LR011', nome: 'Short Rib Angus', preco: 88.00, unidade: 'kg' },
+      { codigo: 'LR012', nome: 'Brisket Defumado', preco: 72.00, unidade: 'kg' },
+      { codigo: 'LR013', nome: 'Short Rib Fatiado', preco: 84.00, unidade: 'kg' },
+      { codigo: 'LR014', nome: 'Bananinha Angus', preco: 48.00, unidade: 'kg' },
+      { codigo: 'LR015', nome: 'Vazio La Reina', preco: 79.00, unidade: 'kg' },
+      { codigo: 'LR016', nome: 'Entranha Fina', preco: 82.00, unidade: 'kg' },
+      { codigo: 'LR017', nome: 'Assado de Tira', preco: 95.00, unidade: 'kg' },
+      { codigo: 'LR018', nome: 'Steak Tartare', preco: 45.00, unidade: 'kg' },
+      { codigo: 'LR019', nome: 'Carpaccio La Reina', preco: 38.00, unidade: 'kg' },
+      { codigo: 'LR020', nome: 'Denver Steak', preco: 65.00, unidade: 'kg' },
+      { codigo: 'LR021', nome: 'Eye Steak', preco: 70.00, unidade: 'kg' },
+      { codigo: 'LR022', nome: 'Top Sirloin', preco: 66.00, unidade: 'kg' },
+      { codigo: 'LR023', nome: 'Tri-Tip Angus', preco: 73.00, unidade: 'kg' },
+      { codigo: 'LR024', nome: 'Tenderloin Fatiado', preco: 115.00, unidade: 'kg' },
+      { codigo: 'LR025', nome: 'Medalhão La Reina', preco: 98.00, unidade: 'kg' }
+    ]
+  },
+  {
+    id: 'la-majestad',
+    nome: 'La Majestad',
+    itens: Array.from({ length: 25 }, (_, i) => ({
+      codigo: `LM${String(i + 1).padStart(3, '0')}`,
+      nome: `Corte Majestad Premium #${i + 1}`,
+      preco: 150 + i * 10,
+      unidade: 'kg'
+    }))
+  },
+  {
+    id: 'codigo-series',
+    nome: 'Codigo Series',
+    itens: Array.from({ length: 25 }, (_, i) => ({
+      codigo: `CS${String(i + 1).padStart(3, '0')}`,
+      nome: `Item Codigo Series #${i + 1}`,
+      preco: 45 + i * 4,
+      unidade: 'kg'
+    }))
+  },
+  {
+    id: 'cortes-churrasco',
+    nome: 'Cortes Churrasco',
+    itens: Array.from({ length: 25 }, (_, i) => ({
+      codigo: `CH${String(i + 1).padStart(3, '0')}`,
+      nome: `Item Churrasco #${i + 1}`,
+      preco: 35 + i * 3,
+      unidade: 'kg'
+    }))
+  },
+  {
+    id: 'itens-secos',
+    nome: 'Itens Secos',
+    itens: Array.from({ length: 25 }, (_, i) => ({
+      codigo: `IS${String(i + 1).padStart(3, '0')}`,
+      nome: `Item Seco #${i + 1}`,
+      preco: 10 + i * 2,
+      unidade: 'un'
+    }))
+  },
+  {
+    id: 'acessorios',
+    nome: 'Acessorios',
+    itens: Array.from({ length: 25 }, (_, i) => ({
+      codigo: `AC${String(i + 1).padStart(3, '0')}`,
+      nome: `Acessório Premium #${i + 1}`,
+      preco: 25 + i * 15,
+      unidade: 'un'
+    }))
+  },
+  {
+    id: 'bebidas',
+    nome: 'Bebidas',
+    itens: Array.from({ length: 25 }, (_, i) => ({
+      codigo: `BB${String(i + 1).padStart(3, '0')}`,
+      nome: `Bebida Selecionada #${i + 1}`,
+      preco: 5 + i * 5,
+      unidade: 'un'
+    }))
+  }
 ];
