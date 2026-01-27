@@ -1,21 +1,29 @@
 import React from 'react';
 
-const BannerBoasVindas = () => {
-  // LÓGICA DE HORÁRIO: Poderia ser adicionada aqui uma saudação dinâmica (Bom dia/Boa tarde).
+const BannerBoasVindas = ({ tempo, unidade, nome }) => {
+  const formatarTempo = (segundos) => {
+    const h = Math.floor(segundos / 3600);
+    const m = Math.floor((segundos % 3600) / 60);
+    const s = segundos % 60;
+    return `${h}h ${m}m ${s}s`;
+  };
+
   return (
-    <div className="bg-[#0a0b1e] p-12 rounded-[3.5rem] text-white relative overflow-hidden shadow-2xl shadow-blue-900/20">
-      {/* DECORAÇÃO: Elemento visual de fundo para dar profundidade ao design. */}
-      <div className="absolute top-[-20%] right-[-10%] w-96 h-96 bg-blue-600/20 rounded-full blur-[100px]"></div>
-      
-      <div className="relative z-10">
-        <h1 className="text-4xl md:text-5xl font-black mb-4 tracking-tighter uppercase italic">
-          Olá, <span className="text-blue-500">Equipe</span>
+    <header className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm flex justify-between items-center animate-in fade-in duration-500">
+      <div className="space-y-2">
+        <h1 className="text-4xl font-black italic text-slate-800 uppercase tracking-tighter">
+          Olá, {nome || 'Equipe'}! 👋
         </h1>
-        <p className="text-blue-200/60 text-sm font-bold uppercase tracking-[0.4em] max-w-md leading-relaxed">
-          Bem-vindo ao centro de controle operacional Código da Carne.
+        <p className="text-sm text-slate-400 font-bold uppercase tracking-[0.2em]">
+          Unidade Logada: <span className="text-blue-600">{unidade === 'TODAS' ? 'GERAL' : `ID ${unidade}`}</span>
         </p>
       </div>
-    </div>
+      
+      <div className="bg-[#0a0b1e] p-6 rounded-[2rem] text-white border border-white/5 shadow-xl">
+        <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-1">Tempo Ativo</p>
+        <p className="text-2xl font-black italic text-blue-500">{formatarTempo(tempo)}</p>
+      </div>
+    </header>
   );
 };
 

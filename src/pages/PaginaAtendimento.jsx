@@ -1,180 +1,252 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { categoriasProdutos } from '../data/produtos';
-import { Barcode, Search, Plus, Minus, PackageCheck, Trash2, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { 
+  CheckCircle, 
+  Package, 
+  Search, 
+  Plus, 
+  Minus, 
+  AlertTriangle, 
+  Trash2, 
+  XCircle,
+  ArrowRight
+} from 'lucide-react';
 
-const PaginaAtendimento = () => {
-  const [pedidosFila, setPedidosFila] = useState([]);
+const PaginaAtendimento = ({ user }) => {
+  const [fila, setFila] = useState([]);
   const [pedidoSelecionado, setPedidoSelecionado] = useState(null);
-  const [itensConferindo, setItensConferindo] = useState([]);
-  const [codigoBipado, setCodigoBipado] = useState('');
+  const [itensConferencia, setItensConferencia] = useState([]);
   const [buscaExtra, setBuscaExtra] = useState('');
-  const inputRef = useRef(null);
 
+  // Carregar fila de pedidos
   useEffect(() => {
-    const fila = JSON.parse(localStorage.getItem('fila_pedidos') || '[]');
-    setPedidosFila(fila);
-  }, []);
+    const carregarFila = () => {
+      const dados = JSON.parse(localStorage.getItem('fila_pedidos') || '[]');
+      const filtrados = user.unidade === '000' || user.unidade === 'TODAS' 
+        ? dados 
+        : dados.filter(p => p.unidadeOrigem === user.unidade);
+      setFila(filtrados);
+    };
 
-  const iniciarAtendimento = (pedido) => {
-    setPedidoSelecionado(pedido);
-    setItensConferindo(pedido.itens.map(i => ({ ...i, qtdSolicitada: i.qtd, qtdConferida: 0 })));
-    setTimeout(() => inputRef.current?.focus(), 100);
-  };
+    carregarFila();
+    const interval = setInterval(carregarFila, 5000);
+    return () => clearInterval(interval);
+  }, [user.unidade]);
 
-  const atualizarQtd = (codigo, valor) => {
-    const n = Math.max(0, Number(valor));
-    setItensConferindo(prev => prev.map(i => i.codigo === codigo ? {...i, qtdConferida: n} : i));
-  };
-
-  const handleBipar = (e) => {
-    if (e.key === 'Enter' && codigoBipado) {
-      const codigo = codigoBipado.toUpperCase();
-      const existe = itensConferindo.find(i => i.codigo === codigo);
-      if (existe) {
-        atualizarQtd(codigo, existe.qtdConferida + 1);
-      } else {
-        const prod = categoriasProdutos.flatMap(c => c.itens).find(p => p.codigo === codigo);
-        if (prod) setItensConferindo([...itensConferindo, {...prod, qtdSolicitada: 0, qtdConferida: 1}]);
-      }
-      setCodigoBipado('');
+  // Ao selecionar um pedido, preparamos a conferência
+  useEffect(() => {
+    if (pedidoSelecionado) {
+      const itensIniciais = pedidoSelecionado.itens.map(item => ({
+        ...item,
+        qtdSolicitada: item.qtd, // Mantém o original para comparação
+        qtdEnviada: item.qtd,
+        atendido: true
+      }));
+      setItensConferencia(itensIniciais);
     }
+  }, [pedidoSelecionado]);
+
+  const atualizarQtdConferencia = (codigo, novaQtd) => {
+    setItensConferencia(prev => prev.map(i => 
+      i.codigo === codigo ? { ...i, qtdEnviada: Math.max(0, Number(novaQtd)) } : i
+    ));
+  };
+
+  const alternarAtendimento = (codigo) => {
+    setItensConferencia(prev => prev.map(i => 
+      i.codigo === codigo ? { ...i, atendido: !i.atendido } : i
+    ));
+  };
+
+  const adicionarItemExtra = (produto) => {
+    const existe = itensConferencia.find(i => i.codigo === produto.codigo);
+    if (existe) {
+      alert("Este item já está na lista!");
+      return;
+    }
+    setItensConferencia([...itensConferencia, { 
+      ...produto, 
+      qtdSolicitada: 0, 
+      qtdEnviada: 1, 
+      atendido: true,
+      extra: true 
+    }]);
+    setBuscaExtra('');
   };
 
   const finalizarAtendimento = () => {
-    const excesso = itensConferindo.some(i => i.qtdConferida > i.qtdSolicitada);
-    if (excesso && !window.confirm("⚠️ Você está enviando mais que o solicitado. Confirmar?")) return;
+    const historico = JSON.parse(localStorage.getItem('historico_pedidos') || '[]');
+    
+    // Filtramos apenas o que foi marcado como atendido
+    const itensFinais = itensConferencia.filter(i => i.atendido);
 
-    // GERAR DADOS PARA O RELATÓRIO
-    const resumoAtendimento = {
-      id: pedidoSelecionado.id,
+    const registroFinal = {
+      ...pedidoSelecionado,
+      itens: itensFinais,
+      status: 'Finalizado',
       dataAtendimento: new Date().toLocaleString(),
-      cliente: pedidoSelecionado.cliente || "Unidade Externa",
-      totalOriginal: pedidoSelecionado.total,
-      totalFinal: itensConferindo.reduce((acc, i) => acc + (i.preco * i.qtdConferida), 0),
-      itens: itensConferindo.map(i => ({
-        nome: i.nome,
-        codigo: i.codigo,
-        solicitado: i.qtdSolicitada,
-        enviado: i.qtdConferida,
-        status: i.qtdConferida > i.qtdSolicitada ? 'EXCESSO' : (i.qtdConferida < i.qtdSolicitada ? 'FALTA' : 'OK')
-      }))
+      atendidoPor: user.nome,
+      unidadeConferência: user.unidade
     };
 
-    // Salvar no Histórico (Cache de Relatórios)
-    const historico = JSON.parse(localStorage.getItem('historico_pedidos') || '[]');
-    localStorage.setItem('historico_pedidos', JSON.stringify([resumoAtendimento, ...historico]));
+    localStorage.setItem('historico_pedidos', JSON.stringify([registroFinal, ...historico]));
 
-    // Limpar Fila
-    const novaFila = pedidosFila.filter(p => p.id !== pedidoSelecionado.id);
-    localStorage.setItem('fila_pedidos', JSON.stringify(novaFila));
+    const novaFila = JSON.parse(localStorage.getItem('fila_pedidos') || '[]')
+      .filter(p => p.id !== pedidoSelecionado.id);
     
-    alert("✅ Atendimento finalizado e enviado para os relatórios!");
-    setPedidosFila(novaFila);
+    localStorage.setItem('fila_pedidos', JSON.stringify(novaFila));
+    setFila(novaFila);
     setPedidoSelecionado(null);
+    alert("Pedido finalizado e registrado no histórico!");
   };
 
-  if (!pedidoSelecionado) {
-    return (
-      <div className="space-y-6 animate-in">
-        <h2 className="text-xl font-black uppercase italic tracking-tighter">Fila de Atendimento</h2>
-        <div className="grid grid-cols-2 gap-4">
-          {pedidosFila.length === 0 ? <p className="text-slate-400 font-bold uppercase text-xs">Nenhum pedido pendente...</p> : 
-            pedidosFila.map(p => (
-              <div key={p.id} className="bg-white p-8 rounded-[32px] border border-slate-100 flex justify-between items-center hover:border-blue-500 transition-all shadow-sm">
-                <div>
-                  <p className="text-[10px] font-black text-blue-600 uppercase">Pedido #{p.id}</p>
-                  <h3 className="font-black text-slate-800 uppercase">Solicitação de Unidade</h3>
-                  <p className="text-xs text-slate-400 font-bold">{p.itens.length} itens aguardando conferência</p>
-                </div>
-                <button onClick={() => iniciarAtendimento(p)} className="bg-[#0a0b1e] text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest">Atender</button>
-              </div>
+  return (
+    <div className="flex gap-8 animate-in fade-in duration-500">
+      {/* LISTA LATERAL DE PEDIDOS PENDENTES */}
+      <div className="w-80 space-y-4">
+        <h2 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] px-4">Fila de Atendimento</h2>
+        <div className="space-y-3">
+          {fila.length === 0 ? (
+            <div className="p-10 text-center opacity-20">
+              <Package size={30} className="mx-auto mb-2" />
+              <p className="text-[8px] font-black uppercase">Vazio</p>
+            </div>
+          ) : (
+            fila.map(p => (
+              <button 
+                key={p.id} 
+                onClick={() => setPedidoSelecionado(p)}
+                className={`w-full p-6 rounded-[24px] border text-left transition-all ${
+                  pedidoSelecionado?.id === p.id 
+                  ? 'bg-blue-600 border-blue-500 shadow-xl shadow-blue-500/20 text-white' 
+                  : 'bg-white border-slate-100 hover:border-blue-200'
+                }`}
+              >
+                <p className={`text-[8px] font-black uppercase mb-1 ${pedidoSelecionado?.id === p.id ? 'text-blue-200' : 'text-slate-400'}`}>#{p.id}</p>
+                <p className="text-xs font-black uppercase leading-tight">{p.cliente}</p>
+              </button>
             ))
-          }
+          )}
         </div>
       </div>
-    );
-  }
 
-  return (
-    <div className="flex gap-8 animate-in">
-      <div className="flex-1 space-y-6">
-        <button onClick={() => setPedidoSelecionado(null)} className="flex items-center gap-2 text-slate-400 font-black text-[10px] uppercase hover:text-slate-800 transition-colors">
-          <ArrowLeft size={14}/> Voltar para Fila
-        </button>
+      {/* ÁREA DE CONFERÊNCIA DETALHADA */}
+      <div className="flex-1">
+        {pedidoSelecionado ? (
+          <div className="space-y-6">
+            <header className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-black italic uppercase text-slate-800 tracking-tighter">Conferindo {pedidoSelecionado.id}</h2>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Origem: {pedidoSelecionado.unidadeOrigem} | Solicitante: {pedidoSelecionado.usuario}</p>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => setPedidoSelecionado(null)} className="px-6 py-3 rounded-xl bg-slate-100 text-slate-500 text-[10px] font-black uppercase hover:bg-slate-200 transition-all">Cancelar</button>
+                <button onClick={finalizarAtendimento} className="px-8 py-3 rounded-xl bg-blue-600 text-white text-[10px] font-black uppercase shadow-lg shadow-blue-500/20 hover:bg-blue-500 transition-all flex items-center gap-2">
+                  <CheckCircle size={14}/> Finalizar Carga
+                </button>
+              </div>
+            </header>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white p-8 rounded-[40px] border-2 border-blue-500 flex items-center gap-6 shadow-sm">
-            <Barcode size={32} className="text-blue-600" />
-            <div className="flex-1">
-              <p className="text-[10px] font-black text-blue-600 uppercase mb-1 tracking-widest">Bipar Código</p>
-              <input ref={inputRef} type="text" placeholder="AGUARDANDO LEITURA..." value={codigoBipado} onChange={e => setCodigoBipado(e.target.value)} onKeyDown={handleBipar} className="w-full border-none focus:ring-0 text-xl font-black uppercase outline-none bg-transparent" />
-            </div>
-          </div>
-          <div className="bg-white p-8 rounded-[40px] border border-slate-100 flex items-center gap-6 shadow-sm">
-            <Search size={32} className="text-slate-300" />
-            <div className="flex-1 relative">
-              <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Pesquisar Extra</p>
-              <input type="text" placeholder="ADICIONAR ITEM..." value={buscaExtra} onChange={e => setBuscaExtra(e.target.value)} className="w-full border-none focus:ring-0 text-sm font-black uppercase outline-none bg-transparent" />
-              {buscaExtra && (
-                <div className="absolute top-16 left-0 w-full bg-white border rounded-2xl shadow-xl z-50 p-2">
-                  {categoriasProdutos.flatMap(c => c.itens).filter(p => p.nome.toLowerCase().includes(buscaExtra.toLowerCase())).slice(0, 5).map(p => (
-                    <button key={p.codigo} onClick={() => { setItensConferindo([...itensConferindo, {...p, qtdSolicitada: 0, qtdConferida: 1}]); setBuscaExtra(''); }} className="w-full text-left p-3 hover:bg-blue-50 rounded-xl text-[10px] font-black uppercase">{p.nome}</button>
-                  ))}
+            {/* ADICIONAR ITEM EXTRA */}
+            <div className="relative">
+              <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                <Search className="text-blue-500" size={18} />
+                <input 
+                  type="text" 
+                  placeholder="ADICIONAR ITEM EXTRA AO PEDIDO..." 
+                  className="w-full border-none focus:ring-0 text-xs font-black uppercase"
+                  value={buscaExtra}
+                  onChange={(e) => setBuscaExtra(e.target.value)}
+                />
+              </div>
+              {buscaExtra.length > 1 && (
+                <div className="absolute top-16 left-0 w-full bg-white border border-slate-100 rounded-2xl shadow-2xl z-50 p-4 space-y-2 max-h-60 overflow-y-auto">
+                  {categoriasProdutos.flatMap(c => c.itens)
+                    .filter(p => p.nome.toLowerCase().includes(buscaExtra.toLowerCase()))
+                    .map(p => (
+                      <button key={p.codigo} onClick={() => adicionarItemExtra(p)} className="w-full text-left p-4 hover:bg-blue-50 rounded-xl flex justify-between items-center transition-all">
+                        <div>
+                          <p className="text-[10px] font-black text-blue-600">{p.codigo}</p>
+                          <p className="text-xs font-black text-slate-800 uppercase">{p.nome}</p>
+                        </div>
+                        <Plus size={16} />
+                      </button>
+                    ))}
                 </div>
               )}
             </div>
-          </div>
-        </div>
 
-        <div className="bg-white rounded-[40px] border border-slate-100 overflow-hidden shadow-sm">
-          <table className="w-full text-left">
-            <thead className="bg-slate-50 text-[10px] font-black uppercase text-slate-400 tracking-widest">
-              <tr><th className="p-8">Produto</th><th className="p-8 text-center">Solicitado</th><th className="p-8 text-center">Conferido</th><th className="p-8 text-right">Status</th></tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {itensConferindo.map(item => (
-                <tr key={item.codigo}>
-                  <td className="p-8"><p className="text-sm font-black text-slate-800 uppercase leading-tight">{item.nome}</p><span className="text-[10px] font-bold text-blue-500">{item.codigo}</span></td>
-                  <td className="p-8 text-center font-bold text-slate-400">{item.qtdSolicitada}</td>
-                  <td className="p-8">
-                    <div className="flex justify-center">
-                      <div className="flex items-center bg-slate-100 rounded-xl p-1">
-                        <button onClick={() => atualizarQtd(item.codigo, item.qtdConferida - 1)} className="p-1 hover:text-blue-500 transition-colors"><Minus size={14}/></button>
-                        <input type="number" value={item.qtdConferida} onChange={e => atualizarQtd(item.codigo, e.target.value)} className="w-10 text-center text-xs font-black bg-transparent border-none focus:ring-0" />
-                        <button onClick={() => atualizarQtd(item.codigo, item.qtdConferida + 1)} className="p-1 hover:text-blue-500 transition-colors"><Plus size={14}/></button>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-8 text-right">
-                    {item.qtdConferida > item.qtdSolicitada ? <span className="text-[9px] font-black bg-orange-100 text-orange-600 px-2 py-1 rounded">EXCESSO</span> : (item.qtdConferida < item.qtdSolicitada ? <span className="text-[9px] font-black bg-red-100 text-red-600 px-2 py-1 rounded">FALTA</span> : <span className="text-[9px] font-black bg-green-100 text-green-600 px-2 py-1 rounded">OK</span>)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="w-[400px]">
-        <div className="bg-[#0a0b1e] text-white p-8 rounded-[40px] sticky top-8 shadow-2xl border border-white/5">
-          <div className="flex items-center gap-3 mb-10"><PackageCheck className="text-blue-500" /><h2 className="text-xs font-black uppercase tracking-widest">Resumo Saída</h2></div>
-          <div className="space-y-6 max-h-[450px] overflow-y-auto mb-8 custom-scrollbar">
-            {itensConferindo.map(item => (
-              <div key={item.codigo} className="flex justify-between items-center border-b border-white/5 pb-4">
-                <div className="flex-1 space-y-2">
-                  <p className="text-[10px] font-black uppercase tracking-wider">{item.nome}</p>
-                  <div className="flex items-center bg-white/5 rounded-lg border border-white/10 p-1 w-fit">
-                    <button onClick={() => atualizarQtd(item.codigo, item.qtdConferida - 1)} className="p-1 hover:text-blue-500 transition-colors"><Minus size={12}/></button>
-                    <input type="number" value={item.qtdConferida} readOnly className="w-10 text-center text-[11px] font-black text-blue-400 bg-transparent border-none p-0" />
-                    <button onClick={() => atualizarQtd(item.codigo, item.qtdConferida + 1)} className="p-1 hover:text-blue-500 transition-colors"><Plus size={12}/></button>
-                  </div>
-                </div>
-                <button onClick={() => atualizarQtd(item.codigo, 0)} className="text-red-500/30 hover:text-red-500 ml-4"><Trash2 size={16}/></button>
-              </div>
-            ))}
+            {/* TABELA DE ITENS EM CONFERÊNCIA */}
+            <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50 text-[10px] font-black uppercase text-slate-400">
+                  <tr>
+                    <th className="p-8">Status</th>
+                    <th className="p-8">Produto</th>
+                    <th className="p-8 text-center">Pedido</th>
+                    <th className="p-8 text-center">Enviado</th>
+                    <th className="p-8">Aviso / Alerta</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {itensConferencia.map(item => {
+                    const excesso = item.qtdEnviada > item.qtdSolicitada;
+                    return (
+                      <tr key={item.codigo} className={`${!item.atendido ? 'opacity-40 grayscale' : ''} transition-all`}>
+                        <td className="p-8">
+                          <button onClick={() => alternarAtendimento(item.codigo)}>
+                            {item.atendido 
+                              ? <CheckCircle className="text-green-500" size={24}/> 
+                              : <XCircle className="text-slate-300" size={24}/>}
+                          </button>
+                        </td>
+                        <td className="p-8">
+                          <p className="text-sm font-black text-slate-800 uppercase leading-tight">{item.nome}</p>
+                          <div className="flex gap-2 items-center">
+                            <span className="text-[10px] font-bold text-blue-500">{item.codigo}</span>
+                            {item.extra && <span className="text-[8px] font-black bg-purple-100 text-purple-600 px-2 py-0.5 rounded uppercase">Item Extra</span>}
+                          </div>
+                        </td>
+                        <td className="p-8 text-center font-black text-xs text-slate-400">
+                          {item.qtdSolicitada} {item.unidade}
+                        </td>
+                        <td className="p-8">
+                          <div className="flex items-center justify-center bg-slate-100 rounded-xl p-1 w-fit mx-auto border border-slate-200">
+                            <button onClick={() => atualizarQtdConferencia(item.codigo, item.qtdEnviada - 1)} className="p-2 hover:text-blue-600"><Minus size={14}/></button>
+                            <input 
+                              type="number" 
+                              className="w-12 text-center bg-transparent font-black text-xs border-none focus:ring-0 p-0"
+                              value={item.qtdEnviada}
+                              onChange={(e) => atualizarQtdConferencia(item.codigo, e.target.value)}
+                            />
+                            <button onClick={() => atualizarQtdConferencia(item.codigo, item.qtdEnviada + 1)} className="p-2 hover:text-blue-600"><Plus size={14}/></button>
+                          </div>
+                        </td>
+                        <td className="p-8">
+                          {excesso && item.qtdSolicitada > 0 && (
+                            <div className="flex items-center gap-2 text-orange-500 bg-orange-50 p-3 rounded-xl border border-orange-100 animate-pulse">
+                              <AlertTriangle size={16} />
+                              <span className="text-[9px] font-black uppercase">Enviando mais que o solicitado</span>
+                            </div>
+                          )}
+                          {!item.atendido && (
+                            <span className="text-[9px] font-black text-red-400 uppercase">Item não será enviado</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-          <button onClick={finalizarAtendimento} className="w-full bg-blue-600 py-5 rounded-3xl font-black uppercase text-[11px] shadow-xl active:scale-95 transition-all">Finalizar e Despachar</button>
-        </div>
+        ) : (
+          <div className="h-full flex flex-col items-center justify-center bg-slate-50 rounded-[40px] border-2 border-dashed border-slate-200 p-20 text-center opacity-40">
+            <Package size={60} className="text-slate-300 mb-6" />
+            <h3 className="text-lg font-black uppercase italic text-slate-400">Selecione um pedido na fila</h3>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Para iniciar o processo de conferência de carga</p>
+          </div>
+        )}
       </div>
     </div>
   );
