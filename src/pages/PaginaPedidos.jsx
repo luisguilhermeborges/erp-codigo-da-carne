@@ -13,8 +13,6 @@ import {
 } from 'lucide-react';
 
 const PaginaPedidos = ({ user }) => {
-  // Se o utilizador for comercial, a unidade é travada na dele.
-  // Adm e Master podem escolher qualquer uma.
   const [unidadeSolicitante, setUnidadeSolicitante] = useState(
     user.cargo === 'comercial' ? user.unidade : '001'
   );
@@ -23,7 +21,6 @@ const PaginaPedidos = ({ user }) => {
   const [carrinho, setCarrinho] = useState([]);
   const [categoriasAbertas, setCategoriasAbertas] = useState(['dia-a-dia']);
 
-  // Filtro de pesquisa de produtos
   const categoriasFiltradas = useMemo(() => {
     if (!busca) return categoriasProdutos;
     return categoriasProdutos.map(cat => ({
@@ -41,14 +38,14 @@ const PaginaPedidos = ({ user }) => {
     );
   };
 
-  // Funções do Carrinho
   const adicionarAoCarrinho = (produto) => {
     setCarrinho(prev => {
       const existe = prev.find(i => i.codigo === produto.codigo);
       if (existe) {
-        return prev.map(i => i.codigo === produto.codigo ? { ...i, qtd: i.qtd + 1 } : i);
+        return prev.map(i => i.codigo === produto.codigo ? { ...i, qtd: Number(i.qtd) + 1 } : i);
       }
-      return [...prev, { ...produto, qtd: 1 }];
+      // Inicializa kg com 4,000 e un com 1
+      return [...prev, { ...produto, qtd: produto.unidade === 'kg' ? 4.000 : 1 }];
     });
   };
 
@@ -63,7 +60,6 @@ const PaginaPedidos = ({ user }) => {
 
   const totalGeral = carrinho.reduce((acc, i) => acc + (i.preco * i.qtd), 0);
 
-  // Enviar para a Fila de Atendimento
   const finalizarPedido = () => {
     if (carrinho.length === 0) return alert("O carrinho está vazio!");
 
@@ -75,22 +71,20 @@ const PaginaPedidos = ({ user }) => {
       itens: carrinho,
       total: totalGeral,
       data: new Date().toLocaleString(),
-      status: 'Pendente'
+      status: 'Pendente',
+      tipo: 'PEDIDO_LOJA'
     };
 
     const filaExistente = JSON.parse(localStorage.getItem('fila_pedidos') || '[]');
     localStorage.setItem('fila_pedidos', JSON.stringify([...filaExistente, novoPedido]));
 
-    alert(`✅ Pedido #${novoPedido.id} enviado com sucesso para a conferência!`);
+    alert(`✅ Pedido #${novoPedido.id} enviado com sucesso!`);
     setCarrinho([]);
   };
 
   return (
     <div className="flex gap-8 animate-in fade-in duration-500">
-      {/* Lado Esquerdo: Seleção de Produtos */}
       <div className="flex-1 space-y-6">
-        
-        {/* Cabeçalho de Seleção */}
         <div className="grid grid-cols-2 gap-4">
           <div className={`p-6 rounded-3xl border flex items-center gap-4 transition-all ${
             user.cargo === 'comercial' ? 'bg-slate-50 border-slate-100' : 'bg-white border-blue-100 shadow-sm'
@@ -110,9 +104,6 @@ const PaginaPedidos = ({ user }) => {
                 <option value="003">003 - GLEBA</option>
               </select>
             </div>
-            {user.cargo === 'comercial' && (
-              <span className="text-[8px] font-black bg-slate-200 text-slate-500 px-2 py-1 rounded">FIXO</span>
-            )}
           </div>
 
           <div className="bg-white p-6 rounded-3xl border border-slate-100 flex items-center gap-4 shadow-sm">
@@ -122,19 +113,15 @@ const PaginaPedidos = ({ user }) => {
               placeholder="BUSCAR CÓDIGO OU NOME..." 
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
-              className="flex-1 border-none focus:ring-0 text-xs font-black uppercase placeholder:text-slate-300"
+              className="flex-1 border-none focus:ring-0 text-xs font-black uppercase"
             />
           </div>
         </div>
 
-        {/* Listagem de Categorias */}
         <div className="space-y-4">
           {categoriasFiltradas.map(cat => (
             <div key={cat.id} className="bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm">
-              <button 
-                onClick={() => toggleCategoria(cat.id)}
-                className="w-full flex justify-between p-6 items-center hover:bg-slate-50 transition-colors"
-              >
+              <button onClick={() => toggleCategoria(cat.id)} className="w-full flex justify-between p-6 items-center hover:bg-slate-50 transition-colors">
                 <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-700">{cat.nome}</span>
                 {categoriasAbertas.includes(cat.id) ? <ChevronUp size={20}/> : <ChevronDown size={20}/>}
               </button>
@@ -148,10 +135,7 @@ const PaginaPedidos = ({ user }) => {
                         <p className="text-sm font-black text-slate-800 uppercase">{prod.nome}</p>
                         <p className="text-xs text-slate-400 font-bold">R$ {prod.preco.toFixed(2)} / {prod.unidade}</p>
                       </div>
-                      <button 
-                        onClick={() => adicionarAoCarrinho(prod)}
-                        className="bg-slate-100 p-3 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm active:scale-90"
-                      >
+                      <button onClick={() => adicionarAoCarrinho(prod)} className="bg-slate-100 p-3 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm active:scale-90">
                         <Plus size={18}/>
                       </button>
                     </div>
@@ -163,7 +147,6 @@ const PaginaPedidos = ({ user }) => {
         </div>
       </div>
 
-      {/* Lado Direito: Carrinho (Sticky) */}
       <div className="w-[420px]">
         <div className="bg-[#0a0b1e] text-white p-8 rounded-[40px] sticky top-8 shadow-2xl border border-white/5">
           <div className="flex items-center gap-3 mb-10">
@@ -173,66 +156,43 @@ const PaginaPedidos = ({ user }) => {
             <h2 className="text-xs font-black uppercase tracking-[0.3em]">Resumo do Pedido</h2>
           </div>
 
-          {/* Lista de Itens no Carrinho */}
           <div className="space-y-6 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar mb-8">
             {carrinho.length === 0 ? (
-              <div className="py-10 text-center space-y-2 opacity-20">
-                <ShoppingCart size={40} className="mx-auto" />
-                <p className="text-[10px] font-black uppercase tracking-widest">Carrinho Vazio</p>
-              </div>
+              <div className="py-10 text-center opacity-20"><p className="text-[10px] font-black uppercase">Carrinho Vazio</p></div>
             ) : (
               carrinho.map(item => (
                 <div key={item.codigo} className="flex justify-between items-center border-b border-white/5 pb-6">
                   <div className="flex-1 space-y-2">
                     <p className="text-[10px] font-black uppercase tracking-wider">{item.nome}</p>
                     <div className="flex items-center bg-white/5 rounded-lg border border-white/10 p-1 w-fit">
-                      <button 
-                        onClick={() => atualizarQtd(item.codigo, item.qtd - 1)}
-                        className="p-1 hover:text-blue-500 transition-colors"
-                      >
-                        <Minus size={12}/>
-                      </button>
+                      <button onClick={() => atualizarQtd(item.codigo, Number(item.qtd) - 1)} className="p-1 hover:text-blue-500"><Minus size={12}/></button>
                       <input 
                         type="number" 
+                        step={item.unidade === 'kg' ? "1.000" : "1"}
                         value={item.qtd} 
                         onChange={(e) => atualizarQtd(item.codigo, e.target.value)}
-                        className="w-12 text-center text-[11px] font-black text-blue-400 bg-transparent border-none focus:ring-0 p-0" 
+                        className="w-20 text-center text-[11px] font-black text-blue-400 bg-transparent border-none focus:ring-0 p-0" 
                       />
-                      <button 
-                        onClick={() => atualizarQtd(item.codigo, item.qtd + 1)}
-                        className="p-1 hover:text-blue-500 transition-colors"
-                      >
-                        <Plus size={12}/>
-                      </button>
+                      <button onClick={() => atualizarQtd(item.codigo, Number(item.qtd) + 1)} className="p-1 hover:text-blue-500"><Plus size={12}/></button>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-2">
+                  <div className="flex flex-col items-end gap-1">
+                    <p className="text-[10px] font-bold text-blue-400 uppercase">
+                      {Number(item.qtd).toFixed(item.unidade === 'kg' ? 3 : 0)} {item.unidade}
+                    </p>
                     <p className="text-xs font-black text-white">R$ {(item.preco * item.qtd).toFixed(2)}</p>
-                    <button 
-                      onClick={() => atualizarQtd(item.codigo, 0)}
-                      className="text-red-500/30 hover:text-red-500 transition-colors"
-                    >
-                      <Trash2 size={16}/>
-                    </button>
                   </div>
                 </div>
               ))
             )}
           </div>
 
-          {/* Rodapé do Carrinho */}
           <div className="mt-8 pt-8 border-t border-white/10 space-y-6">
             <div className="flex justify-between items-center">
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Valor Estimado</span>
-              <span className="text-3xl font-black text-blue-500 tracking-tighter">R$ {totalGeral.toFixed(2)}</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase">Total Estimado</span>
+              <span className="text-3xl font-black text-blue-500">R$ {totalGeral.toFixed(2)}</span>
             </div>
-            
-            <button 
-              onClick={finalizarPedido}
-              disabled={carrinho.length === 0}
-              className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-600 py-6 rounded-[24px] font-black uppercase text-[11px] tracking-[0.2em] shadow-xl shadow-blue-500/20 active:scale-95 transition-all flex items-center justify-center gap-3"
-            >
-              <CheckCircle size={18} />
+            <button onClick={finalizarPedido} disabled={carrinho.length === 0} className="w-full bg-blue-600 hover:bg-blue-50 py-6 rounded-[24px] font-black uppercase text-[11px] tracking-[0.2em] shadow-xl transition-all">
               Finalizar Solicitação
             </button>
           </div>
