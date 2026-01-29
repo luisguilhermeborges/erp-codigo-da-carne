@@ -1,12 +1,10 @@
-import React, { useState, useMemo } from 'react';
-import { categoriasProdutos } from '../data/produtos';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Search, 
   Plus, 
   Minus, 
   Trash2, 
   ShoppingCart, 
-  CheckCircle, 
   ChevronDown, 
   ChevronUp, 
   MapPin 
@@ -19,18 +17,34 @@ const PaginaPedidos = ({ user }) => {
   
   const [busca, setBusca] = useState('');
   const [carrinho, setCarrinho] = useState([]);
-  const [categoriasAbertas, setCategoriasAbertas] = useState(['dia-a-dia']);
+  const [produtosSistema, setProdutosSistema] = useState([]);
+  const [categoriasAbertas, setCategoriasAbertas] = useState(['geral']);
 
+  // Carrega os produtos importados via Excel que estão no LocalStorage
+  useEffect(() => {
+    const dados = JSON.parse(localStorage.getItem('produtos_erp') || '[]');
+    
+    // Organizamos em uma categoria única "Catálogo Geral" para manter a estrutura visual
+    const catalogoFormatado = [{
+      id: 'geral',
+      nome: 'Catálogo Geral',
+      itens: dados
+    }];
+    
+    setProdutosSistema(catalogoFormatado);
+  }, []);
+
+  // Filtra os itens com base na pesquisa por nome ou código
   const categoriasFiltradas = useMemo(() => {
-    if (!busca) return categoriasProdutos;
-    return categoriasProdutos.map(cat => ({
+    if (!busca) return produtosSistema;
+    return produtosSistema.map(cat => ({
       ...cat,
       itens: cat.itens.filter(p => 
         p.nome.toLowerCase().includes(busca.toLowerCase()) || 
-        p.codigo.toLowerCase().includes(busca.toLowerCase())
+        p.codigo.toString().toLowerCase().includes(busca.toLowerCase())
       )
     })).filter(cat => cat.itens.length > 0);
-  }, [busca]);
+  }, [busca, produtosSistema]);
 
   const toggleCategoria = (id) => {
     setCategoriasAbertas(prev => 
@@ -44,14 +58,14 @@ const PaginaPedidos = ({ user }) => {
       if (existe) {
         return prev.map(i => i.codigo === produto.codigo ? { ...i, qtd: Number(i.qtd) + 1 } : i);
       }
-      // Inicializa kg com 4,000 e un com 1
-      return [...prev, { ...produto, qtd: produto.unidade === 'kg' ? 4.000 : 1 }];
+      // REGRA: Inicia em 0.000 para kg e 0 para un
+      return [...prev, { ...produto, qtd: 0 }];
     });
   };
 
   const atualizarQtd = (codigo, novaQtd) => {
     const valor = Number(novaQtd);
-    if (valor <= 0) {
+    if (valor < 0) {
       setCarrinho(prev => prev.filter(i => i.codigo !== codigo));
     } else {
       setCarrinho(prev => prev.map(i => i.codigo === codigo ? { ...i, qtd: valor } : i));
@@ -121,7 +135,7 @@ const PaginaPedidos = ({ user }) => {
         <div className="space-y-4">
           {categoriasFiltradas.map(cat => (
             <div key={cat.id} className="bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm">
-              <button onClick={() => toggleCategoria(cat.id)} className="w-full flex justify-between p-6 items-center hover:bg-slate-50 transition-colors">
+              <button onClick={() => toggleCategoria(cat.id)} className="w-full flex justify-between p-6 items-center hover:bg-slate-50 transition-colors text-left">
                 <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-700">{cat.nome}</span>
                 {categoriasAbertas.includes(cat.id) ? <ChevronUp size={20}/> : <ChevronDown size={20}/>}
               </button>
@@ -144,6 +158,11 @@ const PaginaPedidos = ({ user }) => {
               )}
             </div>
           ))}
+          {produtosSistema[0]?.itens.length === 0 && (
+            <div className="p-20 text-center opacity-20 border-2 border-dashed border-slate-200 rounded-[40px]">
+              <p className="font-black uppercase text-xs tracking-widest">Nenhum produto importado. Aceda ao módulo de Gestão.</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -165,15 +184,15 @@ const PaginaPedidos = ({ user }) => {
                   <div className="flex-1 space-y-2">
                     <p className="text-[10px] font-black uppercase tracking-wider">{item.nome}</p>
                     <div className="flex items-center bg-white/5 rounded-lg border border-white/10 p-1 w-fit">
-                      <button onClick={() => atualizarQtd(item.codigo, Number(item.qtd) - 1)} className="p-1 hover:text-blue-500"><Minus size={12}/></button>
+                      <button onClick={() => atualizarQtd(item.codigo, Number(item.qtd) - 1)} className="p-1 hover:text-blue-500 transition-colors"><Minus size={12}/></button>
                       <input 
                         type="number" 
                         step={item.unidade === 'kg' ? "1.000" : "1"}
                         value={item.qtd} 
                         onChange={(e) => atualizarQtd(item.codigo, e.target.value)}
-                        className="w-20 text-center text-[11px] font-black text-blue-400 bg-transparent border-none focus:ring-0 p-0" 
+                        className="w-24 text-center text-[11px] font-black text-blue-400 bg-transparent border-none focus:ring-0 p-0" 
                       />
-                      <button onClick={() => atualizarQtd(item.codigo, Number(item.qtd) + 1)} className="p-1 hover:text-blue-500"><Plus size={12}/></button>
+                      <button onClick={() => atualizarQtd(item.codigo, Number(item.qtd) + 1)} className="p-1 hover:text-blue-500 transition-colors"><Plus size={12}/></button>
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1">
@@ -181,6 +200,7 @@ const PaginaPedidos = ({ user }) => {
                       {Number(item.qtd).toFixed(item.unidade === 'kg' ? 3 : 0)} {item.unidade}
                     </p>
                     <p className="text-xs font-black text-white">R$ {(item.preco * item.qtd).toFixed(2)}</p>
+                    <button onClick={() => atualizarQtd(item.codigo, -1)} className="text-red-500 opacity-30 hover:opacity-100 transition-opacity"><Trash2 size={14}/></button>
                   </div>
                 </div>
               ))

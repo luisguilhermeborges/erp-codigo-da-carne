@@ -10,14 +10,9 @@ import PaginaTransferenciaAvulsa from './pages/PaginaTransferenciaAvulsa';
 import './App.css';
 
 function App() {
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('user_sessao');
-    try {
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
+  // Alterado para null: agora o sistema não guarda a sessão no browser
+  // O utilizador terá de fazer login sempre que a página for recarregada
+  const [user, setUser] = useState(null);
   
   const [telaAtiva, setTelaAtiva] = useState('dashboard');
   const [tempoAtivo, setTempoAtivo] = useState(0);
@@ -29,13 +24,12 @@ function App() {
 
   const handleLogin = (userData) => {
     setUser(userData);
-    localStorage.setItem('user_sessao', JSON.stringify(userData));
+    // Removemos o localStorage.setItem para não persistir a sessão
     setTelaAtiva('dashboard');
   };
 
   const handleLogout = () => {
     setUser(null);
-    localStorage.removeItem('user_sessao');
     setTelaAtiva('dashboard');
   };
 
@@ -54,7 +48,7 @@ function App() {
       case 'relatorios':
         return <PaginaRelatorios user={user} />;
       case 'gestao':
-        return <PaginaGestao />;
+        return <PaginaGestao user={user} />;
       default:
         return <BannerBoasVindas tempo={tempoAtivo} unidade={user.unidade} nome={user.nome} />;
     }
