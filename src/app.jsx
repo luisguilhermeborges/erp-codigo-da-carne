@@ -5,63 +5,72 @@ import Login from './pages/Login';
 import PaginaPedidos from './pages/PaginaPedidos';
 import PaginaAtendimento from './pages/PaginaAtendimento';
 import PaginaRelatorios from './pages/PaginaRelatorios';
-import PaginaGestao from './pages/PaginaGestao';
 import PaginaTransferenciaAvulsa from './pages/PaginaTransferenciaAvulsa';
+import PaginaGestao from './pages/PaginaGestao'; 
 import './App.css';
 
 function App() {
-  // Alterado para null: agora o sistema não guarda a sessão no browser
-  // O utilizador terá de fazer login sempre que a página for recarregada
+  // O estado inicia como null para forçar o login sempre que a página for aberta/atualizada
   const [user, setUser] = useState(null);
   
+  // Controle de navegação entre as telas
   const [telaAtiva, setTelaAtiva] = useState('dashboard');
-  const [tempoAtivo, setTempoAtivo] = useState(0);
 
-  useEffect(() => {
-    const timer = setInterval(() => setTempoAtivo(prev => prev + 1), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
+  // Função disparada após o sucesso no Login.jsx
   const handleLogin = (userData) => {
     setUser(userData);
-    // Removemos o localStorage.setItem para não persistir a sessão
     setTelaAtiva('dashboard');
   };
 
+  // Função para deslogar o usuário
   const handleLogout = () => {
     setUser(null);
     setTelaAtiva('dashboard');
   };
 
-  if (!user) return <Login onLogin={handleLogin} />;
+  // Se não houver usuário logado, mostra apenas a tela de Login
+  if (!user) {
+    return <Login onLogin={handleLogin} />;
+  }
 
+  // Lógica de roteamento interno do sistema
   const renderConteudo = () => {
     switch (telaAtiva) {
       case 'dashboard':
-        return <BannerBoasVindas tempo={tempoAtivo} unidade={user.unidade} nome={user.nome} />;
+        // Passa o objeto user completo para o Banner e Mural dos Sonhos
+        return <BannerBoasVindas user={user} />;
+      
       case 'fazer-pedido':
         return <PaginaPedidos user={user} />;
+      
       case 'atender-pedidos':
         return <PaginaAtendimento user={user} />;
+      
       case 'transferencia-avulsa':
         return <PaginaTransferenciaAvulsa user={user} />;
+      
       case 'relatorios':
         return <PaginaRelatorios user={user} />;
+      
       case 'gestao':
         return <PaginaGestao user={user} />;
+      
       default:
-        return <BannerBoasVindas tempo={tempoAtivo} unidade={user.unidade} nome={user.nome} />;
+        return <BannerBoasVindas user={user} />;
     }
   };
 
   return (
     <div className="mbm-dashboard">
+      {/* Barra Lateral de Navegação */}
       <BarraLateral 
         telaAtiva={telaAtiva} 
         setTelaAtiva={setTelaAtiva} 
         user={user} 
         onLogout={handleLogout} 
       />
+
+      {/* Área Principal de Conteúdo */}
       <main className="mbm-content">
         <div className="page-wrapper">
           {renderConteudo()}
