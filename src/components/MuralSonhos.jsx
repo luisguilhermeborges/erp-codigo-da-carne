@@ -38,7 +38,6 @@ const MuralSonhos = ({ user }) => {
 
   const addSonhoLista = () => {
     if (novoInputSonho.trim() && tempSonho.sonhos.length < 5) {
-      // Salva o texto respeitando a caixa (alta/baixa) digitada
       setTempSonho({ ...tempSonho, sonhos: [...tempSonho.sonhos, { texto: novoInputSonho.trim(), realizado: false }] });
       setNovoInputSonho('');
     }
@@ -92,7 +91,7 @@ const MuralSonhos = ({ user }) => {
         {cards.map((card, index) => (
           <div key={card.id} className="bg-[#fefce8] p-5 rounded-sm shadow-xl transform rotate-1 hover:rotate-0 transition-all border-l-[10px] border-blue-600/20 flex flex-col h-auto">
             <div className="flex justify-between items-start mb-4">
-              <span className="text-[10px] font-black uppercase text-blue-600 bg-blue-50 px-2 py-1 rounded">@ {card.userName.split(' ')[0]}</span>
+              <span className="text-[10px] font-black uppercase text-blue-600 bg-blue-50 px-2 py-1 rounded truncate max-w-[100px]">@ {card.userName.split(' ')[0]}</span>
               <div className="flex gap-1">
                 {user.cargo === 'master' && (
                   <>
@@ -105,9 +104,7 @@ const MuralSonhos = ({ user }) => {
                 )}
               </div>
             </div>
-            
             {card.foto && <img src={card.foto} className="w-full h-40 object-cover rounded-xl mb-4 shadow-md" alt="Sonho" />}
-            
             <div className="space-y-3">
               {card.sonhos.map((s, idx) => (
                 <div key={idx} className="flex items-start gap-2 leading-tight">
@@ -118,7 +115,6 @@ const MuralSonhos = ({ user }) => {
                   >
                     {s.realizado ? <CheckSquare size={18}/> : <Square size={18}/>}
                   </button>
-                  {/* normal-case garante que o texto apareça como digitado */}
                   <p className={`text-[12px] font-bold text-slate-700 italic normal-case ${s.realizado ? 'line-through opacity-50' : ''}`}>
                     {s.texto}
                   </p>
@@ -137,8 +133,8 @@ const MuralSonhos = ({ user }) => {
               <button onClick={() => setModalAberto(false)}><X/></button>
             </div>
             <div className="space-y-4">
-              <div className="bg-slate-50 p-6 rounded-3xl border-2 border-dashed border-slate-200 text-center relative">
-                {tempSonho.foto ? <img src={tempSonho.foto} className="h-24 mx-auto rounded-xl" /> : <div className="py-4"><Camera className="mx-auto text-slate-300"/><p className="text-[9px] font-black uppercase text-slate-400 mt-2">Trocar Foto</p></div>}
+              <div className="bg-slate-50 p-6 rounded-3xl border-2 border-dashed border-slate-200 text-center relative group">
+                {tempSonho.foto ? <img src={tempSonho.foto} className="h-24 mx-auto rounded-xl" /> : <div className="py-4"><Camera className="mx-auto text-slate-300"/><p className="text-[9px] font-black uppercase text-slate-400 mt-2">Adicionar Foto</p></div>}
                 <input type="file" accept="image/*" onChange={handleFoto} className="absolute inset-0 opacity-0 cursor-pointer" />
               </div>
               <div className="flex gap-2">

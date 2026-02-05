@@ -1,92 +1,110 @@
 import React, { useState } from 'react';
-import { UserPlus, Trash2, Edit2, Save, X, RefreshCw } from 'lucide-react';
+import { Megaphone, ExternalLink, ShoppingBag, Trash2, X } from 'lucide-react';
+import MuralSonhos from './MuralSonhos';
 
-const GestaoUsuarios = () => {
-  const [usuarios, setUsuarios] = useState(() => JSON.parse(localStorage.getItem('usuarios_erp') || '[]'));
-  const [filiais] = useState(() => JSON.parse(localStorage.getItem('filiais_config') || '["000 - PRODUÇÃO", "001 - CENTRO", "002 - ALPHAVILLE", "003 - GLEBA"]'));
-  
-  const [editandoId, setEditandoId] = useState(null);
-  const [novoUser, setNovoUser] = useState({ nome: '', login: '', senha: '', cargo: 'comercial', unidade: '001' });
+const BannerBoasVindas = ({ user }) => {
+  if (!user) return null;
 
-  const salvarUser = (e) => {
-    e.preventDefault();
-    let lista = editandoId 
-      ? usuarios.map(u => u.id === editandoId ? { ...novoUser, id: editandoId } : u)
-      : [...usuarios, { ...novoUser, id: Date.now() }];
+  const [anuncios, setAnuncios] = useState(() => JSON.parse(localStorage.getItem('quadro_anuncios') || '[]'));
+  const [modalAnuncio, setModalAnuncio] = useState(false);
+  const [novoAnuncio, setNovoAnuncio] = useState({ titulo: '', preco: '', contato: '' });
 
-    setUsuarios(lista);
-    localStorage.setItem('usuarios_erp', JSON.stringify(lista));
-    setEditandoId(null);
-    setNovoUser({ nome: '', login: '', senha: '', cargo: 'comercial', unidade: '001' });
-    alert("Dados salvos!");
+  const formatarTelefone = (val) => {
+    const n = val.replace(/\D/g, '');
+    if (n.length <= 2) return `(${n}`;
+    if (n.length <= 3) return `(${n.slice(0, 2)}) ${n.slice(2)}`;
+    if (n.length <= 7) return `(${n.slice(0, 2)}) ${n.slice(2, 3)} ${n.slice(3)}`;
+    return `(${n.slice(0, 2)}) ${n.slice(2, 3)} ${n.slice(3, 7)}-${n.slice(7, 11)}`;
   };
 
-  const resetarSenha = (u) => {
-    if (confirm(`Deseja resetar a senha de ${u.nome} para "codigo123"?`)) {
-      const novaLista = usuarios.map(usr => usr.id === u.id ? { ...usr, senha: 'codigo123' } : usr);
-      setUsuarios(novaLista);
-      localStorage.setItem('usuarios_erp', JSON.stringify(novaLista));
-      alert("Senha resetada com sucesso para: codigo123");
-    }
+  const handlePostar = () => {
+    if (!novoAnuncio.titulo || novoAnuncio.contato.length < 16) return alert("Preencha título e WhatsApp completo!");
+    const lista = [{ ...novoAnuncio, id: Date.now(), autor: user.nome, userId: user.id }, ...anuncios];
+    setAnuncios(lista);
+    localStorage.setItem('quadro_anuncios', JSON.stringify(lista));
+    setNovoAnuncio({ titulo: '', preco: '', contato: '' });
+    setModalAnuncio(false);
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in">
-      <form onSubmit={salvarUser} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end bg-slate-50 p-6 rounded-3xl border border-slate-100 shadow-sm">
-        <div className="space-y-1">
-          <label className="text-[9px] font-black uppercase text-slate-400 ml-2">Nome Completo</label>
-          <input type="text" className="w-full p-4 rounded-xl border-none text-xs font-bold uppercase" required value={novoUser.nome} onChange={e => setNovoUser({...novoUser, nome: e.target.value})} />
+    <div className="space-y-8 animate-in fade-in duration-700">
+      <div className="bg-[#0a0b1e] p-12 rounded-[48px] border border-white/5 relative overflow-hidden shadow-2xl">
+        <div className="relative z-10">
+          <h1 className="text-4xl font-black italic text-white uppercase tracking-tighter">
+            Olá, <span className="text-blue-500">{user.nome.split(' ')[0]}</span>.
+          </h1>
+          <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] mt-2">
+            Base: {user.unidade} | Código da Carne ERP
+          </p>
         </div>
-        <div className="space-y-1">
-          <label className="text-[9px] font-black uppercase text-slate-400 ml-2">Login</label>
-          <input type="text" className="w-full p-4 rounded-xl border-none text-xs font-bold shadow-sm" required value={novoUser.login} onChange={e => setNovoUser({...novoUser, login: e.target.value})} />
-        </div>
-        <div className="space-y-1">
-          <label className="text-[9px] font-black uppercase text-slate-400 ml-2">Senha</label>
-          <input type="text" className="w-full p-4 rounded-xl border-none text-xs font-bold shadow-sm" required value={novoUser.senha} onChange={e => setNovoUser({...novoUser, senha: e.target.value})} />
-        </div>
-        <div className="space-y-1">
-          <label className="text-[9px] font-black uppercase text-slate-400 ml-2">Hierarquia</label>
-          <select className="bg-white p-4 rounded-xl border-none text-[10px] font-black uppercase w-full shadow-sm" value={novoUser.cargo} onChange={e => setNovoUser({...novoUser, cargo: e.target.value})}>
-            <option value="comercial">Comercial</option>
-            <option value="estoque">Estoque</option>
-            <option value="pcp">PCP (Logística/Geral)</option>
-            <option value="adm">ADM</option>
-            <option value="master">Master</option>
-          </select>
-        </div>
-        <button type="submit" className="bg-blue-600 text-white p-4 rounded-xl font-black text-[10px] uppercase flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 h-[52px]">
-          {editandoId ? <Save size={18}/> : <UserPlus size={18}/>}
-          {editandoId ? 'Atualizar' : 'Cadastrar'}
-        </button>
-      </form>
-
-      <div className="bg-white rounded-[32px] border border-slate-100 overflow-hidden shadow-sm">
-        <table className="w-full text-left">
-          <thead className="bg-slate-50 text-[10px] font-black uppercase text-slate-400">
-            <tr><th className="p-8">Colaborador</th><th>Cargo</th><th>Login</th><th>Unidade</th><th className="text-right p-8">Ações</th></tr>
-          </thead>
-          <tbody className="divide-y divide-slate-50 text-xs font-bold uppercase">
-            {usuarios.map(u => (
-              <tr key={u.id} className="hover:bg-slate-50 transition-colors">
-                <td className="p-8 text-slate-800 font-black">{u.nome}</td>
-                <td><span className={`px-3 py-1 rounded-full text-[9px] font-black ${u.cargo === 'pcp' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'}`}>{u.cargo}</span></td>
-                <td className="text-slate-400 lowercase">{u.login}</td>
-                <td className="text-slate-500">{u.unidade}</td>
-                <td className="text-right p-8 flex justify-end gap-3">
-                  <button onClick={() => resetarSenha(u)} title="Resetar Senha" className="p-3 text-amber-500 hover:bg-amber-50 rounded-2xl transition-all">
-                    <RefreshCw size={18}/>
-                  </button>
-                  <button onClick={() => {setEditandoId(u.id); setNovoUser(u);}} className="p-3 text-blue-400 hover:bg-blue-50 rounded-2xl transition-all"><Edit2 size={18}/></button>
-                  <button onClick={() => setUsuarios(usuarios.filter(x => x.id !== u.id))} className="p-3 text-red-200 hover:text-red-500 rounded-2xl transition-all"><Trash2 size={18}/></button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <Megaphone className="absolute right-[-20px] bottom-[-20px] text-white/5" size={200} />
       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="space-y-8">
+          <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm">
+            <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4">Comunicados</h3>
+            <div className="p-5 bg-blue-50 rounded-2xl border border-blue-100 italic font-black text-blue-800 text-[11px]">
+              Bem-vindo ao novo ecossistema digital. Confira seu Mural de Sonhos abaixo!
+            </div>
+          </section>
+          <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm">
+            <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4">Totalpass</h3>
+            <a href="https://totalpass.com.br" target="_blank" className="flex justify-between items-center p-5 bg-slate-50 rounded-2xl">
+              <span className="text-[10px] font-black uppercase">Acessar Manual</span>
+              <ExternalLink size={16} className="text-blue-600"/>
+            </a>
+          </section>
+        </div>
+
+        <div className="lg:col-span-2">
+          <section className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm h-full">
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-3">
+                <ShoppingBag className="text-blue-600" size={20} />
+                <h3 className="text-[10px] font-black uppercase text-slate-800">Classificados</h3>
+              </div>
+              <button onClick={() => setModalAnuncio(true)} className="bg-blue-600 text-white px-5 py-2 rounded-xl text-[9px] font-black uppercase">+ Novo Anúncio</button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {anuncios.map(a => (
+                <div key={a.id} className="p-6 bg-slate-50 rounded-3xl border border-slate-100 relative group">
+                  {(user.cargo === 'master' || a.userId === user.id) && (
+                    <button onClick={() => setAnuncios(anuncios.filter(x => x.id !== a.id))} className="absolute top-4 right-4 text-red-300 opacity-0 group-hover:opacity-100"><Trash2 size={14}/></button>
+                  )}
+                  <h4 className="text-xs font-black uppercase italic">{a.titulo}</h4>
+                  <p className="text-[11px] font-black text-green-600 mt-2">R$ {a.preco}</p>
+                  <div className="mt-4 pt-4 border-t text-slate-400 text-[8px] font-black uppercase">
+                    Vendedor: {a.autor} <br/>
+                    <span className="text-blue-500 text-[10px]">WhatsApp: {a.contato}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <MuralSonhos user={user} />
+
+      {modalAnuncio && (
+        <div className="fixed inset-0 bg-[#0a0b1e]/90 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-md rounded-[40px] p-10 space-y-4 shadow-2xl animate-in zoom-in">
+            <h3 className="text-sm font-black uppercase text-slate-800 italic">Novo Classificado</h3>
+            <input className="w-full p-4 bg-slate-50 rounded-2xl border-none text-xs font-bold uppercase" placeholder="Título" value={novoAnuncio.titulo} onChange={e => setNovoAnuncio({...novoAnuncio, titulo: e.target.value})} />
+            <div className="flex gap-2">
+              <input className="w-full p-4 bg-slate-50 rounded-2xl border-none text-xs font-bold uppercase" placeholder="Valor" value={novoAnuncio.preco} onChange={e => setNovoAnuncio({...novoAnuncio, preco: e.target.value})} />
+              <input className="w-full p-4 bg-slate-50 rounded-2xl border-none text-xs font-bold uppercase" placeholder="WhatsApp" value={novoAnuncio.contato} maxLength={16} onChange={e => setNovoAnuncio({...novoAnuncio, contato: formatarTelefone(e.target.value)})} />
+            </div>
+            <div className="flex gap-4 pt-6">
+              <button onClick={handlePostar} className="flex-1 bg-blue-600 text-white py-5 rounded-2xl font-black uppercase text-[10px]">Publicar</button>
+              <button onClick={() => setModalAnuncio(false)} className="px-8 py-5 bg-slate-100 text-slate-500 rounded-2xl font-black uppercase text-[10px]">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default GestaoUsuarios;
+export default BannerBoasVindas;

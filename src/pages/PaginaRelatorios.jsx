@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Search, 
-  Package, 
   ShoppingCart, 
   Tag, 
   Calendar, 
@@ -9,7 +8,7 @@ import {
   FileSpreadsheet
 } from 'lucide-react';
 
-// Importação da biblioteca para gerar o Excel real
+// Importação da biblioteca Excel (XLSX)
 import * as XLSX from 'xlsx';
 
 const PaginaRelatorios = () => {
@@ -18,14 +17,15 @@ const PaginaRelatorios = () => {
   const [filtroTipo, setFiltroTipo] = useState('TODOS');
   const [historico, setHistorico] = useState([]);
 
+  // Carrega o histórico de pedidos finalizados do LocalStorage
   useEffect(() => {
     const dados = JSON.parse(localStorage.getItem('historico_pedidos') || '[]');
     setHistorico(dados);
   }, []);
 
-  // FUNÇÃO DE EXPORTAÇÃO PARA EXCEL (MODELO DE IMPORTAÇÃO)
+  // FUNÇÃO DE EXPORTAÇÃO XLSX (MODELO RIGOROSO DE 20 COLUNAS)
   const exportarParaExcel = (pedido) => {
-    // Cabeçalho exato conforme o modelo (20 colunas)
+    // Cabeçalho exato do Modelo de Importação MBM
     const cabecalho = [
       "Nro Ped. Cliente", "Seq. Item", "* Código Item (Reduzido)", "* Código Item", 
       "Descrição Item", "* Qtde. Venda", "Unid. Venda", "Valor Unitário (Venda)", 
@@ -35,39 +35,41 @@ const PaginaRelatorios = () => {
       "Item Ped. Cliente", "Item Seq. Cliente"
     ];
 
-    // Mapeamento dos itens preenchendo as colunas específicas
+    // Mapeamento dos itens para as colunas da planilha
     const dadosRows = pedido.itens.map((item, index) => {
-      const row = new Array(20).fill(""); // Cria uma linha vazia com 20 posições
+      // Cria uma linha vazia com 20 colunas
+      const row = new Array(20).fill(""); 
       
-      row[0] = "";                         // Nro Ped. Cliente (Em branco conforme solicitado)
-      row[1] = index + 1;                  // Seq. Item
-      row[3] = item.codigo;                // * Código Item
-      row[4] = item.nome;                  // Descrição Item
-      row[5] = Number(item.qtdEnviada || item.qtd); // * Qtde. Venda
-      row[6] = item.unidade;               // Unid. Venda
-      row[9] = "v";                        // * Tipo Desconto (P/V) [NOVO REQUISITO]
+      row[0] = "";                                  // Nro Ped. Cliente (Vazio conforme pedido)
+      row[1] = index + 1;                           // Seq. Item (Sequencial)
+      row[3] = item.codigo;                         // * Código Item
+      row[4] = item.nome;                           // Descrição Item
+      row[5] = Number(item.qtdEnviada || item.qtd);  // * Qtde. Venda (Real conferida)
+      row[6] = item.unidade;                        // Unid. Venda
+      row[9] = "V";                                 // * Tipo Desconto (P/V) (V Maiúsculo)
       
       return row;
     });
 
-    // Cria a folha de cálculo a partir do Array de Arrays (AOA)
+    // Cria a folha de cálculo a partir do cabeçalho e dados
     const ws = XLSX.utils.aoa_to_sheet([cabecalho, ...dadosRows]);
     
-    // Configura a largura das colunas para melhor visualização
+    // Configuração de largura das colunas (Opcional para visualização)
     ws['!cols'] = [
       { wch: 15 }, { wch: 10 }, { wch: 20 }, { wch: 20 }, 
       { wch: 40 }, { wch: 15 }, { wch: 10 }, { wch: 15 },
       { wch: 15 }, { wch: 18 }
     ];
 
-    // Cria o livro de cálculo (Workbook)
+    // Cria o livro de cálculo
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Importacao_PV");
 
-    // Gera o ficheiro .xlsx e inicia o download
-    XLSX.writeFile(wb, `IMPORT_NF_PEDIDO_${pedido.id}.xlsx`);
+    // Dispara o download do ficheiro XLSX
+    XLSX.writeFile(wb, `PEDIDO_${pedido.id}_MBM_NF.xlsx`);
   };
 
+  // Lógica de filtragem dos relatórios
   const dadosFiltrados = useMemo(() => {
     const termo = pesquisa.toLowerCase();
     return historico.filter(reg => {
@@ -86,32 +88,52 @@ const PaginaRelatorios = () => {
     <div className="space-y-8 animate-in fade-in duration-500">
       <header className="flex justify-between items-end">
         <div>
-          <h2 className="text-3xl font-black uppercase italic tracking-tighter text-slate-800">Relatórios</h2>
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1">Exportação para Nota Fiscal (XLSX)</p>
+          <h2 className="text-3xl font-black uppercase italic tracking-tighter text-slate-800">
+            Relatórios
+          </h2>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1">
+            Exportação direta para integração de faturamento (XLSX)
+          </p>
         </div>
       </header>
 
-      {/* Painel de Filtros */}
+      {/* Painel de Filtros Avançados */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm">
         <div className="space-y-2">
-          <label className="text-[9px] font-black uppercase text-slate-400 ml-2">Pesquisa</label>
+          <label className="text-[9px] font-black uppercase text-slate-400 ml-2">Pesquisa Geral</label>
           <div className="bg-slate-50 p-3 rounded-2xl flex items-center gap-3">
             <Search size={16} className="text-slate-300" />
-            <input type="text" placeholder="ID OU CLIENTE..." className="bg-transparent border-none focus:ring-0 w-full text-xs font-bold uppercase" value={pesquisa} onChange={(e) => setPesquisa(e.target.value)} />
+            <input 
+              type="text" 
+              placeholder="ID OU CLIENTE..." 
+              className="bg-transparent border-none focus:ring-0 w-full text-xs font-bold uppercase" 
+              value={pesquisa} 
+              onChange={(e) => setPesquisa(e.target.value)} 
+            />
           </div>
         </div>
         <div className="space-y-2">
-          <label className="text-[9px] font-black uppercase text-slate-400 ml-2">Data</label>
+          <label className="text-[9px] font-black uppercase text-slate-400 ml-2">Data do Pedido</label>
           <div className="bg-slate-50 p-3 rounded-2xl flex items-center gap-3">
             <Calendar size={16} className="text-slate-300" />
-            <input type="text" placeholder="DD/MM/AAAA" className="bg-transparent border-none focus:ring-0 w-full text-xs font-bold uppercase" value={filtroData} onChange={(e) => setFiltroData(e.target.value)} />
+            <input 
+              type="text" 
+              placeholder="DD/MM/AAAA" 
+              className="bg-transparent border-none focus:ring-0 w-full text-xs font-bold uppercase" 
+              value={filtroData} 
+              onChange={(e) => setFiltroData(e.target.value)} 
+            />
           </div>
         </div>
         <div className="space-y-2">
-          <label className="text-[9px] font-black uppercase text-slate-400 ml-2">Movimento</label>
+          <label className="text-[9px] font-black uppercase text-slate-400 ml-2">Tipo de Movimento</label>
           <div className="bg-slate-50 p-3 rounded-2xl flex items-center gap-3">
             <Filter size={16} className="text-slate-300" />
-            <select className="bg-transparent border-none focus:ring-0 w-full text-xs font-bold uppercase" value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
+            <select 
+              className="bg-transparent border-none focus:ring-0 w-full text-xs font-black uppercase" 
+              value={filtroTipo} 
+              onChange={(e) => setFiltroTipo(e.target.value)}
+            >
               <option value="TODOS">TODOS OS TIPOS</option>
               <option value="PEDIDO_LOJA">PEDIDO DE LOJA</option>
               <option value="TRANSFERENCIA_AVULSA">TRANSFERÊNCIA</option>
@@ -120,31 +142,36 @@ const PaginaRelatorios = () => {
         </div>
       </div>
 
+      {/* Listagem de Cards de Histórico */}
       <div className="space-y-4">
         {dadosFiltrados.map((reg) => (
-          <div key={reg.id} className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm hover:border-blue-200 transition-all">
+          <div key={reg.id} className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm hover:border-blue-200 transition-all group">
             <div className="flex justify-between items-start mb-6">
               <div className="flex gap-4 items-center">
                 <div className={`p-4 rounded-2xl ${reg.tipo === 'TRANSFERENCIA_AVULSA' ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'}`}>
                   {reg.tipo === 'TRANSFERENCIA_AVULSA' ? <Tag size={24} /> : <ShoppingCart size={24} />}
                 </div>
                 <div>
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">#{reg.id} • {reg.data}</span>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                    #{reg.id} • {reg.data}
+                  </span>
                   <h3 className="text-lg font-black text-slate-800 uppercase mt-1 leading-tight">{reg.cliente}</h3>
                 </div>
               </div>
+
+              {/* Botão de Exportação de Planilha MBM */}
               <button 
                 onClick={() => exportarParaExcel(reg)}
                 className="flex items-center gap-3 bg-green-600 hover:bg-green-700 text-white px-6 py-4 rounded-2xl transition-all shadow-xl shadow-green-600/20 active:scale-95 border-b-4 border-green-800"
               >
                 <FileSpreadsheet size={20} />
-                <span className="text-[10px] font-black uppercase tracking-widest">Exportar para NF</span>
+                <span className="text-[10px] font-black uppercase tracking-widest">Exportar para MBM</span>
               </button>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {reg.itens?.map((prod, idx) => (
-                <div key={idx} className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex flex-col">
+                <div key={idx} className="bg-slate-50 p-4 rounded-2xl flex flex-col border border-slate-100">
                   <span className="text-[10px] font-black text-slate-800 uppercase truncate mb-1">{prod.nome}</span>
                   <div className="flex justify-between items-center pt-2 border-t border-slate-200/50">
                     <span className="text-[8px] font-black text-slate-400 uppercase">Cód: {prod.codigo}</span>
@@ -157,6 +184,12 @@ const PaginaRelatorios = () => {
             </div>
           </div>
         ))}
+        
+        {dadosFiltrados.length === 0 && (
+          <div className="py-20 text-center opacity-20 italic text-xs font-black uppercase tracking-widest">
+            Nenhum registo encontrado para os filtros selecionados
+          </div>
+        )}
       </div>
     </div>
   );
