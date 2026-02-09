@@ -1,150 +1,65 @@
 import React, { useState, useEffect } from 'react';
-import * as XLSX from 'xlsx';
-import { 
-  Upload, Trash2, Search, CheckCircle2, 
-  XCircle, AlertTriangle 
-} from 'lucide-react';
-import { BANCO_PADRAO } from '../../data/bancoPadrao';
+import { Package, Plus, Save, Trash2, Edit2 } from 'lucide-react';
 
 const GestaoEstoque = () => {
   const [produtos, setProdutos] = useState([]);
-  const [pesquisa, setPesquisa] = useState('');
+  const [form, setForm] = useState({ id: '', nome: '', categoria: 'BOVINOS', unidade: 'KG', preco: '0.00' });
 
-  useEffect(() => {
-    const salvos = localStorage.getItem('produtos_estoque_cdc');
-    if (salvos) setProdutos(JSON.parse(salvos));
-  }, []);
-
-  const salvarEAtualizar = (novaLista) => {
-    setProdutos(novaLista);
-    localStorage.setItem('produtos_estoque_cdc', JSON.stringify(novaLista));
+  const carregar = async () => {
+    const res = await fetch('http://localhost:5000/api/produtos');
+    const data = await res.json();
+    setProdutos(data);
   };
 
-  // Função para garantir o Padrão Contábil (Ex: 1.250,80)
-  const formatarPrecoContabil = (valor) => {
-    if (valor === undefined || valor === null || valor === "") return "0,00";
-    
-    // Converte para número tratando pontos e vírgulas
-    let num = typeof valor === 'string' 
-      ? parseFloat(valor.replace(/\./g, '').replace(',', '.')) 
-      : valor;
-    
-    if (isNaN(num)) return "0,00";
+  useEffect(() => { carregar(); }, []);
 
-    return num.toLocaleString('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+  const salvarProd = async (e) => {
+    e.preventDefault();
+    const dados = { ...form, id: form.id || Date.now().toString(), status: 'ATIVO' };
+    
+    await fetch('http://localhost:5000/api/produtos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dados)
     });
+
+    setForm({ id: '', nome: '', categoria: 'BOVINOS', unidade: 'KG', preco: '0.00' });
+    carregar();
   };
-
-  const handleImport = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const bstr = event.target.result;
-      const wb = XLSX.read(bstr, { type: 'binary' });
-      const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-
-      const novosProdutos = data.map(row => {
-        const descricaoOriginal = (row['(*) Descrição'] || row['Descrição'] || "").trim();
-        const nomeChave = descricaoOriginal.toUpperCase();
-        const infoBase = BANCO_PADRAO[nomeChave];
-
-        if (infoBase) {
-          return {
-            id: `${infoBase.codigo}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-            nome: descricaoOriginal,
-            codigo: infoBase.codigo,
-            categoria: infoBase.categoria,
-            unidade: infoBase.unidade,
-            preco: formatarPrecoContabil(row['Preço Venda']), // Formata aqui
-            status: 'ATIVO'
-          };
-        }
-        return null;
-      }).filter(p => p !== null);
-
-      const nomesExistentes = new Set(produtos.map(p => p.nome.toUpperCase()));
-      const filtrados = novosProdutos.filter(p => !nomesExistentes.has(p.nome.toUpperCase()));
-
-      salvarEAtualizar([...produtos, ...filtrados]);
-      alert(`${filtrados.length} itens importados com preços em padrão contábil.`);
-    };
-    reader.readAsBinaryString(file);
-  };
-
-  const deletarItem = (id) => {
-    if (window.confirm("Remover este item?")) {
-      salvarEAtualizar(produtos.filter(p => p.id !== id));
-    }
-  };
-
-  const alternarStatus = (id) => {
-    salvarEAtualizar(produtos.map(p => 
-      p.id === id ? { ...p, status: p.status === 'ATIVO' ? 'INATIVO' : 'ATIVO' } : p
-    ));
-  };
-
-  const itensFiltrados = produtos.filter(p => 
-    p.nome.toLowerCase().includes(pesquisa.toLowerCase()) || 
-    p.codigo.includes(pesquisa)
-  );
 
   return (
-    <div className="p-8 space-y-6 animate-in fade-in">
-      <header className="flex justify-between items-center bg-slate-900 p-10 rounded-[40px] text-white">
-        <div>
-          <h1 className="text-3xl font-black uppercase italic tracking-tighter text-blue-500">Gestão de Itens</h1>
-          <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Validação Contábil Ativa</p>
-        </div>
-        <label className="flex items-center gap-3 bg-blue-600 hover:bg-blue-500 px-8 py-4 rounded-2xl font-black text-[10px] uppercase cursor-pointer transition-all active:scale-95 shadow-lg shadow-blue-500/20">
-          <Upload size={18} /> Importar Layout
-          <input type="file" className="hidden" onChange={handleImport} accept=".xlsx, .csv" />
-        </label>
+    <div className="p-8 space-y-6">
+      <header className="flex justify-between items-center bg-slate-900 p-8 rounded-[40px] text-white">
+        <h1 className="text-3xl font-black uppercase italic tracking-tighter">Gestão de Estoque</h1>
+        <Package size={32} className="text-emerald-500" />
       </header>
 
-      <input 
-        className="w-full px-6 py-5 bg-white border border-slate-200 rounded-[24px] font-bold text-xs uppercase focus:ring-2 ring-blue-500 outline-none"
-        placeholder="Pesquisar produto ou código..."
-        value={pesquisa}
-        onChange={(e) => setPesquisa(e.target.value)}
-      />
+      <form onSubmit={salvarProd} className="bg-white p-8 rounded-[40px] shadow-sm grid grid-cols-1 md:grid-cols-4 gap-4 border border-slate-100">
+        <input className="p-4 bg-slate-50 rounded-2xl font-bold text-xs uppercase outline-none md:col-span-2" placeholder="Nome do Produto" value={form.nome} onChange={e => setForm({...form, nome: e.target.value})} required />
+        <select className="p-4 bg-slate-50 rounded-2xl font-bold text-xs uppercase" value={form.categoria} onChange={e => setForm({...form, categoria: e.target.value})}>
+          <option value="BOVINOS">Bovinos</option>
+          <option value="AVES">Aves</option>
+          <option value="SUINOS">Suínos</option>
+          <option value="DIVERSOS">Diversos</option>
+        </select>
+        <input className="p-4 bg-slate-50 rounded-2xl font-bold text-xs uppercase outline-none" placeholder="Preço" type="number" step="0.01" value={form.preco} onChange={e => setForm({...form, preco: e.target.value})} required />
+        <button type="submit" className="md:col-span-4 py-5 bg-emerald-600 text-white rounded-2xl font-black uppercase text-xs hover:bg-emerald-700 transition-all">Salvar Produto no Banco</button>
+      </form>
 
-      <div className="bg-white border border-slate-100 rounded-[32px] overflow-hidden shadow-sm">
-        <table className="w-full text-left">
-          <thead className="bg-slate-50 border-b border-slate-100">
-            <tr>
-              <th className="p-6 text-[10px] font-black uppercase text-slate-400">Status</th>
-              <th className="p-6 text-[10px] font-black uppercase text-slate-400">Cód</th>
-              <th className="p-6 text-[10px] font-black uppercase text-slate-400">Produto</th>
-              <th className="p-6 text-[10px] font-black uppercase text-slate-400">Categoria</th>
-              <th className="p-6 text-[10px] font-black uppercase text-slate-400">Preço (R$)</th>
-              <th className="p-6 text-right text-[10px] font-black uppercase text-slate-400">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {itensFiltrados.map((item) => (
-              <tr key={item.id} className={`border-b border-slate-50 hover:bg-slate-50/50 transition-all ${item.status === 'INATIVO' ? 'opacity-40 grayscale' : ''}`}>
-                <td className="p-6">
-                  <button onClick={() => alternarStatus(item.id)}>
-                    {item.status === 'ATIVO' ? <CheckCircle2 className="text-emerald-500" /> : <XCircle className="text-slate-300" />}
-                  </button>
-                </td>
-                <td className="p-6 font-mono text-xs text-slate-400">#{item.codigo}</td>
-                <td className="p-6 font-black uppercase text-xs text-slate-800">{item.nome}</td>
-                <td className="p-6">
-                  <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[9px] font-black uppercase">{item.categoria}</span>
-                </td>
-                <td className="p-6 font-black text-xs text-blue-600">{item.preco}</td>
-                <td className="p-6 text-right">
-                  <button onClick={() => deletarItem(item.id)} className="p-2 text-red-400 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {produtos.map(p => (
+          <div key={p.id} className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm flex justify-between items-center group">
+            <div>
+              <span className="text-[8px] font-black text-emerald-500 uppercase">{p.categoria}</span>
+              <h4 className="text-[11px] font-black uppercase text-slate-800 leading-tight">{p.nome}</h4>
+              <p className="text-xs font-black text-slate-400 mt-1">R$ {p.preco}</p>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setForm(p)} className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:bg-blue-50 hover:text-blue-500"><Edit2 size={16}/></button>
+              <button className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:bg-red-50 hover:text-red-500"><Trash2 size={16}/></button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

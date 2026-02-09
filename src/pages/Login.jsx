@@ -1,102 +1,91 @@
 import React, { useState } from 'react';
-import { Lock, User, Eye, EyeOff, Beef } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Lock, User, AlertCircle } from 'lucide-react';
 
-const Login = ({ onLogin }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+const Login = () => {
+  const [form, setForm] = useState({ login: '', senha: '' });
+  const [erro, setErro] = useState('');
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    
-    // 1. VERIFICAÇÃO MASTER UNIVERSAL
-    // Esta verificação é feita diretamente no código, funcionando em qualquer PC
-    if (username.toLowerCase() === 'master' && password === 'luis') {
-      onLogin({ 
-        id: 'master-id', 
-        nome: 'Administrador Master', 
-        login: 'master', 
-        cargo: 'master', 
-        unidade: 'TODAS' 
-      });
-      return;
-    }
+    setErro('');
 
-    // 2. VERIFICAÇÃO DE UTILIZADORES DO LOCALSTORAGE
-    const usuariosSalvos = JSON.parse(localStorage.getItem('usuarios_erp') || '[]');
-    
-    // Procura na lista de utilizadores criados na página de Gestão
-    const encontrado = usuariosSalvos.find(u => 
-      u.login.toLowerCase() === username.toLowerCase() && u.senha === password
-    );
+    try {
+      // 1. Procura o utilizador no backend (MongoDB)
+      const res = await fetch(`http://localhost:5000/api/usuarios/${form.login}`);
+      
+      if (!res.ok) {
+        setErro('Utilizador não encontrado no sistema.');
+        return;
+      }
 
-    if (encontrado) {
-      onLogin(encontrado);
-    } else {
-      alert("Acesso negado: utilizador ou senha incorretos.");
+      const user = await res.json();
+
+      // 2. Valida a palavra-passe
+      if (user.senha === form.senha) {
+        // Guarda os dados básicos da sessão no localStorage
+        localStorage.setItem('usuario_logado', JSON.stringify({
+          login: user.login,
+          nome: user.nome,
+          cargo: user.cargo
+        }));
+        
+        // Redireciona para a página principal após o login
+        navigate('/atendimento');
+      } else {
+        setErro('Palavra-passe incorreta. Tente novamente.');
+      }
+    } catch (err) {
+      setErro('Erro ao ligar ao servidor. Certifique-se de que o backend está ativo.');
     }
   };
 
   return (
-    <div className="h-screen w-screen bg-[#0a0b1e] flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Detalhes Visuais de Fundo */}
-      <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-blue-600/10 rounded-full blur-[120px]" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-blue-900/20 rounded-full blur-[120px]" />
-
-      <div className="w-full max-w-md bg-white/5 p-12 rounded-[48px] border border-white/10 backdrop-blur-2xl shadow-2xl animate-in fade-in zoom-in duration-500 relative">
-        <div className="text-center mb-12">
-          <div className="bg-blue-600 w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-blue-500/20">
-            <Beef className="text-white" size={32} />
-          </div>
-          <h2 className="text-3xl font-black italic text-white tracking-tighter uppercase">Código da Carne</h2>
-          <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.4em] mt-2">Portal de Gestão</p>
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
+      <div className="w-full max-w-md bg-white rounded-[44px] p-10 shadow-2xl">
+        <div className="text-center mb-10">
+          <h1 className="text-3xl font-black uppercase italic tracking-tighter text-slate-800">Sistema ERP</h1>
+          <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mt-2">Controlo de Acesso</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-3">
-            <div className="relative group">
-              <User className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors" size={18} />
-              <input 
-                type="text" 
-                placeholder="UTILIZADOR" 
-                className="w-full bg-white/5 border border-white/10 p-5 pl-14 rounded-2xl text-white font-black text-xs uppercase outline-none focus:border-blue-500 focus:bg-white/10 transition-all placeholder:text-slate-600"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
-            </div>
-            
-            <div className="relative group">
-              <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors" size={18} />
-              <input 
-                type={showPassword ? "text" : "password"} 
-                placeholder="PALAVRA-PASSE" 
-                className="w-full bg-white/5 border border-white/10 p-5 pl-14 pr-14 rounded-2xl text-white font-black text-xs uppercase outline-none focus:border-blue-500 focus:bg-white/10 transition-all placeholder:text-slate-600"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              <button 
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
+        {erro && (
+          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-600 text-[10px] font-black uppercase flex items-center gap-3">
+            <AlertCircle size={16} /> {erro}
+          </div>
+        )}
+
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div className="relative">
+            <User className="absolute left-4 top-4 text-slate-400" size={18} />
+            <input 
+              className="w-full pl-12 pr-6 py-4 bg-slate-50 rounded-2xl font-bold text-xs uppercase outline-none focus:ring-2 ring-blue-500" 
+              placeholder="Utilizador" 
+              value={form.login} 
+              onChange={e => setForm({...form, login: e.target.value})} 
+              required 
+            />
+          </div>
+          
+          <div className="relative">
+            <Lock className="absolute left-4 top-4 text-slate-400" size={18} />
+            <input 
+              className="w-full pl-12 pr-6 py-4 bg-slate-50 rounded-2xl font-bold text-xs uppercase outline-none focus:ring-2 ring-blue-500" 
+              type="password" 
+              placeholder="Palavra-passe" 
+              value={form.senha} 
+              onChange={e => setForm({...form, senha: e.target.value})} 
+              required 
+            />
           </div>
 
           <button 
             type="submit" 
-            className="w-full bg-blue-600 hover:bg-blue-500 py-6 rounded-2xl font-black uppercase text-[11px] tracking-[0.3em] shadow-2xl shadow-blue-600/20 active:scale-[0.98] transition-all text-white mt-4"
+            className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-blue-600 transition-all active:scale-95 shadow-xl"
           >
             Entrar no Sistema
           </button>
         </form>
-
-        <p className="text-center text-slate-600 text-[8px] font-black uppercase tracking-[0.2em] mt-10">
-          © 2026 Código da Carne | Londrina - PR
-        </p>
       </div>
     </div>
   );
