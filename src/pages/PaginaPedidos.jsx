@@ -1,202 +1,169 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Search, ShoppingCart, Tag, Filter, 
-  Plus, Minus, Trash2, ChevronRight, CheckCircle 
+  Search, ShoppingCart, Plus, Minus, Trash2, 
+  Filter, ChevronDown, ChevronRight, Building2, 
+  CheckCircle, AlertCircle 
 } from 'lucide-react';
 
 const PaginaPedidos = () => {
   const [estoque, setEstoque] = useState([]);
   const [carrinho, setCarrinho] = useState([]);
   const [pesquisa, setPesquisa] = useState('');
-  const [cliente, setCliente] = useState('');
+  const [filiaisAcesso, setFiliaisAcesso] = useState([]);
+  const [filialSelecionada, setFilialSelecionada] = useState('');
+  const [categoriasAbertas, setCategoriasAbertas] = useState([]);
+  const [aviso, setAviso] = useState({ show: false, titulo: '', msg: '', tipo: 'sucesso' });
 
-  // Carrega os produtos validados da Gestão de Estoque
   useEffect(() => {
-    const dados = JSON.parse(localStorage.getItem('produtos_estoque_cdc') || '[]');
-    // Só exibe produtos ATIVOS
-    setEstoque(dados.filter(p => p.status === 'ATIVO'));
+    // 1. Puxa o usuário que está logado no momento
+    const usuarioAtivo = JSON.parse(localStorage.getItem('usuario_logado') || '{}');
+    const todasFiliais = JSON.parse(localStorage.getItem('filiais_cdc') || '[]');
+    const estoqueValidado = JSON.parse(localStorage.getItem('produtos_estoque_cdc') || '[]');
+    
+    // 2. Filtra filiais permitidas
+    // Se for ADM, vê todas. Senão, vê apenas as que estão no seu array 'unidades'
+    const permitidas = usuarioAtivo.cargo === 'adm' 
+      ? todasFiliais 
+      : todasFiliais.filter(f => usuarioAtivo.unidades?.includes(f.nome));
+
+    setFiliaisAcesso(permitidas);
+    setEstoque(estoqueValidado.filter(p => p.status === 'ATIVO'));
+    
+    // Auto-seleciona se tiver só uma
+    if (permitidas.length === 1) setFilialSelecionada(permitidas[0].nome);
   }, []);
 
-  // Agrupa os produtos por Categoria para exibição
+  const dispararAviso = (titulo, msg, tipo = 'sucesso') => {
+    setAviso({ show: true, titulo, msg, tipo });
+  };
+
   const estoqueAgrupado = useMemo(() => {
     const grupos = {};
-    const termo = pesquisa.toLowerCase();
-
     estoque.forEach(item => {
-      if (item.nome.toLowerCase().includes(termo) || item.codigo.includes(termo)) {
+      if (item.nome.toLowerCase().includes(pesquisa.toLowerCase())) {
         const cat = item.categoria || "DIVERSOS";
         if (!grupos[cat]) grupos[cat] = [];
         grupos[cat].push(item);
       }
     });
-
-    // Ordena as categorias alfabeticamente
-    return Object.keys(grupos).sort().reduce((acc, key) => {
-      acc[key] = grupos[key];
-      return acc;
-    }, {});
+    return grupos;
   }, [estoque, pesquisa]);
 
-  const adicionarAoCarrinho = (produto) => {
-    const existe = carrinho.find(item => item.id === produto.id);
-    if (existe) {
-      setCarrinho(carrinho.map(item => 
-        item.id === produto.id ? { ...item, qtd: item.qtd + 1 } : item
-      ));
+  const adicionarAoCarrinho = (prod) => {
+    const itemExistente = carrinho.find(c => c.id === prod.id);
+    if (itemExistente) {
+      setCarrinho(carrinho.map(c => c.id === prod.id ? { ...c, qtd: c.qtd + 1 } : c));
     } else {
-      setCarrinho([...carrinho, { ...produto, qtd: 1 }]);
+      setCarrinho([...carrinho, { ...prod, qtd: 1 }]);
     }
-  };
-
-  const atualizarQtd = (id, delta) => {
-    setCarrinho(carrinho.map(item => {
-      if (item.id === id) {
-        const novaQtd = Math.max(1, item.qtd + delta);
-        return { ...item, qtd: novaQtd };
-      }
-      return item;
-    }));
-  };
-
-  const removerDoCarrinho = (id) => {
-    setCarrinho(carrinho.filter(item => item.id !== id));
+    dispararAviso("Adicionado", `${prod.nome} está no carrinho.`);
   };
 
   const finalizarPedido = () => {
-    if (!cliente) return alert("Por favor, informe o nome do cliente.");
-    if (carrinho.length === 0) return alert("O carrinho está vazio.");
+    if (!filialSelecionada) return dispararAviso("Atenção", "Selecione a filial destino.", "erro");
+    if (carrinho.length === 0) return dispararAviso("Vazio", "O carrinho não tem itens.", "erro");
 
-    const novoPedido = {
+    const pedido = {
       id: Date.now(),
-      cliente,
-      data: new Date().toLocaleString('pt-BR'),
+      filial: filialSelecionada,
+      data: new Date().toLocaleString(),
       itens: carrinho,
       status: 'PENDENTE'
     };
 
-    const historico = JSON.parse(localStorage.getItem('historico_pedidos') || '[]');
-    localStorage.setItem('historico_pedidos', JSON.stringify([novoPedido, ...historico]));
+    const hist = JSON.parse(localStorage.getItem('historico_pedidos') || '[]');
+    localStorage.setItem('historico_pedidos', JSON.stringify([pedido, ...hist]));
     
     setCarrinho([]);
-    setCliente('');
-    alert("Pedido realizado com sucesso!");
+    dispararAviso("Sucesso", "Pedido enviado para processamento.");
   };
 
   return (
-    <div className="flex h-full gap-8 p-8 animate-in fade-in duration-500">
+    <div className="flex h-full gap-8 p-8 relative">
       
-      {/* Coluna da Esquerda: Catálogo por Categorias */}
-      <div className="flex-1 space-y-8 overflow-y-auto pr-4">
-        <header>
-          <h2 className="text-4xl font-black uppercase italic italic tracking-tighter text-slate-800">
-            Balcão de Vendas
-          </h2>
+      {/* MODAL DE AVISO CENTRALIZADO */}
+      {aviso.show && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-[40px] shadow-2xl w-full max-w-md p-8 text-center animate-in zoom-in duration-300">
+            {aviso.tipo === 'erro' ? <AlertCircle size={64} className="text-red-500 mx-auto mb-4" /> : <CheckCircle size={64} className="text-emerald-500 mx-auto mb-4" />}
+            <h3 className="text-2xl font-black uppercase italic tracking-tighter text-slate-800">{aviso.titulo}</h3>
+            <p className="mt-2 text-sm font-bold text-slate-500 uppercase">{aviso.msg}</p>
+            <button onClick={() => setAviso({ ...aviso, show: false })} className="mt-8 w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs">OK</button>
+          </div>
+        </div>
+      )}
+
+      {/* CATÁLOGO DE ITENS */}
+      <div className="flex-1 overflow-y-auto space-y-6 pr-2">
+        <header className="mb-10">
+          <h2 className="text-4xl font-black uppercase italic tracking-tighter text-slate-800 tracking-tighter">Realizar Pedido</h2>
           <div className="mt-6 relative">
             <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-            <input 
-              className="w-full pl-16 pr-6 py-5 bg-white border-2 border-slate-100 rounded-[24px] font-bold text-xs uppercase focus:border-blue-500 outline-none shadow-sm"
-              placeholder="O que o cliente procura? (Nome ou Código)"
-              value={pesquisa}
-              onChange={(e) => setPesquisa(e.target.value)}
-            />
+            <input className="w-full pl-16 pr-6 py-5 bg-white border-2 border-slate-100 rounded-[24px] font-bold text-xs uppercase focus:border-blue-500 outline-none shadow-sm" placeholder="O que deseja pedir?" value={pesquisa} onChange={e => setPesquisa(e.target.value)} />
           </div>
         </header>
 
-        <div className="space-y-10">
-          {Object.entries(estoqueAgrupado).map(([categoria, produtos]) => (
-            <section key={categoria} className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-1.5 bg-blue-600 rounded-full"></div>
-                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-400">
-                  {categoria}
-                </h3>
-                <span className="text-[10px] font-bold bg-slate-100 text-slate-400 px-2 py-0.5 rounded-md">
-                  {produtos.length}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {produtos.map((item) => (
-                  <div key={item.id} className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:border-blue-200 transition-all group relative overflow-hidden">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-1">
-                        <span className="text-[9px] font-black text-slate-300 uppercase">#{item.codigo}</span>
-                        <h4 className="text-xs font-black uppercase text-slate-800 leading-tight pr-4">
-                          {item.nome}
-                        </h4>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase">Preço Un.</p>
-                        <p className="text-sm font-black text-blue-600">R$ {item.preco}</p>
-                      </div>
-                    </div>
-                    
-                    <button 
-                      onClick={() => adicionarAoCarrinho(item)}
-                      className="mt-4 w-full py-3 bg-slate-50 group-hover:bg-blue-600 group-hover:text-white rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2"
-                    >
-                      <Plus size={14} /> Adicionar ao Item
-                    </button>
+        <div className="space-y-4">
+          {Object.entries(estoqueAgrupado).map(([categoria, itens]) => {
+            const isOpen = categoriasAbertas.includes(categoria);
+            return (
+              <div key={categoria} className="bg-white rounded-[28px] border border-slate-100 overflow-hidden shadow-sm">
+                <button onClick={() => setCategoriasAbertas(prev => isOpen ? prev.filter(c => c !== categoria) : [...prev, categoria])} className="w-full flex items-center justify-between p-6 hover:bg-slate-50 transition-all">
+                  <div className="flex items-center gap-4">
+                    <div className={`p-2 rounded-xl ${isOpen ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'}`}><Filter size={18} /></div>
+                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-700">{categoria}</h3>
                   </div>
-                ))}
+                  {isOpen ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                </button>
+                {isOpen && (
+                  <div className="p-6 pt-0 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {itens.map((prod) => (
+                      <div key={prod.id} className="p-4 bg-slate-50 rounded-[22px] border border-slate-100 flex justify-between items-center group">
+                        <div className="flex-1 pr-4">
+                          <p className="text-[9px] font-black text-slate-300 uppercase">#{prod.codigo}</p>
+                          <h4 className="text-[11px] font-black uppercase text-slate-800 leading-tight">{prod.nome}</h4>
+                          <p className="text-xs font-black text-blue-600 mt-1">R$ {prod.preco}</p>
+                        </div>
+                        <button onClick={() => adicionarAoCarrinho(prod)} className="p-4 bg-white hover:bg-blue-600 hover:text-white rounded-2xl shadow-sm transition-all"><Plus size={20} /></button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            </section>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      {/* Coluna da Direita: Carrinho / Finalização */}
-      <div className="w-[400px] flex flex-col bg-white border border-slate-100 rounded-[44px] shadow-2xl overflow-hidden">
-        <div className="p-8 bg-slate-900 text-white">
-          <div className="flex items-center gap-3 mb-6">
-            <ShoppingCart className="text-blue-500" />
-            <h3 className="text-xl font-black uppercase italic italic tracking-tighter">Resumo do Pedido</h3>
+      {/* PAINEL DE FINALIZAÇÃO */}
+      <div className="w-[420px] bg-slate-900 rounded-[44px] shadow-2xl overflow-hidden sticky top-8 h-[calc(100vh-64px)] flex flex-col">
+        <div className="p-8">
+          <div className="flex items-center gap-3 mb-8"><ShoppingCart className="text-blue-500" /><h3 className="text-xl font-black uppercase italic text-white tracking-tighter">Carrinho</h3></div>
+          
+          <label className="block text-[10px] font-black text-slate-500 uppercase mb-2 ml-2">Filial de Destino</label>
+          <div className="relative">
+            <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+            <select value={filialSelecionada} onChange={e => setFilialSelecionada(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-800 rounded-2xl text-xs font-bold uppercase border-none focus:ring-2 ring-blue-500 text-white appearance-none">
+              <option value="">Selecione sua base...</option>
+              {filiaisAcesso.map(f => <option key={f.id} value={f.nome}>{f.nome}</option>)}
+            </select>
           </div>
-          <input 
-            className="w-full p-4 bg-slate-800 rounded-2xl text-xs font-bold uppercase border-none focus:ring-2 ring-blue-500 text-white placeholder-slate-500"
-            placeholder="Nome do Cliente..."
-            value={cliente}
-            onChange={(e) => setCliente(e.target.value)}
-          />
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {carrinho.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-slate-300 gap-4 opacity-40">
-              <ShoppingCart size={48} />
-              <p className="text-[10px] font-black uppercase tracking-widest">Carrinho Vazio</p>
-            </div>
-          ) : (
-            carrinho.map((item) => (
-              <div key={item.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <div className="flex-1">
-                  <h5 className="text-[10px] font-black uppercase text-slate-700 leading-tight">{item.nome}</h5>
-                  <p className="text-[9px] font-bold text-blue-600 mt-1">R$ {item.preco}</p>
-                </div>
-                <div className="flex items-center gap-3 bg-white p-2 rounded-xl shadow-sm">
-                  <button onClick={() => atualizarQtd(item.id, -1)} className="p-1 text-slate-400 hover:text-red-500"><Minus size={14}/></button>
-                  <span className="text-xs font-black text-slate-700">{item.qtd}</span>
-                  <button onClick={() => atualizarQtd(item.id, 1)} className="p-1 text-slate-400 hover:text-blue-500"><Plus size={14}/></button>
-                </div>
-                <button onClick={() => removerDoCarrinho(item.id)} className="p-2 text-slate-300 hover:text-red-500 transition-colors">
-                  <Trash2 size={16} />
-                </button>
+          {carrinho.map((item, idx) => (
+            <div key={idx} className="flex items-center gap-4 p-4 bg-slate-800/50 rounded-2xl border border-slate-800">
+              <div className="flex-1 pr-2">
+                <h5 className="text-[10px] font-black uppercase text-white leading-tight">{item.nome}</h5>
+                <p className="text-[9px] font-bold text-blue-400 mt-1">R$ {item.preco} x{item.qtd}</p>
               </div>
-            ))
-          )}
+              <button onClick={() => setCarrinho(carrinho.filter((_, i) => i !== idx))} className="text-slate-600 hover:text-red-400"><Trash2 size={16}/></button>
+            </div>
+          ))}
         </div>
 
-        <div className="p-8 border-t border-slate-100 bg-slate-50">
-          <button 
-            onClick={finalizarPedido}
-            disabled={carrinho.length === 0}
-            className={`w-full py-5 rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 transition-all
-              ${carrinho.length > 0 
-                ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/20 hover:bg-blue-700 active:scale-95' 
-                : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
-          >
-            Confirmar Pedido <ChevronRight size={18} />
-          </button>
+        <div className="p-8 bg-slate-800/30">
+          <button onClick={finalizarPedido} className="w-full py-6 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-blue-500 transition-all active:scale-95 shadow-xl">Finalizar Pedido</button>
         </div>
       </div>
     </div>

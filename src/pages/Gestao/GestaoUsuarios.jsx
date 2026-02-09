@@ -1,233 +1,187 @@
-import React, { useState } from 'react';
-import { UserPlus, Trash2, Edit2, Save, X, RefreshCw, ShieldAlert } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { UserPlus, Trash2, Edit2, Save, X, RefreshCw, ShieldAlert, CheckCircle, AlertCircle } from 'lucide-react';
 
 const GestaoUsuarios = () => {
-  // Carrega os usuários do localStorage ou inicia vazio
   const [usuarios, setUsuarios] = useState(() => {
     const salvo = localStorage.getItem('usuarios_erp');
     return salvo ? JSON.parse(salvo) : [];
   });
 
-  // Carrega as filiais cadastradas para o seletor
   const [filiais] = useState(() => {
-    const salvo = localStorage.getItem('filiais_config');
-    return salvo ? JSON.parse(salvo) : ["000 - PRODUÇÃO", "001 - CENTRO", "002 - ALPHAVILLE", "003 - GLEBA"];
+    const salvo = localStorage.getItem('filiais_cdc');
+    // Caso não existam filiais cadastradas ainda, usa o padrão do sistema
+    return salvo ? JSON.parse(salvo) : [
+      { id: 1, nome: "000 - PRODUÇÃO" },
+      { id: 2, nome: "001 - CENTRO" },
+      { id: 3, nome: "002 - ALPHAVILLE" },
+      { id: 4, nome: "003 - GLEBA" }
+    ];
   });
   
   const [editandoId, setEditandoId] = useState(null);
+  const [aviso, setAviso] = useState({ show: false, titulo: '', msg: '', tipo: 'sucesso' });
   const [form, setForm] = useState({ 
     nome: '', 
     login: '', 
     senha: '', 
     cargo: 'comercial', 
-    unidade: '001' 
+    unidades: [] // Agora é um array para aceitar várias filiais
   });
+
+  const exibirAviso = (titulo, msg, tipo = 'sucesso') => {
+    setAviso({ show: true, titulo, msg, tipo });
+  };
+
+  const toggleUnidade = (nomeFilial) => {
+    setForm(prev => {
+      const jaSelecionada = prev.unidades.includes(nomeFilial);
+      if (jaSelecionada) {
+        return { ...prev, unidades: prev.unidades.filter(u => u !== nomeFilial) };
+      }
+      return { ...prev, unidades: [...prev.unidades, nomeFilial] };
+    });
+  };
 
   const salvarUser = (e) => {
     e.preventDefault();
-    
-    let listaAtualizada;
-    if (editandoId) {
-      // Atualiza usuário existente
-      listaAtualizada = usuarios.map(u => u.id === editandoId ? { ...form, id: editandoId } : u);
-    } else {
-      // Cria novo usuário
-      listaAtualizada = [...usuarios, { ...form, id: Date.now() }];
+    if (form.unidades.length === 0 && form.cargo !== 'adm') {
+      return exibirAviso("Erro de Cadastro", "Selecione pelo menos uma filial de acesso.", "erro");
     }
 
-    setUsuarios(listaAtualizada);
-    localStorage.setItem('usuarios_erp', JSON.stringify(listaAtualizada));
-    
-    // Reseta o formulário
+    let novaLista;
+    if (editandoId) {
+      novaLista = usuarios.map(u => u.id === editandoId ? { ...form, id: editandoId } : u);
+      exibirAviso("Sucesso", "Usuário e permissões atualizados.");
+    } else {
+      novaLista = [...usuarios, { ...form, id: Date.now() }];
+      exibirAviso("Cadastrado", "Novo usuário adicionado com sucesso.");
+    }
+
+    setUsuarios(novaLista);
+    localStorage.setItem('usuarios_erp', JSON.stringify(novaLista));
+    setForm({ nome: '', login: '', senha: '', cargo: 'comercial', unidades: [] });
     setEditandoId(null);
-    setForm({ nome: '', login: '', senha: '', cargo: 'comercial', unidade: '001' });
-    alert(editandoId ? "Cadastro atualizado!" : "Novo colaborador cadastrado!");
+  };
+
+  const excluirUser = (id) => {
+    const nova = usuarios.filter(u => u.id !== id);
+    setUsuarios(nova);
+    localStorage.setItem('usuarios_erp', JSON.stringify(nova));
+    exibirAviso("Removido", "Usuário excluído do sistema.", "erro");
   };
 
   const iniciarEdicao = (u) => {
     setEditandoId(u.id);
-    setForm({ 
-      nome: u.nome, 
-      login: u.login, 
-      senha: u.senha, 
-      cargo: u.cargo, 
-      unidade: u.unidade || '001' 
-    });
+    setForm({ ...u });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const resetarSenha = (u) => {
-    if (window.confirm(`Deseja resetar a senha de ${u.nome} para "codigo123"?`)) {
-      const novaLista = usuarios.map(usr => 
-        usr.id === u.id ? { ...usr, senha: 'codigo123' } : usr
-      );
-      setUsuarios(novaLista);
-      localStorage.setItem('usuarios_erp', JSON.stringify(novaLista));
-      
-      // Se estiver editando este usuário no momento, atualiza a senha no form
-      if (editandoId === u.id) {
-        setForm(prev => ({ ...prev, senha: 'codigo123' }));
-      }
-      alert("Senha resetada com sucesso para: codigo123");
-    }
-  };
-
-  const excluirUser = (id) => {
-    if (window.confirm("Deseja excluir este usuário permanentemente?")) {
-      const novaLista = usuarios.filter(u => u.id !== id);
-      setUsuarios(novaLista);
-      localStorage.setItem('usuarios_erp', JSON.stringify(novaLista));
-    }
-  };
-
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Formulário de Cadastro / Edição */}
-      <form onSubmit={salvarUser} className="bg-slate-50 p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
-        <div className="flex justify-between items-center">
-          <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-            {editandoId ? 'Editando Colaborador' : 'Cadastrar Novo Colaborador'}
-          </h3>
-          {editandoId && (
-            <button type="button" onClick={() => {
-              setEditandoId(null);
-              setForm({ nome: '', login: '', senha: '', cargo: 'comercial', unidade: '001' });
-            }} className="text-red-500 hover:bg-red-50 p-2 rounded-xl transition-all">
-              <X size={18}/>
-            </button>
-          )}
+    <div className="p-8 space-y-6 relative">
+      {/* MODAL DE AVISO CENTRALIZADO */}
+      {aviso.show && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-[40px] shadow-2xl w-full max-w-md p-8 text-center animate-in zoom-in duration-300">
+            {aviso.tipo === 'erro' ? <AlertCircle size={64} className="text-red-500 mx-auto mb-4" /> : <CheckCircle size={64} className="text-emerald-500 mx-auto mb-4" />}
+            <h3 className="text-2xl font-black uppercase italic tracking-tighter text-slate-800">{aviso.titulo}</h3>
+            <p className="mt-2 text-sm font-bold text-slate-500 uppercase">{aviso.msg}</p>
+            <button onClick={() => setAviso({ ...aviso, show: false })} className="mt-8 w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs tracking-widest">OK</button>
+          </div>
+        </div>
+      )}
+
+      <header className="flex justify-between items-center bg-slate-900 p-8 rounded-[40px] text-white">
+        <div>
+          <h1 className="text-3xl font-black uppercase italic tracking-tighter">Gestão de Equipe</h1>
+          <p className="text-[10px] font-bold text-slate-400 uppercase">Controle de acessos e múltiplas filiais</p>
+        </div>
+        <UserPlus size={32} className="text-blue-500" />
+      </header>
+
+      <form onSubmit={salvarUser} className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-1">
+          <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Nome</label>
+          <input className="w-full p-4 bg-slate-50 rounded-2xl border-none font-bold text-xs uppercase" value={form.nome} onChange={e => setForm({...form, nome: e.target.value})} required />
+        </div>
+        <div className="space-y-1">
+          <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Login</label>
+          <input className="w-full p-4 bg-slate-50 rounded-2xl border-none font-bold text-xs uppercase" value={form.login} onChange={e => setForm({...form, login: e.target.value})} required />
+        </div>
+        <div className="space-y-1">
+          <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Senha</label>
+          <input className="w-full p-4 bg-slate-50 rounded-2xl border-none font-bold text-xs uppercase" type="password" value={form.senha} onChange={e => setForm({...form, senha: e.target.value})} required={!editandoId} />
+        </div>
+        <div className="space-y-1">
+          <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Cargo</label>
+          <select className="w-full p-4 bg-slate-50 rounded-2xl border-none font-bold text-xs uppercase" value={form.cargo} onChange={e => setForm({...form, cargo: e.target.value})}>
+            <option value="comercial">Comercial</option>
+            <option value="estoque">Estoque</option>
+            <option value="pcp">PCP (Produção)</option>
+            <option value="adm">Administrador</option>
+          </select>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-          <div className="space-y-1">
-            <label className="text-[9px] font-black uppercase text-slate-400 ml-2">Nome Completo</label>
-            <input 
-              type="text" 
-              className="w-full p-4 rounded-2xl bg-white border-none shadow-sm text-xs font-bold uppercase" 
-              required 
-              value={form.nome} 
-              onChange={e => setForm({...form, nome: e.target.value})} 
-            />
-          </div>
-          
-          <div className="space-y-1">
-            <label className="text-[9px] font-black uppercase text-slate-400 ml-2">Login</label>
-            <input 
-              type="text" 
-              className="w-full p-4 rounded-2xl bg-white border-none shadow-sm text-xs font-bold" 
-              required 
-              value={form.login} 
-              onChange={e => setForm({...form, login: e.target.value})} 
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[9px] font-black uppercase text-slate-400 ml-2">Senha</label>
-            <input 
-              type="text" 
-              className="w-full p-4 rounded-2xl bg-white border-none shadow-sm text-xs font-bold" 
-              required 
-              value={form.senha} 
-              onChange={e => setForm({...form, senha: e.target.value})} 
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[9px] font-black uppercase text-slate-400 ml-2">Cargo e Base</label>
-            <div className="flex gap-2">
-              <select 
-                className="bg-white p-4 rounded-2xl border-none text-[10px] font-black uppercase w-full shadow-sm" 
-                value={form.cargo} 
-                onChange={e => setForm({...form, cargo: e.target.value})}
+        <div className="md:col-span-2 space-y-2">
+          <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Filiais com Acesso</label>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {filiais.map(f => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => toggleUnidade(f.nome)}
+                className={`p-4 rounded-2xl text-[10px] font-black uppercase transition-all border-2 ${
+                  form.unidades.includes(f.nome) 
+                  ? 'bg-blue-600 border-blue-600 text-white' 
+                  : 'bg-white border-slate-100 text-slate-400 hover:border-blue-200'
+                }`}
               >
-                <option value="comercial">Comercial</option>
-                <option value="estoque">Estoque</option>
-                <option value="pcp">PCP (Logística)</option>
-                <option value="adm">ADM</option>
-                <option value="master">Master</option>
-              </select>
-              <select 
-                className="bg-white p-4 rounded-2xl border-none text-[10px] font-black uppercase w-full shadow-sm" 
-                value={form.unidade} 
-                onChange={e => setForm({...form, unidade: e.target.value})}
-              >
-                {filiais.map(f => (
-                  <option key={f} value={f.split(' ')[0]}>{f.split(' ')[0]}</option>
-                ))}
-              </select>
-            </div>
+                {f.nome}
+              </button>
+            ))}
           </div>
-
-          <button type="submit" className="bg-blue-600 text-white p-4 rounded-2xl font-black text-[10px] uppercase flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 h-[52px]">
-            {editandoId ? <Save size={18}/> : <UserPlus size={18}/>}
-            {editandoId ? 'Salvar' : 'Cadastrar'}
-          </button>
         </div>
+
+        <button type="submit" className="md:col-span-2 py-5 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs hover:bg-blue-700 transition-all">
+          <Save size={18} className="inline mr-2" /> {editandoId ? 'Atualizar Usuário' : 'Cadastrar Usuário'}
+        </button>
       </form>
 
       {/* Tabela de Usuários */}
-      <div className="bg-white rounded-[32px] border border-slate-100 overflow-hidden shadow-sm">
+      <div className="bg-white rounded-[40px] border border-slate-100 overflow-hidden shadow-sm">
         <table className="w-full text-left">
-          <thead className="bg-slate-50 text-[10px] font-black uppercase text-slate-400">
+          <thead className="bg-slate-50 border-b border-slate-100 font-black text-[10px] uppercase text-slate-400">
             <tr>
-              <th className="p-8">Colaborador</th>
-              <th>Cargo</th>
-              <th>Login</th>
-              <th>Base</th>
-              <th className="text-right p-8">Ações</th>
+              <th className="p-6">Colaborador</th>
+              <th className="p-6">Cargo</th>
+              <th className="p-6">Acessos</th>
+              <th className="p-6 text-right">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-50 text-xs font-bold uppercase">
+          <tbody>
             {usuarios.map(u => (
-              <tr key={u.id} className="hover:bg-slate-50 transition-colors">
-                <td className="p-8 text-slate-800 font-black">{u.nome}</td>
-                <td>
-                  <span className={`px-3 py-1 rounded-full text-[9px] font-black ${
-                    u.cargo === 'master' ? 'bg-purple-100 text-purple-600' : 
-                    u.cargo === 'pcp' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'
-                  }`}>
-                    {u.cargo}
-                  </span>
+              <tr key={u.id} className="border-b border-slate-50 hover:bg-slate-50/50">
+                <td className="p-6">
+                  <p className="font-black text-xs uppercase text-slate-800">{u.nome}</p>
+                  <p className="text-[10px] text-slate-400 font-bold">{u.login}</p>
                 </td>
-                <td className="text-slate-400 font-medium lowercase tracking-tighter">{u.login}</td>
-                <td className="text-slate-500 font-black">{u.unidade}</td>
-                <td className="text-right p-8">
-                  <div className="flex justify-end gap-3">
-                    <button 
-                      onClick={() => resetarSenha(u)} 
-                      title="Resetar Senha"
-                      className="p-3 text-amber-500 hover:bg-amber-50 rounded-2xl transition-all"
-                    >
-                      <RefreshCw size={18}/>
-                    </button>
-                    <button 
-                      onClick={() => iniciarEdicao(u)} 
-                      className="p-3 text-blue-400 hover:bg-blue-50 rounded-2xl transition-all"
-                    >
-                      <Edit2 size={18}/>
-                    </button>
-                    <button 
-                      onClick={() => excluirUser(u.id)} 
-                      className="p-3 text-red-200 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
-                    >
-                      <Trash2 size={18}/>
-                    </button>
+                <td className="p-6 text-[10px] font-black uppercase text-blue-600">{u.cargo}</td>
+                <td className="p-6">
+                  <div className="flex flex-wrap gap-1">
+                    {u.unidades?.map(un => (
+                      <span key={un} className="bg-slate-100 text-slate-500 text-[8px] font-black px-2 py-0.5 rounded-md uppercase">
+                        {un.split(' ')[0]}
+                      </span>
+                    ))}
                   </div>
+                </td>
+                <td className="p-6 text-right">
+                    <button onClick={() => iniciarEdicao(u)} className="p-2 text-blue-400 hover:bg-blue-50 rounded-xl mr-2"><Edit2 size={16}/></button>
+                    <button onClick={() => excluirUser(u.id)} className="p-2 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-xl"><Trash2 size={16}/></button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
-
-      {/* Informativo sobre o PCP */}
-      <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex items-center gap-4">
-        <div className="bg-orange-100 p-2 rounded-xl text-orange-600">
-            <ShieldAlert size={20}/>
-        </div>
-        <p className="text-[10px] font-black uppercase text-slate-500 leading-tight">
-          O perfil <span className="text-orange-600 font-black">PCP</span> tem acesso global a pedidos, estoque e filiais para fins de logística, mas não possui permissão para gerenciar a equipe ou configurações sensíveis.
-        </p>
       </div>
     </div>
   );
