@@ -1,33 +1,39 @@
-# Dependências (Nunca envie a pasta node_modules!)
-node_modules/
-.pnp
-.pnp.js
+# Dependências (Nunca envie a pasta node_modules!) 
+node_modules/ 
+.pnp 
+.pnp.js 
 
-# Pasta de distribuição (Arquivos gerados pelo build)
-dist/
-build/
+# Pasta de distribuição (Arquivos gerados pelo build do React/Vite) 
+dist/ 
+build/ 
 
-# Logs de erro
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Logs de erro 
+npm-debug.log* 
+yarn-debug.log* 
+yarn-error.log* 
 
-# Arquivos de ambiente (Muito importante para o futuro MongoDB)
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# Segurança (CRUCIAL: Protege as senhas do seu MongoDB no servidor) 
+.env 
+.env.local 
+.env.development.local 
+.env.test.local 
+.env.production.local 
 
-# Arquivos do Editor / VS Code
-.vscode/
-.idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Banco de Dados Local (Adicionado para segurança extra)
+data/
+db/
+*.db
+*.sqlite
 
-# Sistema Operacional
-.DS_Store
-Thumbs.db
+# Arquivos do Editor / VS Code 
+.vscode/ 
+.idea/ 
+*.suo 
+*.ntvs* 
+*.njsproj 
+*.sln 
+*.sw? 
+
+# Sistema Operacional [cite: 2]
+.DS_Store [cite: 2]
+Thumbs.db [cite: 2]
