@@ -1,9 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  Search, ShoppingCart, Plus, Minus, Trash2, 
-  Filter, ChevronDown, ChevronRight, Building2, 
-  CheckCircle, AlertCircle 
-} from 'lucide-react';
+import { Search, ShoppingCart, Plus, Minus, Trash2, Filter, ChevronDown, ChevronRight, Building2, CheckCircle, AlertCircle } from 'lucide-react';
 
 const PaginaPedidos = () => {
   const [estoque, setEstoque] = useState([]);
@@ -15,21 +11,20 @@ const PaginaPedidos = () => {
   const [aviso, setAviso] = useState({ show: false, titulo: '', msg: '', tipo: 'sucesso' });
 
   useEffect(() => {
-    // 1. Puxa o usuário que está logado no momento
     const usuarioAtivo = JSON.parse(localStorage.getItem('usuario_logado') || '{}');
     const todasFiliais = JSON.parse(localStorage.getItem('filiais_cdc') || '[]');
     const estoqueValidado = JSON.parse(localStorage.getItem('produtos_estoque_cdc') || '[]');
     
-    // 2. Filtra filiais permitidas
-    // Se for ADM, vê todas. Senão, vê apenas as que estão no seu array 'unidades'
-    const permitidas = usuarioAtivo.cargo === 'adm' 
-      ? todasFiliais 
-      : todasFiliais.filter(f => usuarioAtivo.unidades?.includes(f.nome));
+    // Filtro Inteligente: Verifica permissão por array ou campo único
+    let permitidas = todasFiliais.filter(f => {
+      if (usuarioAtivo.cargo === 'adm' || usuarioAtivo.cargo === 'ADM') return true;
+      const unidadesArray = usuarioAtivo.unidades || [];
+      const unidadeUnica = usuarioAtivo.unidade || '';
+      return unidadesArray.includes(f.nome) || f.nome.includes(unidadeUnica);
+    });
 
     setFiliaisAcesso(permitidas);
     setEstoque(estoqueValidado.filter(p => p.status === 'ATIVO'));
-    
-    // Auto-seleciona se tiver só uma
     if (permitidas.length === 1) setFilialSelecionada(permitidas[0].nome);
   }, []);
 
@@ -50,57 +45,61 @@ const PaginaPedidos = () => {
   }, [estoque, pesquisa]);
 
   const adicionarAoCarrinho = (prod) => {
-    const itemExistente = carrinho.find(c => c.id === prod.id);
-    if (itemExistente) {
-      setCarrinho(carrinho.map(c => c.id === prod.id ? { ...c, qtd: c.qtd + 1 } : c));
+    const existe = carrinho.find(c => c.id === prod.id);
+    if (existe) {
+      atualizarQtd(prod.id, 1);
     } else {
-      setCarrinho([...carrinho, { ...prod, qtd: 1 }]);
+      setCarrinho([...carrinho, { ...prod, qtd: 1.000 }]);
     }
-    dispararAviso("Adicionado", `${prod.nome} está no carrinho.`);
+  };
+
+  const atualizarQtd = (id, delta) => {
+    setCarrinho(carrinho.map(c => {
+      if (c.id === id) {
+        const novaQtd = Math.max(0.001, parseFloat(c.qtd) + delta);
+        return { ...c, qtd: parseFloat(novaQtd.toFixed(3)) };
+      }
+      return c;
+    }));
   };
 
   const finalizarPedido = () => {
-    if (!filialSelecionada) return dispararAviso("Atenção", "Selecione a filial destino.", "erro");
-    if (carrinho.length === 0) return dispararAviso("Vazio", "O carrinho não tem itens.", "erro");
+    if (!filialSelecionada) return dispararAviso("Filial Ausente", "Escolha a base de destino.", "erro");
+    if (carrinho.length === 0) return dispararAviso("Carrinho Vazio", "Adicione itens primeiro.", "erro");
 
-    const pedido = {
-      id: Date.now(),
-      filial: filialSelecionada,
-      data: new Date().toLocaleString(),
+    const pedido = { 
+      id: Date.now(), 
+      filial: filialSelecionada, 
+      data: new Date().toLocaleString(), 
       itens: carrinho,
       status: 'PENDENTE'
     };
-
+    
     const hist = JSON.parse(localStorage.getItem('historico_pedidos') || '[]');
     localStorage.setItem('historico_pedidos', JSON.stringify([pedido, ...hist]));
     
     setCarrinho([]);
-    dispararAviso("Sucesso", "Pedido enviado para processamento.");
+    dispararAviso("Pedido Confirmado", "Enviado com sucesso para a logística.");
   };
 
   return (
     <div className="flex h-full gap-8 p-8 relative">
-      
-      {/* MODAL DE AVISO CENTRALIZADO */}
+      {/* MODAL CENTRAL */}
       {aviso.show && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-[40px] shadow-2xl w-full max-w-md p-8 text-center animate-in zoom-in duration-300">
+          <div className="bg-white rounded-[40px] shadow-2xl w-full max-w-md p-10 text-center animate-in zoom-in duration-300">
             {aviso.tipo === 'erro' ? <AlertCircle size={64} className="text-red-500 mx-auto mb-4" /> : <CheckCircle size={64} className="text-emerald-500 mx-auto mb-4" />}
             <h3 className="text-2xl font-black uppercase italic tracking-tighter text-slate-800">{aviso.titulo}</h3>
             <p className="mt-2 text-sm font-bold text-slate-500 uppercase">{aviso.msg}</p>
-            <button onClick={() => setAviso({ ...aviso, show: false })} className="mt-8 w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs">OK</button>
+            <button onClick={() => setAviso({ ...aviso, show: false })} className="mt-8 w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs tracking-widest">OK</button>
           </div>
         </div>
       )}
 
-      {/* CATÁLOGO DE ITENS */}
       <div className="flex-1 overflow-y-auto space-y-6 pr-2">
         <header className="mb-10">
           <h2 className="text-4xl font-black uppercase italic tracking-tighter text-slate-800 tracking-tighter">Realizar Pedido</h2>
-          <div className="mt-6 relative">
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-            <input className="w-full pl-16 pr-6 py-5 bg-white border-2 border-slate-100 rounded-[24px] font-bold text-xs uppercase focus:border-blue-500 outline-none shadow-sm" placeholder="O que deseja pedir?" value={pesquisa} onChange={e => setPesquisa(e.target.value)} />
-          </div>
+          <input className="w-full mt-6 pl-6 pr-6 py-5 bg-white border-2 border-slate-100 rounded-[24px] font-bold text-xs uppercase outline-none focus:border-blue-500 shadow-sm" placeholder="O que deseja pedir?" value={pesquisa} onChange={e => setPesquisa(e.target.value)} />
         </header>
 
         <div className="space-y-4">
@@ -120,7 +119,6 @@ const PaginaPedidos = () => {
                     {itens.map((prod) => (
                       <div key={prod.id} className="p-4 bg-slate-50 rounded-[22px] border border-slate-100 flex justify-between items-center group">
                         <div className="flex-1 pr-4">
-                          <p className="text-[9px] font-black text-slate-300 uppercase">#{prod.codigo}</p>
                           <h4 className="text-[11px] font-black uppercase text-slate-800 leading-tight">{prod.nome}</h4>
                           <p className="text-xs font-black text-blue-600 mt-1">R$ {prod.preco}</p>
                         </div>
@@ -135,35 +133,46 @@ const PaginaPedidos = () => {
         </div>
       </div>
 
-      {/* PAINEL DE FINALIZAÇÃO */}
-      <div className="w-[420px] bg-slate-900 rounded-[44px] shadow-2xl overflow-hidden sticky top-8 h-[calc(100vh-64px)] flex flex-col">
+      <div className="w-[420px] bg-slate-900 rounded-[44px] shadow-2xl overflow-hidden h-[calc(100vh-64px)] sticky top-8 flex flex-col">
         <div className="p-8">
           <div className="flex items-center gap-3 mb-8"><ShoppingCart className="text-blue-500" /><h3 className="text-xl font-black uppercase italic text-white tracking-tighter">Carrinho</h3></div>
-          
-          <label className="block text-[10px] font-black text-slate-500 uppercase mb-2 ml-2">Filial de Destino</label>
-          <div className="relative">
-            <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-            <select value={filialSelecionada} onChange={e => setFilialSelecionada(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-800 rounded-2xl text-xs font-bold uppercase border-none focus:ring-2 ring-blue-500 text-white appearance-none">
-              <option value="">Selecione sua base...</option>
-              {filiaisAcesso.map(f => <option key={f.id} value={f.nome}>{f.nome}</option>)}
-            </select>
-          </div>
+          <select value={filialSelecionada} onChange={e => setFilialSelecionada(e.target.value)} className="w-full p-4 bg-slate-800 rounded-2xl text-xs font-bold uppercase border-none text-white outline-none">
+            <option value="">Selecione sua base...</option>
+            {filiaisAcesso.map(f => <option key={f.id} value={f.nome}>{f.nome}</option>)}
+          </select>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {carrinho.map((item, idx) => (
-            <div key={idx} className="flex items-center gap-4 p-4 bg-slate-800/50 rounded-2xl border border-slate-800">
-              <div className="flex-1 pr-2">
-                <h5 className="text-[10px] font-black uppercase text-white leading-tight">{item.nome}</h5>
-                <p className="text-[9px] font-bold text-blue-400 mt-1">R$ {item.preco} x{item.qtd}</p>
+          {carrinho.map((item) => (
+            <div key={item.id} className="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+              <div className="flex justify-between items-start mb-3">
+                <h5 className="text-[10px] font-black uppercase text-white leading-tight flex-1">{item.nome}</h5>
+                <button onClick={() => setCarrinho(carrinho.filter(i => i.id !== item.id))} className="text-slate-600 hover:text-red-400 ml-2"><Trash2 size={16} /></button>
               </div>
-              <button onClick={() => setCarrinho(carrinho.filter((_, i) => i !== idx))} className="text-slate-600 hover:text-red-400"><Trash2 size={16}/></button>
+              <div className="flex items-center justify-between">
+                <p className="text-[9px] font-bold text-blue-400">R$ {item.preco}</p>
+                <div className="flex items-center gap-2 bg-slate-700 p-1.5 rounded-xl border border-slate-600">
+                  <button onClick={() => atualizarQtd(item.id, -1)} className="text-white hover:text-blue-400"><Minus size={14}/></button>
+                  <input 
+                    type="number" step="0.001" 
+                    className="w-16 bg-transparent text-center text-xs font-black text-white border-none p-0 outline-none"
+                    value={item.qtd}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      setCarrinho(carrinho.map(c => c.id === item.id ? { ...c, qtd: val || 0 } : c));
+                    }}
+                  />
+                  <button onClick={() => atualizarQtd(item.id, 1)} className="text-white hover:text-blue-400"><Plus size={14}/></button>
+                </div>
+              </div>
             </div>
           ))}
         </div>
 
         <div className="p-8 bg-slate-800/30">
-          <button onClick={finalizarPedido} className="w-full py-6 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-blue-500 transition-all active:scale-95 shadow-xl">Finalizar Pedido</button>
+          <button onClick={finalizarPedido} className="w-full py-6 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs shadow-xl tracking-widest hover:bg-blue-500 transition-all">
+            Confirmar Pedido
+          </button>
         </div>
       </div>
     </div>
