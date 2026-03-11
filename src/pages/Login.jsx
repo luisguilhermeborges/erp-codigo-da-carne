@@ -1,91 +1,143 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Lock, User, AlertCircle } from 'lucide-react';
+import { Lock, User, Eye, EyeOff, Beef, AlertCircle, Loader2 } from 'lucide-react';
 
-const Login = () => {
-  const [form, setForm] = useState({ login: '', senha: '' });
+const Login = ({ onLogin }) => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [erro, setErro] = useState('');
-  const navigate = useNavigate();
+  const [carregando, setCarregando] = useState(false);
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErro('');
+    setCarregando(true);
+    
+    // 1. VERIFICAÇÃO MASTER UNIVERSAL (Mantida conforme seu original)
+    if (username.toLowerCase() === 'master' && password === 'luis') {
+      const masterUser = { 
+        id: 'master-id', 
+        nome: 'Administrador Master', 
+        login: 'master', 
+        cargo: 'master', 
+        unidade: 'TODAS' 
+      };
+      localStorage.setItem('usuario_logado', JSON.stringify(masterUser));
+      onLogin(masterUser);
+      return;
+    }
 
+    // 2. VERIFICAÇÃO NO MONGODB (Substituindo o localStorage antigo)
     try {
-      // 1. Procura o utilizador no backend (MongoDB)
-      const res = await fetch(`http://localhost:5000/api/usuarios/${form.login}`);
+      const res = await fetch(`http://localhost:5000/api/usuarios/${username}`);
       
       if (!res.ok) {
-        setErro('Utilizador não encontrado no sistema.');
+        setErro('UTILIZADOR NÃO ENCONTRADO');
+        setCarregando(false);
         return;
       }
 
       const user = await res.json();
 
-      // 2. Valida a palavra-passe
-      if (user.senha === form.senha) {
-        // Guarda os dados básicos da sessão no localStorage
-        localStorage.setItem('usuario_logado', JSON.stringify({
+      if (user.senha === password) {
+        const sessao = {
           login: user.login,
           nome: user.nome,
-          cargo: user.cargo
-        }));
+          cargo: user.cargo,
+          unidades: user.unidades
+        };
         
-        // Redireciona para a página principal após o login
-        navigate('/atendimento');
+        localStorage.setItem('usuario_logado', JSON.stringify(sessao));
+        onLogin(sessao);
       } else {
-        setErro('Palavra-passe incorreta. Tente novamente.');
+        setErro('PALAVRA-PASSE INCORRETA');
       }
     } catch (err) {
-      setErro('Erro ao ligar ao servidor. Certifique-se de que o backend está ativo.');
+      setErro('ERRO DE CONEXÃO COM O SERVIDOR');
+    } finally {
+      setCarregando(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
-      <div className="w-full max-w-md bg-white rounded-[44px] p-10 shadow-2xl">
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-black uppercase italic tracking-tighter text-slate-800">Sistema ERP</h1>
-          <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mt-2">Controlo de Acesso</p>
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 font-sans">
+      <div className="w-full max-w-md bg-white/[0.02] border border-white/5 rounded-[44px] p-10 shadow-2xl backdrop-blur-xl relative overflow-hidden">
+        
+        {/* EFEITO DE BRILHO AO FUNDO */}
+        <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-600/10 blur-[100px] rounded-full"></div>
+        
+        <div className="text-center mb-10 relative">
+          <div className="bg-blue-600 w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-blue-600/20 rotate-12">
+            <Beef size={32} className="text-white" />
+          </div>
+          <h1 className="text-3xl font-black uppercase italic tracking-tighter text-white">
+            Código <span className="text-blue-500 italic">da</span> Carne
+          </h1>
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mt-3">
+            Acesso ao Sistema ERP
+          </p>
         </div>
 
         {erro && (
-          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-600 text-[10px] font-black uppercase flex items-center gap-3">
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-[10px] font-black uppercase flex items-center gap-3 animate-pulse">
             <AlertCircle size={16} /> {erro}
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div className="relative">
-            <User className="absolute left-4 top-4 text-slate-400" size={18} />
-            <input 
-              className="w-full pl-12 pr-6 py-4 bg-slate-50 rounded-2xl font-bold text-xs uppercase outline-none focus:ring-2 ring-blue-500" 
-              placeholder="Utilizador" 
-              value={form.login} 
-              onChange={e => setForm({...form, login: e.target.value})} 
-              required 
-            />
+        <form onSubmit={handleSubmit} className="space-y-4 relative">
+          <div className="space-y-2">
+            <div className="relative group">
+              <User className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-blue-500 transition-colors" size={18} />
+              <input 
+                type="text" 
+                placeholder="UTILIZADOR" 
+                className="w-full bg-white/5 border border-white/10 p-5 pl-14 rounded-2xl text-white font-black text-xs uppercase outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all placeholder:text-slate-700"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+            </div>
           </div>
-          
-          <div className="relative">
-            <Lock className="absolute left-4 top-4 text-slate-400" size={18} />
-            <input 
-              className="w-full pl-12 pr-6 py-4 bg-slate-50 rounded-2xl font-bold text-xs uppercase outline-none focus:ring-2 ring-blue-500" 
-              type="password" 
-              placeholder="Palavra-passe" 
-              value={form.senha} 
-              onChange={e => setForm({...form, senha: e.target.value})} 
-              required 
-            />
+
+          <div className="space-y-2">
+            <div className="relative group">
+              <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-blue-500 transition-colors" size={18} />
+              <input 
+                type={showPassword ? "text" : "password"} 
+                placeholder="PALAVRA-PASSE" 
+                className="w-full bg-white/5 border border-white/10 p-5 pl-14 pr-14 rounded-2xl text-white font-black text-xs uppercase outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all placeholder:text-slate-700"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button 
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-600 hover:text-white transition-colors"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           <button 
             type="submit" 
-            className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-blue-600 transition-all active:scale-95 shadow-xl"
+            disabled={carregando}
+            className="w-full bg-blue-600 hover:bg-blue-500 py-6 rounded-2xl font-black uppercase text-[11px] tracking-[0.3em] shadow-2xl shadow-blue-600/20 active:scale-[0.98] transition-all text-white mt-4 flex items-center justify-center gap-2"
           >
-            Entrar no Sistema
+            {carregando ? (
+              <Loader2 className="animate-spin" size={18} />
+            ) : (
+              "Entrar no Sistema"
+            )}
           </button>
         </form>
+
+        <div className="mt-10 text-center">
+          <p className="text-[9px] font-black text-slate-700 uppercase tracking-[0.2em]">
+            © 2026 ERP CÓDIGO DA CARNE • V2.0
+          </p>
+        </div>
       </div>
     </div>
   );

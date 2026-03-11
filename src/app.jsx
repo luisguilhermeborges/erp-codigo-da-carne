@@ -1,79 +1,54 @@
 import React, { useState, useEffect } from 'react';
-import BarraLateral from './components/BarraLateral';
-import BannerBoasVindas from './components/BannerBoasVindas';
+
+// Importação das Páginas
 import Login from './pages/Login';
-import PaginaPedidos from './pages/PaginaPedidos';
 import PaginaAtendimento from './pages/PaginaAtendimento';
+import PaginaPedidos from './pages/PaginaPedidos';
 import PaginaRelatorios from './pages/PaginaRelatorios';
 import PaginaTransferenciaAvulsa from './pages/PaginaTransferenciaAvulsa';
-import PaginaGestao from './pages/PaginaGestao'; 
-import './App.css';
+import PaginaGestao from './pages/PaginaGestao';
+
+// Importação de Componentes
+import BarraLateral from './components/BarraLateral';
+import BannerBoasVindas from './components/BannerBoasVindas';
 
 function App() {
-  // O estado inicia como null para forçar o login sempre que a página for aberta/atualizada
-  const [user, setUser] = useState(null);
-  
-  // Controle de navegação entre as telas
-  const [telaAtiva, setTelaAtiva] = useState('dashboard');
+  const [usuario, setUsuario] = useState(null);
+  const [abaAtiva, setAbaAtiva] = useState('atendimento');
 
-  // Função disparada após o sucesso no Login.jsx
-  const handleLogin = (userData) => {
-    setUser(userData);
-    setTelaAtiva('dashboard');
-  };
+  // Recupera a sessão ao carregar a página
+  useEffect(() => {
+    const salvo = localStorage.getItem('usuario_logado');
+    if (salvo) setUsuario(JSON.parse(salvo));
+  }, []);
 
-  // Função para deslogar o usuário
-  const handleLogout = () => {
-    setUser(null);
-    setTelaAtiva('dashboard');
-  };
-
-  // Se não houver usuário logado, mostra apenas a tela de Login
-  if (!user) {
-    return <Login onLogin={handleLogin} />;
+  // Se não houver usuário logado, trava na tela de Login
+  if (!usuario) {
+    return <Login onLogin={(user) => setUsuario(user)} />;
   }
 
-  // Lógica de roteamento interno do sistema
-  const renderConteudo = () => {
-    switch (telaAtiva) {
-      case 'dashboard':
-        // Passa o objeto user completo para o Banner e Mural dos Sonhos
-        return <BannerBoasVindas user={user} />;
-      
-      case 'fazer-pedido':
-        return <PaginaPedidos user={user} />;
-      
-      case 'atender-pedidos':
-        return <PaginaAtendimento user={user} />;
-      
-      case 'transferencia-avulsa':
-        return <PaginaTransferenciaAvulsa user={user} />;
-      
-      case 'relatorios':
-        return <PaginaRelatorios user={user} />;
-      
-      case 'gestao':
-        return <PaginaGestao user={user} />;
-      
-      default:
-        return <BannerBoasVindas user={user} />;
-    }
-  };
-
   return (
-    <div className="mbm-dashboard">
-      {/* Barra Lateral de Navegação */}
+    <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
+      {/* BARRA LATERAL */}
       <BarraLateral 
-        telaAtiva={telaAtiva} 
-        setTelaAtiva={setTelaAtiva} 
-        user={user} 
-        onLogout={handleLogout} 
+        usuario={usuario} 
+        abaAtiva={abaAtiva} 
+        setAbaAtiva={(aba) => setAbaAtiva(aba)}
+        onLogout={() => {
+          localStorage.removeItem('usuario_logado');
+          setUsuario(null);
+        }} 
       />
 
-      {/* Área Principal de Conteúdo */}
-      <main className="mbm-content">
-        <div className="page-wrapper">
-          {renderConteudo()}
+      <main className="flex-1 overflow-y-auto p-8">
+        <BannerBoasVindas usuario={usuario} />
+
+        <div className="mt-8">
+          {abaAtiva === 'atendimento' && <PaginaAtendimento />}
+          {abaAtiva === 'pedidos' && <PaginaPedidos />}
+          {abaAtiva === 'relatorios' && <PaginaRelatorios />}
+          {abaAtiva === 'transferencia' && <PaginaTransferenciaAvulsa />}
+          {abaAtiva === 'gestao' && <PaginaGestao />}
         </div>
       </main>
     </div>
