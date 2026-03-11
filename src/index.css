@@ -1,64 +1,172 @@
-/* Diretivas base do Tailwind CSS */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Configurações Globais para o Código da Carne */
-:root {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  background-color: #f8fafc; /* Cor de fundo suave que usas no App.jsx */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,700;1,9..40,400&display=swap');
+
+/* ══════════════════════════════════════
+   TEMA ESCURO (padrão)
+══════════════════════════════════════ */
+:root,
+[data-theme="dark"] {
+  --bg-base:        #0f172a;   /* fundo geral: azul marinho */
+  --bg-surface:     #1c1c24;   /* painéis: cinza escuro neutro */
+  --bg-elevated:    #25252f;   /* inputs, hover: cinza mais claro */
+  --bg-card:        #1e1e28;   /* cards: cinza escuro */
+  --border:         rgba(255, 255, 255, 0.06);
+  --border-bright:  rgba(255, 255, 255, 0.12);
+  --accent:         #3b82f6;
+  --accent-bright:  #60a5fa;
+  --accent-glow:    rgba(59, 130, 246, 0.2);
+  --text-primary:   #f1f5f9;
+  --text-secondary: #8b95a7;
+  --text-muted:     #4a5568;
+  --scrollbar-thumb: #2d2d3a;
+  --shadow:         0 2px 16px rgba(0,0,0,0.4);
 }
+
+/* ══════════════════════════════════════
+   TEMA CLARO
+══════════════════════════════════════ */
+[data-theme="light"] {
+  --bg-base:        #f1f5f9;
+  --bg-surface:     #ffffff;
+  --bg-elevated:    #f8fafc;
+  --bg-card:        #ffffff;
+  --border:         rgba(0, 0, 0, 0.07);
+  --border-bright:  rgba(0, 0, 0, 0.13);
+  --accent:         #2563eb;
+  --accent-bright:  #3b82f6;
+  --accent-glow:    rgba(37, 99, 235, 0.15);
+  --text-primary:   #0f172a;
+  --text-secondary: #475569;
+  --text-muted:     #94a3b8;
+  --scrollbar-thumb: #cbd5e1;
+  --shadow:         0 2px 12px rgba(0,0,0,0.08);
+}
+
+/* ══════════════════════════════════════
+   BASE
+══════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
   margin: 0;
   display: flex;
   min-width: 320px;
   min-height: 100vh;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-#root {
-  width: 100%;
-}
+#root { width: 100%; background-color: var(--bg-base); }
 
-/* Animações Customizadas (Para as classes animate-in e fade-in) */
+/* ══════════════════════════════════════
+   SCROLLBAR
+══════════════════════════════════════ */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--accent-glow); border-radius: 10px; }
+
+/* ══════════════════════════════════════
+   ANIMAÇÕES
+══════════════════════════════════════ */
 @layer utilities {
-  .animate-in {
-    animation-delay: 0s;
-    animation-fill-mode: both;
-  }
-
-  .fade-in {
-    animation: fadeIn 0.7s ease-in-out;
-  }
+  .animate-in { animation-fill-mode: both; }
+  .fade-in    { animation: fadeIn 0.45s ease-out; }
+  .zoom-in    { animation: zoomIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
 
   @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.93); }
+    to   { opacity: 1; transform: scale(1); }
   }
 }
 
-/* Estilização da barra de scroll para ficar moderna */
-::-webkit-scrollbar {
-  width: 8px;
+/* ══════════════════════════════════════
+   OVERRIDES TAILWIND → VARIÁVEIS
+══════════════════════════════════════ */
+
+/* fundos */
+.bg-white      { background-color: var(--bg-card)    !important; }
+.bg-slate-50   { background-color: var(--bg-surface)  !important; }
+.bg-slate-100  { background-color: var(--bg-elevated) !important; }
+
+/* bordas */
+.border-slate-100 { border-color: var(--border)        !important; }
+.border-slate-200 { border-color: var(--border-bright) !important; }
+
+/* textos */
+.text-slate-800 { color: var(--text-primary)   !important; }
+.text-slate-700 { color: var(--text-primary)   !important; }
+.text-slate-600 { color: var(--text-secondary) !important; }
+.text-slate-500 { color: var(--text-secondary) !important; }
+.text-slate-400 { color: var(--text-muted)     !important; }
+.text-slate-300 { color: var(--text-muted)     !important; }
+
+/* inputs */
+input, select, textarea {
+  background-color: var(--bg-elevated) !important;
+  color:            var(--text-primary) !important;
+  border-color:     var(--border)      !important;
+  transition: border-color 0.2s, background-color 0.3s;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent) !important;
+  outline: none;
+}
+input::placeholder, textarea::placeholder { color: var(--text-muted) !important; }
+
+/* azul elétrico */
+.bg-blue-600  { background-color: var(--accent)       !important; }
+.bg-blue-50   { background-color: rgba(59,130,246,0.08) !important; }
+.text-blue-600 { color: var(--accent-bright) !important; }
+.text-blue-800 { color: var(--accent-bright) !important; }
+.text-blue-500 { color: var(--accent-bright) !important; }
+.border-blue-600 { border-color: var(--accent) !important; }
+
+.hover\:bg-blue-700:hover { background-color: #1d4ed8 !important; }
+.hover\:bg-blue-500:hover { background-color: var(--accent-bright) !important; }
+
+.shadow-blue-500\/20,
+.shadow-blue-600\/20 { box-shadow: 0 6px 24px var(--accent-glow) !important; }
+
+/* hover nos cards */
+.rounded-\[28px\], .rounded-\[32px\],
+.rounded-\[40px\], .rounded-\[44px\] {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.rounded-\[28px\]:hover, .rounded-\[32px\]:hover,
+.rounded-\[40px\]:hover, .rounded-\[44px\]:hover {
+  border-color: var(--border-bright) !important;
 }
 
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
+/* remove setas number */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button { -webkit-appearance: none !important; margin: 0 !important; }
+input[type=number] { -moz-appearance: textfield !important; }
+
+/* ── HOVER HARMÔNICO NOS BOTÕES ── */
+button:hover { transition: all 0.15s ease; }
+
+/* botão categoria accordion */
+.hover\:bg-slate-50:hover {
+  background-color: var(--bg-elevated) !important;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+/* botão + adicionar produto */
+.hover\:bg-blue-600:hover {
+  background-color: var(--accent) !important;
+  color: #fff !important;
 }

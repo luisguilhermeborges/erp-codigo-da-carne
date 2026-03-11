@@ -1,57 +1,139 @@
-import React from 'react';
-import { 
-  LayoutDashboard, 
-  ShoppingCart, 
-  CheckSquare, 
-  BarChart3, 
-  Settings, 
-  MoveRight, 
-  LogOut 
-} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { LayoutDashboard, ShoppingCart, Package, Users, FileText, Repeat, LogOut, Heart, Sun, Moon } from 'lucide-react';
 
-const BarraLateral = ({ setTelaAtiva, telaAtiva, user, onLogout }) => {
-  const menus = [
-    { id: 'dashboard', rotulo: 'Painel', icone: LayoutDashboard, permissao: ['master', 'adm', 'comercial', 'estoque'] },
-    { id: 'fazer-pedido', rotulo: 'Fazer Pedido', icone: ShoppingCart, permissao: ['master', 'adm', 'comercial'] },
-    { id: 'atender-pedidos', rotulo: 'Atender Pedidos', icone: CheckSquare, permissao: ['master', 'adm', 'estoque'] },
-    { id: 'transferencia-avulsa', rotulo: 'Transferência Avulsa', icone: MoveRight, permissao: ['master', 'adm', 'estoque', 'comercial'] },
-    { id: 'relatorios', rotulo: 'Relatórios', icone: BarChart3, permissao: ['master', 'adm', 'comercial', 'estoque'] },
-    { id: 'gestao', rotulo: 'Gestão', icone: Settings, permissao: ['master', 'adm'] },
+const BarraLateral = ({ usuario, abaAtiva, setAbaAtiva, onLogout }) => {
+  const [tema, setTema] = useState(() => localStorage.getItem('tema_cdc') || 'dark');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', tema);
+    localStorage.setItem('tema_cdc', tema);
+  }, [tema]);
+
+  const alternarTema = () => setTema(t => t === 'dark' ? 'light' : 'dark');
+
+  const menuItens = [
+    { id: 'mural',        label: 'Mural dos Sonhos', icon: Heart,           roles: ['comercial', 'adm', 'master', 'pcp'] },
+    { id: 'atendimento',  label: 'Atendimento',      icon: LayoutDashboard, roles: ['comercial', 'adm', 'master'] },
+    { id: 'pedidos',      label: 'Fazer Pedidos',    icon: ShoppingCart,    roles: ['comercial', 'adm', 'master'] },
+    { id: 'transferencia',label: 'Transferência',    icon: Repeat,          roles: ['comercial', 'adm', 'master'] },
+    { id: 'relatorios',   label: 'Relatórios',       icon: FileText,        roles: ['adm', 'master'] },
+    { id: 'gestao',       label: 'Gestão',           icon: Users,           roles: ['adm', 'master'] },
+    { id: 'estoque',      label: 'Estoque',          icon: Package,         roles: ['adm', 'master'] },
   ];
 
-  const menusPermitidos = menus.filter(m => m.permissao.includes(user.cargo));
+  const itensVisiveis = menuItens.filter(item =>
+    item.roles.includes(usuario?.cargo?.toLowerCase() || 'comercial')
+  );
 
   return (
-    <aside className="w-80 bg-[#0a0b1e] text-white p-8 flex flex-col min-h-screen border-r border-white/5">
-      <div className="mb-16">
-        <h2 className="text-xl font-black italic text-blue-500 tracking-tighter uppercase">Código da Carne</h2>
-        <p className="text-[9px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1">
-          {user.unidade === 'TODAS' ? 'Administração Geral' : `Unidade ${user.unidade}`}
-        </p>
+    <aside style={{
+      width: '17rem',
+      backgroundColor: 'var(--bg-surface)',
+      borderRight: '1px solid var(--border)',
+      display: 'flex',
+      flexDirection: 'column',
+      boxShadow: 'var(--shadow)',
+      transition: 'background-color 0.3s ease',
+    }}>
+      {/* Logo */}
+      <div style={{ padding: '2rem' }}>
+        <h1 style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--text-primary)', textTransform: 'uppercase', fontStyle: 'italic', letterSpacing: '-0.05em' }}>
+          ERP <span style={{ color: 'var(--accent-bright)' }}>CDC</span>
+        </h1>
       </div>
 
-      <nav className="flex-1 space-y-3">
-        {menusPermitidos.map(item => (
-          <button
-            key={item.id}
-            onClick={() => setTelaAtiva(item.id)}
-            className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
-              telaAtiva === item.id ? 'bg-blue-600 shadow-xl text-white' : 'text-slate-500 hover:text-white'
-            }`}
-          >
-            <item.icone size={18} />
-            {item.rotulo}
-          </button>
-        ))}
+      {/* Nav */}
+      <nav style={{ flex: 1, padding: '0 1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        {itensVisiveis.map((item) => {
+          const Icone = item.icon;
+          const ativo = abaAtiva === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => setAbaAtiva(item.id)}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.75rem 1.25rem',
+                borderRadius: '0.875rem',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '0.7rem',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                transition: 'all 0.15s ease',
+                backgroundColor: ativo ? 'var(--accent)' : 'transparent',
+                color: ativo ? '#fff' : 'var(--text-muted)',
+                boxShadow: ativo ? '0 4px 16px var(--accent-glow)' : 'none',
+              }}
+              onMouseEnter={e => { if (!ativo) { e.currentTarget.style.backgroundColor = 'var(--bg-elevated)'; e.currentTarget.style.color = 'var(--text-primary)'; }}}
+              onMouseLeave={e => { if (!ativo) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}}
+            >
+              <Icone size={18} />
+              {item.label}
+            </button>
+          );
+        })}
       </nav>
 
-      <div className="pt-8 border-t border-white/5 space-y-4">
-        <div className="px-6">
-          <p className="text-[10px] font-black text-slate-200 uppercase leading-none">{user.nome}</p>
-          <p className="text-[9px] font-bold text-blue-500 uppercase tracking-widest">{user.cargo}</p>
-        </div>
-        <button onClick={onLogout} className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[10px] font-black uppercase text-red-500 hover:bg-red-500/10 transition-all">
-          <LogOut size={18} /> Sair
+      {/* Rodapé: Tema + Logout */}
+      <div style={{ padding: '1rem', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+
+        {/* Botão alternar tema */}
+        <button
+          onClick={alternarTema}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            padding: '0.75rem 1.25rem',
+            borderRadius: '0.875rem',
+            border: '1px solid var(--border-bright)',
+            cursor: 'pointer',
+            fontSize: '0.7rem',
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            backgroundColor: 'var(--bg-elevated)',
+            color: 'var(--text-secondary)',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent-bright)'; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-bright)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+        >
+          {tema === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          {tema === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
+        </button>
+
+        {/* Logout */}
+        <button
+          onClick={onLogout}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            padding: '0.75rem 1.25rem',
+            borderRadius: '0.875rem',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '0.7rem',
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            backgroundColor: 'transparent',
+            color: '#f87171',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.1)'; }}
+          onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+        >
+          <LogOut size={18} />
+          Sair do Sistema
         </button>
       </div>
     </aside>

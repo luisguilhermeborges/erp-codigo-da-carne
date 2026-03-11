@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Search, ShoppingCart, Plus, Minus, Trash2, Filter, ChevronDown, ChevronRight, CheckCircle, AlertCircle } from 'lucide-react';
 
-const PaginaPedidos = () => {
+const PaginaPedidos = ({ user }) => {
   const [estoque, setEstoque] = useState([]);
   const [carrinho, setCarrinho] = useState([]);
   const [pesquisa, setPesquisa] = useState('');
@@ -11,26 +11,23 @@ const PaginaPedidos = () => {
   const [aviso, setAviso] = useState({ show: false, titulo: '', msg: '', tipo: 'sucesso' });
 
   useEffect(() => {
+    if (!user) return;
     // 1. DADOS MESTRE
-    const sessao = JSON.parse(localStorage.getItem('usuario_logado') || '{}');
-    const todosUsuarios = JSON.parse(localStorage.getItem('usuarios_erp') || '[]');
-    const todasFiliais = JSON.parse(localStorage.getItem('filiais_cdc') || '[]');
+    const todasFiliais = JSON.parse(localStorage.getItem('filiais_config_completo') || '[]');
     const estoqueSalvo = JSON.parse(localStorage.getItem('produtos_estoque_cdc') || '[]');
 
-    // 2. BUSCA O USUÁRIO ATUALIZADO NA LISTA (O SEGREDO É ESSE)
-    const userFresco = todosUsuarios.find(u => u.login === sessao.login) || sessao;
-
-    // 3. FILTRA FILIAIS PELO CAMPO 'unidades'
+    // 2. FILTRA FILIAIS PELO CAMPO 'unidades' usando o user recebido via prop
     let permitidas = todasFiliais.filter(f => {
-      if (userFresco.cargo === 'adm' || userFresco.cargo === 'ADM') return true;
-      const minhasUnidades = Array.isArray(userFresco.unidades) ? userFresco.unidades : [];
+      const cargo = user.cargo?.toLowerCase();
+      if (cargo === 'adm' || cargo === 'master') return true;
+      const minhasUnidades = Array.isArray(user.unidades) ? user.unidades : [];
       return minhasUnidades.includes(f.nome);
     });
 
     setFiliaisAcesso(permitidas);
     setEstoque(estoqueSalvo.filter(p => p.status === 'ATIVO'));
     if (permitidas.length === 1) setFilialSelecionada(permitidas[0].nome);
-  }, []);
+  }, [user]);
 
   const atualizarQtd = (id, delta) => {
     setCarrinho(prev => prev.map(item => {
@@ -81,7 +78,7 @@ const PaginaPedidos = () => {
             return acc;
           }, {})).map(([categoria, itens]) => (
             <div key={categoria} className="bg-white rounded-[28px] border border-slate-100 overflow-hidden shadow-sm">
-              <button onClick={() => setCategoriasAbertas(prev => prev.includes(categoria) ? prev.filter(c => c !== categoria) : [...prev, categoria])} className="w-full flex items-center justify-between p-6 hover:bg-slate-50 transition-all">
+              <button onClick={() => setCategoriasAbertas(prev => prev.includes(categoria) ? prev.filter(c => c !== categoria) : [...prev, categoria])} className="w-full flex items-center justify-between p-6 transition-all">
                 <span className="text-sm font-black uppercase tracking-widest text-slate-700">{categoria}</span>
                 {categoriasAbertas.includes(categoria) ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
               </button>
@@ -90,7 +87,7 @@ const PaginaPedidos = () => {
                   {itens.map(prod => (
                     <div key={prod.id} className="p-4 bg-slate-50 rounded-[22px] border border-slate-100 flex justify-between items-center group">
                       <div className="flex-1 pr-2"><h4 className="text-[11px] font-black uppercase text-slate-800">{prod.nome}</h4><p className="text-xs font-black text-blue-600">R$ {prod.preco}</p></div>
-                      <button onClick={() => setCarrinho([...carrinho, { ...prod, qtd: 1.000 }])} className="p-4 bg-white hover:bg-blue-600 hover:text-white rounded-2xl shadow-sm transition-all"><Plus size={20} /></button>
+                      <button onClick={() => setCarrinho([...carrinho, { ...prod, qtd: 1.000 }])} className="p-4 hover:bg-blue-600 hover:text-white rounded-2xl transition-all"><Plus size={20} /></button>
                     </div>
                   ))}
                 </div>

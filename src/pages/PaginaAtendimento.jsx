@@ -9,15 +9,15 @@ const PaginaAtendimento = ({ user }) => {
   useEffect(() => {
     const carregarFila = () => {
       const dados = JSON.parse(localStorage.getItem('fila_pedidos') || '[]');
-      const filtrados = user.unidade === '000' || user.unidade === 'TODAS' 
+      const filtrados = user?.unidade === '000' || user?.unidade === 'TODAS' 
         ? dados 
-        : dados.filter(p => p.unidadeOrigem === user.unidade);
+        : dados.filter(p => p.unidadeOrigem === user?.unidade);
       setFila(filtrados);
     };
     carregarFila();
     const interval = setInterval(carregarFila, 5000);
     return () => clearInterval(interval);
-  }, [user.unidade]);
+  }, [user?.unidade]);
 
   useEffect(() => {
     if (pedidoSelecionado) {

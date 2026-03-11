@@ -1,89 +1,37 @@
-/* src/App.css */
-
-/* Reset e Fontes */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
 }
 
 :root {
-  --sidebar-dark: #0a0b1e;
-  --accent-blue: #2563eb;
-  --bg-light: #f8fafc;
-  --text-main: #1e293b;
-  --text-muted: #64748b;
+  --sidebar-dark:  #0a0f1e;
+  --accent-blue:   #3b82f6;
+  --bg-main:       #0f172a;
+  --text-main:     #f1f5f9;
+  --text-muted:    #475569;
 }
 
 body {
-  background-color: var(--bg-light);
+  background-color: var(--bg-main);
   color: var(--text-main);
-  overflow: hidden; /* Evita scroll duplo na página toda */
+  overflow: hidden;
 }
 
-/* Layout Principal MBM */
-.mbm-dashboard {
-  display: flex;
-  height: 100vh;
-  width: 100vw;
-}
+.mbm-dashboard { display: flex; height: 100vh; width: 100vw; }
+.mbm-content   { flex: 1; display: flex; flex-direction: column; overflow-y: auto; position: relative; }
+.page-wrapper  { padding: 40px; max-width: 1600px; margin: 0 auto; width: 100%; }
 
-.mbm-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  position: relative;
-}
-
-.page-wrapper {
-  padding: 40px;
-  max-width: 1600px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-/* REMOVER SETAS NATIVAS DOS INPUTS DE NÚMERO */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none !important;
-  margin: 0 !important;
-}
-
-input[type=number] {
-  -moz-appearance: textfield !important;
-}
-
-/* Custom Scrollbar para o Carrinho e Tabelas */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(59, 130, 246, 0.2);
-  border-radius: 10px;
-}
-
-/* Animações de Transição */
-.animate-in {
-  animation: fadeIn 0.4s ease-out;
-}
+.animate-in { animation: fadeIn 0.4s ease-out; }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Estilos de inputs de quantidade para ficarem limpos */
-.qtd-input {
-  outline: none;
-  border: none;
-  background: transparent;
-  font-weight: 900;
-  text-align: center;
-}
+.custom-scrollbar::-webkit-scrollbar { width: 5px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.2); border-radius: 10px; }
+
+.qtd-input { outline: none; border: none; background: transparent; font-weight: 900; text-align: center; }
