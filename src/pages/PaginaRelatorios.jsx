@@ -10,6 +10,7 @@ import {
 
 // Importação da biblioteca Excel (XLSX)
 import * as XLSX from 'xlsx';
+import { getHistorico } from '../services/cache';
 
 const PaginaRelatorios = () => {
   const [pesquisa, setPesquisa] = useState('');
@@ -17,10 +18,10 @@ const PaginaRelatorios = () => {
   const [filtroTipo, setFiltroTipo] = useState('TODOS');
   const [historico, setHistorico] = useState([]);
 
-  // Carrega o histórico de pedidos finalizados do LocalStorage
   useEffect(() => {
-    const dados = JSON.parse(localStorage.getItem('historico_pedidos') || '[]');
-    setHistorico(dados);
+    getHistorico().then(setHistorico).catch(() => {
+      setHistorico(JSON.parse(localStorage.getItem('historico_pedidos') || '[]'));
+    });
   }, []);
 
   // FUNÇÃO DE EXPORTAÇÃO XLSX (MODELO RIGOROSO DE 20 COLUNAS)
@@ -66,7 +67,7 @@ const PaginaRelatorios = () => {
     XLSX.utils.book_append_sheet(wb, ws, "Importacao_PV");
 
     // Dispara o download do ficheiro XLSX
-    XLSX.writeFile(wb, `PEDIDO_${pedido.id}_MBM_NF.xlsx`);
+    XLSX.writeFile(wb, `PEDIDO_${pedido.idExterno||pedido.id}_MBM_NF.xlsx`);
   };
 
   // Lógica de filtragem dos relatórios
@@ -88,20 +89,20 @@ const PaginaRelatorios = () => {
     <div className="space-y-8 animate-in fade-in duration-500">
       <header className="flex justify-between items-end">
         <div>
-          <h2 className="text-3xl font-black uppercase italic tracking-tighter text-slate-800">
+          <h2 className="text-3xl font-black uppercase italic tracking-tighter" style={{ color: "var(--text-primary)" }}>
             Relatórios
           </h2>
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] mt-1" style={{ color: "var(--text-muted)" }}>
             Exportação direta para integração de faturamento (XLSX)
           </p>
         </div>
       </header>
 
       {/* Painel de Filtros Avançados */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 rounded-[32px] border shadow-sm" style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border)" }}>
         <div className="space-y-2">
-          <label className="text-[9px] font-black uppercase text-slate-400 ml-2">Pesquisa Geral</label>
-          <div className="bg-slate-50 p-3 rounded-2xl flex items-center gap-3">
+          <label className="text-[9px] font-black uppercase ml-2" style={{ color: "var(--text-muted)" }}>Pesquisa Geral</label>
+          <div className="p-3 rounded-2xl flex items-center gap-3" style={{ backgroundColor: "var(--bg-elevated)" }}>
             <Search size={16} className="text-slate-300" />
             <input 
               type="text" 
@@ -113,8 +114,8 @@ const PaginaRelatorios = () => {
           </div>
         </div>
         <div className="space-y-2">
-          <label className="text-[9px] font-black uppercase text-slate-400 ml-2">Data do Pedido</label>
-          <div className="bg-slate-50 p-3 rounded-2xl flex items-center gap-3">
+          <label className="text-[9px] font-black uppercase ml-2" style={{ color: "var(--text-muted)" }}>Data do Pedido</label>
+          <div className="p-3 rounded-2xl flex items-center gap-3" style={{ backgroundColor: "var(--bg-elevated)" }}>
             <Calendar size={16} className="text-slate-300" />
             <input 
               type="text" 
@@ -126,8 +127,8 @@ const PaginaRelatorios = () => {
           </div>
         </div>
         <div className="space-y-2">
-          <label className="text-[9px] font-black uppercase text-slate-400 ml-2">Tipo de Movimento</label>
-          <div className="bg-slate-50 p-3 rounded-2xl flex items-center gap-3">
+          <label className="text-[9px] font-black uppercase ml-2" style={{ color: "var(--text-muted)" }}>Tipo de Movimento</label>
+          <div className="p-3 rounded-2xl flex items-center gap-3" style={{ backgroundColor: "var(--bg-elevated)" }}>
             <Filter size={16} className="text-slate-300" />
             <select 
               className="bg-transparent border-none focus:ring-0 w-full text-xs font-black uppercase" 
@@ -145,17 +146,17 @@ const PaginaRelatorios = () => {
       {/* Listagem de Cards de Histórico */}
       <div className="space-y-4">
         {dadosFiltrados.map((reg) => (
-          <div key={reg.id} className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm hover:border-blue-200 transition-all group">
+          <div key={reg.idExterno||reg.id} className="p-8 rounded-[40px] border shadow-sm transition-all group" style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border)" }}>
             <div className="flex justify-between items-start mb-6">
               <div className="flex gap-4 items-center">
                 <div className={`p-4 rounded-2xl ${reg.tipo === 'TRANSFERENCIA_AVULSA' ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'}`}>
                   {reg.tipo === 'TRANSFERENCIA_AVULSA' ? <Tag size={24} /> : <ShoppingCart size={24} />}
                 </div>
                 <div>
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
-                    #{reg.id} • {reg.data}
+                  <span className="text-[10px] font-black uppercase tracking-widest leading-none" style={{ color: "var(--text-muted)" }}>
+                    #{reg.idExterno||reg.id} • {reg.data}
                   </span>
-                  <h3 className="text-lg font-black text-slate-800 uppercase mt-1 leading-tight">{reg.cliente}</h3>
+                  <h3 className="text-lg font-black uppercase mt-1 leading-tight" style={{ color: "var(--text-primary)" }}>{reg.cliente}</h3>
                 </div>
               </div>
 
@@ -171,11 +172,11 @@ const PaginaRelatorios = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {reg.itens?.map((prod, idx) => (
-                <div key={idx} className="bg-slate-50 p-4 rounded-2xl flex flex-col border border-slate-100">
-                  <span className="text-[10px] font-black text-slate-800 uppercase truncate mb-1">{prod.nome}</span>
+                <div key={idx} className="p-4 rounded-2xl flex flex-col border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border)" }}>
+                  <span className="text-[10px] font-black uppercase truncate mb-1" style={{ color: "var(--text-primary)" }}>{prod.nome}</span>
                   <div className="flex justify-between items-center pt-2 border-t border-slate-200/50">
-                    <span className="text-[8px] font-black text-slate-400 uppercase">Cód: {prod.codigo}</span>
-                    <span className="text-xs font-black text-blue-600">
+                    <span className="text-[8px] font-black uppercase" style={{ color: "var(--text-muted)" }}>Cód: {prod.codigo}</span>
+                    <span className="text-xs font-black" style={{ color: "var(--accent-bright)" }}>
                       {(Number(prod.qtdEnviada || prod.qtd) || 0).toFixed(prod.unidade === 'kg' ? 3 : 0)} {prod.unidade}
                     </span>
                   </div>
@@ -186,7 +187,7 @@ const PaginaRelatorios = () => {
         ))}
         
         {dadosFiltrados.length === 0 && (
-          <div className="py-20 text-center opacity-20 italic text-xs font-black uppercase tracking-widest">
+          <div className="py-20 text-center opacity-30 italic text-xs font-black uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
             Nenhum registo encontrado para os filtros selecionados
           </div>
         )}

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, ShoppingCart, Package, Users, FileText, Repeat, LogOut, Heart, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Package, Users, FileText, Repeat, LogOut, Heart, Sun, Moon, QrCode, FileDown, Shield } from 'lucide-react';
 
 const BarraLateral = ({ usuario, abaAtiva, setAbaAtiva, onLogout }) => {
-  const [tema, setTema] = useState(() => localStorage.getItem('tema_cdc') || 'dark');
+  const [tema, setTema] = useState(() => localStorage.getItem('tema_cdc') || 'light');
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', tema);
@@ -19,6 +19,9 @@ const BarraLateral = ({ usuario, abaAtiva, setAbaAtiva, onLogout }) => {
     { id: 'relatorios',   label: 'Relatórios',       icon: FileText,        roles: ['adm', 'master'] },
     { id: 'gestao',       label: 'Gestão',           icon: Users,           roles: ['adm', 'master'] },
     { id: 'estoque',      label: 'Estoque',          icon: Package,         roles: ['adm', 'master'] },
+    { id: 'importacao',   label: 'Importar Layout',  icon: FileDown,        roles: ['adm', 'master'] },
+    { id: 'admin',        label: 'Admin Requisições', icon: Shield,          roles: ['master'] },
+    { id: 'gerador',      label: 'Gerador Cód/Lote', icon: QrCode,          roles: ['adm', 'master', 'pcp', 'comercial'] },
   ];
 
   const itensVisiveis = menuItens.filter(item =>

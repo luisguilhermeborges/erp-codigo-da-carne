@@ -1,3 +1,4 @@
+import { api } from '../../services/api';
 import React, { useState, useEffect } from 'react';
 import { MapPin, Trash2, Edit2, Save, X, Plus, Building2, AlertTriangle } from 'lucide-react';
 
@@ -28,9 +29,10 @@ const GestaoFiliais = () => {
   };
 
   useEffect(() => {
+    // Mantém localStorage como cache local
     localStorage.setItem('filiais_config_completo', JSON.stringify(filiais));
-    const listaSimples = filiais.map(f => `${f.codigo} - ${f.nome}`);
-    localStorage.setItem('filiais_config', JSON.stringify(listaSimples));
+    // Sincroniza com o server
+    api.filiais.sync(filiais).catch(err => console.warn('Sync filiais falhou', err));
   }, [filiais]);
 
   // Função para permitir apenas números nos inputs

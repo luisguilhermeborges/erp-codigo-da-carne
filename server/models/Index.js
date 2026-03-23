@@ -52,7 +52,7 @@ app.delete('/api/usuarios/:id', async (req, res) => {
   catch (err) { res.status(500).json({ error: 'Erro ao apagar usuário' }); }
 });
 
-// ── Health check ─────────────────────────────────────────────────────────────
+// ── Rota de health check ─────────────────────────────────────────────────────
 app.get('/api/status', (req, res) => res.json({ ok: true, uptime: process.uptime() }));
 
 // ── Start ────────────────────────────────────────────────────────────────────

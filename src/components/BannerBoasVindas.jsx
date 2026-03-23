@@ -85,7 +85,7 @@ const BannerBoasVindas = ({ user }) => {
         </div>
       </div>
 
-      <MuralSonhos user={user} />
+      {/* <MuralSonhos user={user} /> — temporariamente desabilitado */}
 
       {modalAnuncio && (
         <div className="fixed inset-0 bg-[#0a0b1e]/90 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
