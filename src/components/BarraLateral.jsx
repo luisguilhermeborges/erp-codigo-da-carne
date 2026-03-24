@@ -41,7 +41,7 @@ const BarraLateral = ({ usuario, abaAtiva, setAbaAtiva, onLogout }) => {
       {/* Logo */}
       <div style={{ padding: '2rem' }}>
         <h1 style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--text-primary)', textTransform: 'uppercase', fontStyle: 'italic', letterSpacing: '-0.05em' }}>
-          ERP <span style={{ color: 'var(--accent-bright)' }}>CDC</span>
+          SAAS ESTOQUE<span style={{ color: 'var(--accent-bright)' }}>CDC</span>
         </h1>
       </div>
 
