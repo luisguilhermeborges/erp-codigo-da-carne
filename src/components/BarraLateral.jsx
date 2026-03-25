@@ -12,7 +12,7 @@ const BarraLateral = ({ usuario, abaAtiva, setAbaAtiva, onLogout }) => {
   const alternarTema = () => setTema(t => t === 'dark' ? 'light' : 'dark');
 
   const menuItens = [
-    { id: 'mural',        label: 'Mural dos Sonhos', icon: Heart,           roles: ['comercial', 'adm', 'master', 'pcp'] },
+    { id: 'mural',        label: 'Home',              icon: Heart,           roles: ['comercial', 'adm', 'master', 'pcp'] },
     { id: 'atendimento',  label: 'Atendimento',      icon: LayoutDashboard, roles: ['comercial', 'adm', 'master'] },
     { id: 'pedidos',      label: 'Fazer Pedidos',    icon: ShoppingCart,    roles: ['comercial', 'adm', 'master'] },
     { id: 'transferencia',label: 'Transferência',    icon: Repeat,          roles: ['comercial', 'adm', 'master'] },

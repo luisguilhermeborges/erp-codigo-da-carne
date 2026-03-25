@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 // Importação das Páginas
 import Login from './pages/Login';
+import PaginaHome from './pages/PaginaHome';
 import PaginaAtendimento from './pages/PaginaAtendimento';
 import PaginaPedidos from './pages/PaginaPedidos';
 import PaginaRelatorios from './pages/PaginaRelatorios';
@@ -78,18 +79,8 @@ function App() {
       <main className="flex-1 overflow-y-auto p-8 relative" style={{ backgroundColor: 'var(--bg-base)' }}>
         {usuario && (
           <>
-            {/* Banner só aparece fora das páginas funcionais */}
-            {abaAtiva === 'mural' && <BannerBoasVindas usuario={usuario} />}
-
-            <div className="mt-8">
-              {/* Mural dos Sonhos — em desenvolvimento */}
-              {abaAtiva === 'mural' && (
-                <EmDesenvolvimento
-                  icone={Heart}
-                  titulo="Mural dos Sonhos"
-                  descricao="Estamos preparando algo especial — em breve disponível"
-                />
-              )}
+            <div>
+              {abaAtiva === 'mural' && <PaginaHome user={usuario} />}
 
               {/* Gerador de Códigos e Lote — em desenvolvimento */}
               {abaAtiva === 'gerador' && (

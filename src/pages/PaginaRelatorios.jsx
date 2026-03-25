@@ -22,7 +22,10 @@ const tempoDecorrido = (dataStr) => {
 
 // ── Geração do XLSX MBM ───────────────────────────────────────────────────────
 const exportarXLSX = (pedido) => {
-  const itens = [...(pedido.itens||[])].sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  const itens = [...(pedido.itens||[])]
+    .filter(i => Number(i.qtdEnviada || 0) > 0)
+    .sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+    
   const cab = [
     "Nro Ped. Cliente","Seq. Item","* Código Item (Reduzido)","* Código Item",
     "Descrição Item","* Qtde. Venda","Unid. Venda","Valor Unitário (Venda)",
@@ -65,8 +68,8 @@ const ImprimirRelatorio = ({ pedidos, onFechar }) => {
         </div>
 
         {todos.map((reg, ri) => {
-          const atendidos    = (reg.itens||[]).filter(i=>i.atendido!==false).sort((a,b)=>(b.prioridade||0)-(a.prioridade||0)||(a.nome||'').localeCompare(b.nome||''));
-          const naoAtendidos = (reg.itens||[]).filter(i=>i.atendido===false).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+          const atendidos    = (reg.itens||[]).filter(i => Number(i.qtdEnviada || 0) > 0).sort((a,b)=>(b.prioridade||0)-(a.prioridade||0)||(a.nome||'').localeCompare(b.nome||''));
+          const naoAtendidos = (reg.itens||[]).filter(i => Number(i.qtdEnviada || 0) <= 0).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
           return (
             <div key={ri} style={{marginBottom:'2rem',breakInside:'avoid'}}>
               <div style={{backgroundColor:'#1e293b',color:'#fff',padding:'0.6rem 0.875rem',borderRadius:'0.5rem 0.5rem 0 0',display:'flex',justifyContent:'space-between',fontSize:'0.7rem'}}>
@@ -129,8 +132,8 @@ const ImprimirRelatorio = ({ pedidos, onFechar }) => {
 const CardRelatorio = ({ reg }) => {
   const [aberto, setAberto] = useState(false);
 
-  const atendidos    = useMemo(()=>[...(reg.itens||[])].filter(i=>i.atendido!==false).sort((a,b)=>(b.prioridade||0)-(a.prioridade||0)||(a.nome||'').localeCompare(b.nome||'')), [reg]);
-  const naoAtendidos = useMemo(()=>[...(reg.itens||[])].filter(i=>i.atendido===false).sort((a,b)=>(a.nome||'').localeCompare(b.nome||'')), [reg]);
+  const atendidos    = useMemo(()=>[...(reg.itens||[])].filter(i => Number(i.qtdEnviada || 0) > 0).sort((a,b)=>(b.prioridade||0)-(a.prioridade||0)||(a.nome||'').localeCompare(b.nome||'')), [reg]);
+  const naoAtendidos = useMemo(()=>[...(reg.itens||[])].filter(i => Number(i.qtdEnviada || 0) <= 0).sort((a,b)=>(a.nome||'').localeCompare(b.nome||'')), [reg]);
 
   return (
     <div className="rounded-[32px] border overflow-hidden transition-all" style={{backgroundColor:'var(--bg-card)',borderColor:'var(--border)'}}>
@@ -299,7 +302,7 @@ const PaginaRelatorios = () => {
   }, [pesquisa, filtroData, filtroTipo, historico]);
 
   const totalNaoAtendidos = useMemo(()=>
-    dadosFiltrados.reduce((acc,r)=>acc+(r.itens||[]).filter(i=>i.atendido===false).length,0)
+    dadosFiltrados.reduce((acc,r)=>acc+(r.itens||[]).filter(i => Number(i.qtdEnviada || 0) <= 0).length,0)
   , [dadosFiltrados]);
 
   return (

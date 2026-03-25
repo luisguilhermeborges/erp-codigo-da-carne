@@ -6,8 +6,8 @@ import { getFila, getEstoque } from '../services/cache';
 
 // ── Folha de impressão ────────────────────────────────────────────────────────
 const FolhaImpressao = ({ pedido, onFechar }) => {
-  const atendidos    = [...(pedido.itens||[])].filter(i => i.atendido !== false).sort((a,b) => (b.prioridade||0)-(a.prioridade||0) || (a.nome||'').localeCompare(b.nome||''));
-  const naoAtendidos = [...(pedido.itens||[])].filter(i => i.atendido === false).sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
+  const atendidos    = [...(pedido.itens||[])].filter(i => Number(i.qtdEnviada || 0) > 0).sort((a,b) => (b.prioridade||0)-(a.prioridade||0) || (a.nome||'').localeCompare(b.nome||''));
+  const naoAtendidos = [...(pedido.itens||[])].filter(i => Number(i.qtdEnviada || 0) <= 0).sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
 
   return (
     <div className="fixed inset-0 z-[9999] bg-white overflow-auto" style={{color:'#000',fontFamily:'sans-serif'}}>
@@ -112,7 +112,7 @@ const FolhaImpressao = ({ pedido, onFechar }) => {
 
 // ── Geração do XLSX para o sistema MBM (igual ao de relatórios) ───────────────
 const gerarXLSX = (pedido) => {
-  const itensAtendidos = (pedido.itens||[]).filter(i => i.atendido !== false)
+  const itensAtendidos = (pedido.itens||[]).filter(i => Number(i.qtdEnviada || 0) > 0)
     .sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
 
   const cabecalho = [
@@ -181,7 +181,7 @@ const PaginaAtendimento = ({ user }) => {
     // Ordem alfabética, prioridade alta no topo
     const itens = [...(pedidoSelecionado.itens||[])]
       .sort((a,b) => (b.prioridade||0)-(a.prioridade||0) || (a.nome||'').localeCompare(b.nome||''))
-      .map(item => ({ ...item, qtdSolicitada: Number(item.qtd)||1, qtdEnviada: Number(item.qtd)||1, atendido: true }));
+      .map(item => ({ ...item, qtdSolicitada: Number(item.qtd)||1, qtdEnviada: Number(item.qtd)||1 }));
     setItensConferencia(itens);
   }, [pedidoSelecionado]);
 
@@ -193,7 +193,7 @@ const PaginaAtendimento = ({ user }) => {
     if (idx === -1) {
       setFeedbackLeitor({ tipo:'erro', msg:`Código ${cod} não está neste pedido` });
     } else {
-      setItensConferencia(prev => prev.map((i,k) => k===idx ? {...i, atendido:true, qtdEnviada:(Number(i.qtdEnviada)||0)+1} : i));
+      setItensConferencia(prev => prev.map((i,k) => k===idx ? {...i, qtdEnviada:(Number(i.qtdEnviada)||0)+1} : i));
       setFeedbackLeitor({ tipo:'ok', msg:`✓ ${itensConferencia[idx].nome}` });
     }
     setCodigoLido('');
@@ -207,7 +207,7 @@ const PaginaAtendimento = ({ user }) => {
       setTimeout(() => setFeedbackLeitor(null), 2000);
       return;
     }
-    setItensConferencia(prev => [...prev, { ...prod, qtdSolicitada:0, qtdEnviada:1, atendido:true, extra:true }]);
+    setItensConferencia(prev => [...prev, { ...prod, qtdSolicitada:0, qtdEnviada:1, extra:true }]);
     setModalAddItem(false); setBuscaAdd('');
   };
 
@@ -240,9 +240,8 @@ const PaginaAtendimento = ({ user }) => {
     ? [...catalogoAdd].filter(p => p.nome.toLowerCase().includes(buscaAdd.toLowerCase()) || p.codigo.includes(buscaAdd)).sort((a,b)=>a.nome.localeCompare(b.nome))
     : [];
 
-  // Separados por status, ordenados alfabeticamente dentro de cada grupo
-  const itensAtendidos    = itensConferencia.filter(i => i.atendido !== false).sort((a,b)=>(b.prioridade||0)-(a.prioridade||0)||(a.nome||'').localeCompare(b.nome||''));
-  const itensNaoAtendidos = itensConferencia.filter(i => i.atendido === false).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  // Exibição unificada, ordenda por prioridade e alfabeticamente
+  const itensExibicao = [...itensConferencia].sort((a,b)=>(b.prioridade||0)-(a.prioridade||0)||(a.nome||'').localeCompare(b.nome||''));
 
   return (
     <div className="flex gap-6 animate-in fade-in duration-500">
@@ -374,57 +373,60 @@ const PaginaAtendimento = ({ user }) => {
               )}
             </header>
 
-            {/* ── ITENS ATENDIDOS ── */}
-            {itensAtendidos.length > 0 && (
+            {/* ── LISTA DE ITENS DO PEDIDO ── */}
+            {itensExibicao.length > 0 && (
               <div className="rounded-[24px] border overflow-hidden" style={{backgroundColor:'var(--bg-card)',borderColor:'var(--border)'}}>
-                <div style={{padding:'0.6rem 1rem',backgroundColor:'rgba(16,185,129,0.08)',borderBottom:'1px solid var(--border)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                  <span style={{fontSize:'0.65rem',fontWeight:800,textTransform:'uppercase',color:'#10b981'}}>✓ Atendidos ({itensAtendidos.length})</span>
+                <div style={{padding:'0.6rem 1rem',backgroundColor:'rgba(59,130,246,0.08)',borderBottom:'1px solid var(--border)'}}>
+                  <span style={{fontSize:'0.65rem',fontWeight:800,textTransform:'uppercase',color:'var(--accent-bright)'}}>Itens para Separação ({itensExibicao.length})</span>
                 </div>
                 <table className="w-full text-left">
                   <thead style={{backgroundColor:'var(--bg-elevated)'}}>
                     <tr style={{color:'var(--text-muted)',fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase'}}>
-                      <th className="px-4 py-2 w-10">✓</th>
                       <th className="px-4 py-2">Produto</th>
                       <th className="px-4 py-2 text-center w-28">Prioridade</th>
-                      <th className="px-4 py-2 text-center w-32">Qtd Enviada</th>
+                      <th className="px-4 py-2 text-center w-40">Qtd Enviada</th>
                       <th className="px-4 py-2 w-8"></th>
                     </tr>
                   </thead>
                   <tbody>
-                    {itensAtendidos.map((item,idx)=>{
-                      const realIdx = itensConferencia.findIndex(i=>i===item);
+                    {itensExibicao.map((item) => {
+                      const realIdx = itensConferencia.findIndex(i => i.codigo === item.codigo);
+                      const isZerado = Number(item.qtdEnviada || 0) <= 0;
+                      
                       return (
-                        <tr key={realIdx} style={{borderTop:'1px solid var(--border)',backgroundColor:item.extra?'rgba(59,130,246,0.03)':'transparent'}}>
+                        <tr key={realIdx} style={{borderTop:'1px solid var(--border)',backgroundColor:item.extra?'rgba(59,130,246,0.03)':isZerado?'rgba(239,68,68,0.03)':'transparent'}}>
                           <td className="px-4 py-3">
-                            <button onClick={()=>setItensConferencia(itensConferencia.map((i,k)=>k===realIdx?{...i,atendido:false}:i))}>
-                              <CheckCircle className="text-green-500" size={20}/>
-                            </button>
-                          </td>
-                          <td className="px-4 py-3">
-                            <p style={{fontWeight:700,textTransform:'uppercase',fontSize:'0.7rem',lineHeight:1.3,color:'var(--text-primary)'}}>{item.nome}</p>
+                            <p style={{fontWeight:700,textTransform:'uppercase',fontSize:'0.7rem',lineHeight:1.3,color:isZerado?'#ef4444':'var(--text-primary)'}}>{item.nome}</p>
                             <div style={{display:'flex',gap:'0.4rem',marginTop:2}}>
                               <span style={{fontSize:'0.58rem',fontFamily:'monospace',color:'var(--text-muted)'}}>{item.codigo}</span>
                               {item.extra && <span style={{fontSize:'0.55rem',fontWeight:700,padding:'1px 4px',borderRadius:'999px',backgroundColor:'rgba(59,130,246,0.1)',color:'var(--accent-bright)'}}>EXTRA</span>}
+                              {isZerado && <span style={{fontSize:'0.55rem',fontWeight:700,padding:'1px 4px',borderRadius:'999px',backgroundColor:'rgba(239,68,68,0.1)',color:'#ef4444'}}>FALTA</span>}
                             </div>
                           </td>
                           <td className="px-4 py-3 text-center" style={{fontSize:'0.8rem',color:'#f59e0b'}}>
                             {'★'.repeat(item.prioridade||0)}{'☆'.repeat(5-(item.prioridade||0))}
                           </td>
                           <td className="px-4 py-3">
-                            <div className="flex items-center justify-center gap-1">
-                              <button onClick={()=>setItensConferencia(itensConferencia.map((i,k)=>k===realIdx?{...i,qtdEnviada:Math.max(0,Number(i.qtdEnviada)-1)}:i))}
-                                style={{padding:'0.2rem',borderRadius:'0.375rem',border:'1px solid var(--border)',backgroundColor:'var(--bg-elevated)',color:'var(--text-secondary)',cursor:'pointer'}}>
-                                <ChevronDown size={11}/>
+                            <div className="flex items-center justify-center gap-2">
+                              <button onClick={()=>setItensConferencia(itensConferencia.map((i,k)=>k===realIdx?{...i,qtdEnviada:Math.max(0,Number(i.qtdEnviada||0)-1)}:i))}
+                                style={{padding:'0.4rem',borderRadius:'0.375rem',border:'1px solid var(--border)',backgroundColor:'var(--bg-elevated)',color:'var(--text-secondary)',cursor:'pointer'}}>
+                                <ChevronDown size={14}/>
                               </button>
+                              
                               <input type="number" step="0.001"
-                                className="text-center bg-transparent font-black text-xs border-none outline-none"
-                                style={{color:'var(--accent-bright)',width:48}}
+                                className="text-center bg-transparent font-black border-none outline-none"
+                                style={{
+                                  color: isZerado ? '#ef4444' : 'var(--accent-bright)', 
+                                  width: 80, 
+                                  fontSize: '1.2rem'
+                                }}
                                 value={item.qtdEnviada}
                                 onChange={e=>setItensConferencia(itensConferencia.map((i,k)=>k===realIdx?{...i,qtdEnviada:e.target.value}:i))}
                               />
-                              <button onClick={()=>setItensConferencia(itensConferencia.map((i,k)=>k===realIdx?{...i,qtdEnviada:Number(i.qtdEnviada)+1}:i))}
-                                style={{padding:'0.2rem',borderRadius:'0.375rem',border:'1px solid var(--border)',backgroundColor:'var(--bg-elevated)',color:'var(--text-secondary)',cursor:'pointer'}}>
-                                <ChevronUp size={11}/>
+                              
+                              <button onClick={()=>setItensConferencia(itensConferencia.map((i,k)=>k===realIdx?{...i,qtdEnviada:Number(i.qtdEnviada||0)+1}:i))}
+                                style={{padding:'0.4rem',borderRadius:'0.375rem',border:'1px solid var(--border)',backgroundColor:'var(--bg-elevated)',color:'var(--text-secondary)',cursor:'pointer'}}>
+                                <ChevronUp size={14}/>
                               </button>
                             </div>
                           </td>
@@ -434,7 +436,7 @@ const PaginaAtendimento = ({ user }) => {
                                 style={{color:'var(--text-muted)',cursor:'pointer'}}
                                 onMouseEnter={e=>e.currentTarget.style.color='#ef4444'}
                                 onMouseLeave={e=>e.currentTarget.style.color='var(--text-muted)'}>
-                                <Trash2 size={13}/>
+                                <Trash2 size={15}/>
                               </button>
                             )}
                           </td>
@@ -446,48 +448,9 @@ const PaginaAtendimento = ({ user }) => {
               </div>
             )}
 
-            {/* ── ITENS NÃO ATENDIDOS ── */}
-            {itensNaoAtendidos.length > 0 && (
-              <div className="rounded-[24px] border overflow-hidden" style={{backgroundColor:'var(--bg-card)',borderColor:'rgba(239,68,68,0.3)'}}>
-                <div style={{padding:'0.6rem 1rem',backgroundColor:'rgba(239,68,68,0.06)',borderBottom:'1px solid rgba(239,68,68,0.2)'}}>
-                  <span style={{fontSize:'0.65rem',fontWeight:800,textTransform:'uppercase',color:'#ef4444'}}>✗ Não Atendidos ({itensNaoAtendidos.length})</span>
-                </div>
-                <table className="w-full text-left">
-                  <thead style={{backgroundColor:'var(--bg-elevated)'}}>
-                    <tr style={{color:'var(--text-muted)',fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase'}}>
-                      <th className="px-4 py-2 w-10">✗</th>
-                      <th className="px-4 py-2">Produto</th>
-                      <th className="px-4 py-2 text-center w-28">Prioridade</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {itensNaoAtendidos.map((item,idx)=>{
-                      const realIdx = itensConferencia.findIndex(i=>i===item);
-                      return (
-                        <tr key={realIdx} style={{borderTop:'1px solid var(--border)'}}>
-                          <td className="px-4 py-3">
-                            <button onClick={()=>setItensConferencia(itensConferencia.map((i,k)=>k===realIdx?{...i,atendido:true}:i))}>
-                              <XCircle size={20} style={{color:'#ef4444'}}/>
-                            </button>
-                          </td>
-                          <td className="px-4 py-3">
-                            <p style={{fontWeight:700,textTransform:'uppercase',fontSize:'0.7rem',color:'var(--text-primary)'}}>{item.nome}</p>
-                            <span style={{fontSize:'0.58rem',fontFamily:'monospace',color:'var(--text-muted)'}}>{item.codigo}</span>
-                          </td>
-                          <td className="px-4 py-3 text-center" style={{fontSize:'0.8rem',color:'#f59e0b'}}>
-                            {'★'.repeat(item.prioridade||0)}{'☆'.repeat(5-(item.prioridade||0))}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
             {/* Rodapé contador */}
             <div style={{display:'flex',justifyContent:'space-between',padding:'0.5rem 0.25rem',fontSize:'0.65rem',fontWeight:700,color:'var(--text-muted)'}}>
-              <span>{itensAtendidos.length} de {itensConferencia.length} itens atendidos</span>
+              <span>{itensConferencia.filter(i => Number(i.qtdEnviada || 0) > 0).length} de {itensConferencia.length} itens atendidos</span>
               {itensConferencia.filter(i=>i.extra).length > 0 && (
                 <span style={{color:'var(--accent-bright)'}}>+{itensConferencia.filter(i=>i.extra).length} extra(s)</span>
               )}
