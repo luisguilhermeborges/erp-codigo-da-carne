@@ -29,7 +29,7 @@ const Login = ({ onLogin }) => {
 
     // 2. VERIFICAÇÃO NO MONGODB (Substituindo o localStorage antigo)
     try {
-      const res = await fetch(`http://localhost:5000/api/usuarios/${username}`);
+      const res = await fetch(`https://api-codigo-da-carne.onrender.com/api/usuarios/${username}`);
       
       if (!res.ok) {
         setErro('UTILIZADOR NÃO ENCONTRADO');

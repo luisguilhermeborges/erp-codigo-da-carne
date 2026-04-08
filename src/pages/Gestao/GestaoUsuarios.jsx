@@ -9,7 +9,7 @@ const GestaoUsuarios = () => {
   const filiaisMaster = ["000 - PRODUÇÃO", "001 - CENTRO", "002 - ALPHAVILLE", "003 - GLEBA"];
 
   const carregar = async () => {
-    const res = await fetch('http://localhost:5000/api/usuarios');
+    const res = await fetch('https://api-codigo-da-carne.onrender.com/api/usuarios');
     const data = await res.json();
     setUsuarios(data);
   };
@@ -26,7 +26,7 @@ const GestaoUsuarios = () => {
   const salvar = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:5000/api/usuarios', {
+      const res = await fetch('https://api-codigo-da-carne.onrender.com/api/usuarios', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
@@ -95,7 +95,7 @@ const GestaoUsuarios = () => {
                 </td>
                 <td className="p-6 text-right">
                   <button onClick={() => setForm(u)} className="p-2 text-blue-400"><Edit2 size={16}/></button>
-                  <button onClick={async () => { await fetch(`http://localhost:5000/api/usuarios/${u._id}`, {method:'DELETE'}); carregar(); }} className="p-2 text-red-300"><Trash2 size={16}/></button>
+                  <button onClick={async () => { await fetch(`https://api-codigo-da-carne.onrender.com/api/usuarios/${u._id}`, {method:'DELETE'}); carregar(); }} className="p-2 text-red-300"><Trash2 size={16}/></button>
                 </td>
               </tr>
             ))}
