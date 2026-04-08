@@ -231,7 +231,7 @@ const PaginaHome = ({ user }) => {
           </div>
 
           {/* Valores rápidos */}
-          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'0.75rem',marginTop:'2rem'}}>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-8">
             {VALORES.map(v=>(
               <div key={v.label} style={{backgroundColor:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:'1rem',padding:'1rem',textAlign:'center'}}>
                 <v.icon size={22} style={{color:'#3b82f6',margin:'0 auto 0.5rem'}}/>
@@ -244,7 +244,7 @@ const PaginaHome = ({ user }) => {
       </div>
 
       {/* ── GRID PRINCIPAL ── */}
-      <div style={{display:'grid',gridTemplateColumns:'1fr 340px',gap:'1.5rem',alignItems:'start'}}>
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 items-start">
 
         {/* COLUNA ESQUERDA */}
         <div className="space-y-4">
@@ -281,7 +281,7 @@ const PaginaHome = ({ user }) => {
 
           {/* Benefícios — Totalpass */}
           <Secao titulo="Benefícios da Equipe" icone={Star} cor="#f59e0b" defaultAberto={true}>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.75rem'}}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {/* Totalpass */}
               <a href="https://totalpass.com.br" target="_blank" rel="noopener noreferrer"
                 style={{backgroundColor:'var(--bg-elevated)',border:'1px solid var(--border)',borderRadius:'1rem',padding:'1.25rem',textDecoration:'none',display:'block',transition:'all 0.2s'}}

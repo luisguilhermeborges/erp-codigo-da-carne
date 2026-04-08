@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, ShoppingCart, Package, Users, FileText, Repeat, LogOut, Heart, Sun, Moon, QrCode, FileDown, Shield } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Package, Users, FileText, Repeat, LogOut, Heart, Sun, Moon, QrCode, FileDown, Shield, X } from 'lucide-react';
 
-const BarraLateral = ({ usuario, abaAtiva, setAbaAtiva, onLogout }) => {
+const BarraLateral = ({ usuario, abaAtiva, setAbaAtiva, onLogout, menuAberto, setMenuAberto }) => {
   const [tema, setTema] = useState(() => localStorage.getItem('tema_cdc') || 'light');
 
   useEffect(() => {
@@ -18,7 +18,6 @@ const BarraLateral = ({ usuario, abaAtiva, setAbaAtiva, onLogout }) => {
     { id: 'transferencia',label: 'Transferência',    icon: Repeat,          roles: ['comercial', 'adm', 'master'] },
     { id: 'relatorios',   label: 'Relatórios',       icon: FileText,        roles: ['adm', 'master'] },
     { id: 'gestao',       label: 'Gestão',           icon: Users,           roles: ['adm', 'master'] },
-    { id: 'estoque',      label: 'Estoque',          icon: Package,         roles: ['adm', 'master'] },
     { id: 'importacao',   label: 'Importar Layout',  icon: FileDown,        roles: ['adm', 'master'] },
     { id: 'admin',        label: 'Admin Requisições', icon: Shield,          roles: ['master'] },
     { id: 'gerador',      label: 'Gerador Cód/Lote', icon: QrCode,          roles: ['adm', 'master', 'pcp', 'comercial'] },
@@ -29,21 +28,35 @@ const BarraLateral = ({ usuario, abaAtiva, setAbaAtiva, onLogout }) => {
   );
 
   return (
-    <aside style={{
-      width: '17rem',
-      backgroundColor: 'var(--bg-surface)',
-      borderRight: '1px solid var(--border)',
-      display: 'flex',
-      flexDirection: 'column',
-      boxShadow: 'var(--shadow)',
-      transition: 'background-color 0.3s ease',
-    }}>
-      {/* Logo */}
-      <div style={{ padding: '2rem' }}>
-        <h1 style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--text-primary)', textTransform: 'uppercase', fontStyle: 'italic', letterSpacing: '-0.05em' }}>
-          SAAS ESTOQUE<span style={{ color: 'var(--accent-bright)' }}>CDC</span>
-        </h1>
-      </div>
+    <>
+      {/* Overlay para mobile */}
+      {menuAberto && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/50 z-40" 
+          onClick={() => setMenuAberto(false)}
+        />
+      )}
+
+      <aside 
+        className={`fixed md:relative flex flex-col h-full z-50 transition-transform duration-300 ease-in-out ${menuAberto ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
+        style={{
+          width: '17rem',
+          backgroundColor: 'var(--bg-surface)',
+          borderRight: '1px solid var(--border)',
+          boxShadow: 'var(--shadow)',
+        }}>
+        {/* Logo and Close Button */}
+        <div style={{ padding: '1.5rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h1 style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--text-primary)', textTransform: 'uppercase', fontStyle: 'italic', letterSpacing: '-0.05em', margin: 0 }}>
+            SAAS<span style={{ color: 'var(--accent-bright)' }}>CDC</span>
+          </h1>
+          <button 
+            className="md:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 bg-transparent border-none cursor-pointer"
+            onClick={() => setMenuAberto(false)}
+          >
+            <X size={24} />
+          </button>
+        </div>
 
       {/* Nav */}
       <nav style={{ flex: 1, padding: '0 1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
@@ -140,6 +153,7 @@ const BarraLateral = ({ usuario, abaAtiva, setAbaAtiva, onLogout }) => {
         </button>
       </div>
     </aside>
+    </>
   );
 };
 

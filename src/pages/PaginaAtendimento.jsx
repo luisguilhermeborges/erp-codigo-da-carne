@@ -63,7 +63,7 @@ const FolhaImpressao = ({ pedido, onFechar }) => {
                       <p style={{fontSize:'0.6rem',color:'#94a3b8',margin:'0.1rem 0 0'}}>{item.categoria}</p>
                     </td>
                     <td style={{padding:'0.5rem 0.6rem',fontFamily:'monospace',fontSize:'0.65rem',color:'#475569'}}>{item.codigo}</td>
-                    <td style={{padding:'0.5rem 0.6rem',fontSize:'0.85rem',color:'#f59e0b'}}>{'★'.repeat(item.prioridade||0)}{'☆'.repeat(5-(item.prioridade||0))}</td>
+                    <td style={{padding:'0.5rem 0.6rem',fontSize:'0.85rem',color:'#f59e0b'}}>{'★'.repeat(item.prioridade||0)}{'☆'.repeat(3-(item.prioridade||0))}</td>
                     <td style={{padding:'0.5rem 0.6rem',fontWeight:700}}>{Number(item.qtdEnviada||item.qtd||0)} {item.unidade}</td>
                     <td style={{padding:'0.5rem 0.6rem',color:'#16a34a',fontWeight:700}}>{item.preco?Number(item.preco).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'—'}</td>
                   </tr>
@@ -91,7 +91,7 @@ const FolhaImpressao = ({ pedido, onFechar }) => {
                     <td style={{padding:'0.5rem 0.6rem',color:'#94a3b8',fontWeight:600}}>{i+1}</td>
                     <td style={{padding:'0.5rem 0.6rem'}}><p style={{fontWeight:700,textTransform:'uppercase',margin:0}}>{item.nome}</p></td>
                     <td style={{padding:'0.5rem 0.6rem',fontFamily:'monospace',fontSize:'0.65rem',color:'#475569'}}>{item.codigo}</td>
-                    <td style={{padding:'0.5rem 0.6rem',fontSize:'0.85rem',color:'#f59e0b'}}>{'★'.repeat(item.prioridade||0)}{'☆'.repeat(5-(item.prioridade||0))}</td>
+                    <td style={{padding:'0.5rem 0.6rem',fontSize:'0.85rem',color:'#f59e0b'}}>{'★'.repeat(item.prioridade||0)}{'☆'.repeat(3-(item.prioridade||0))}</td>
                   </tr>
                 ))}
               </tbody>
@@ -127,7 +127,7 @@ const gerarXLSX = (pedido) => {
     const row = new Array(20).fill("");
     row[0] = "";
     row[1] = i + 1;
-    row[3] = item.codigo;
+    row[3] = {t: 's', v: String(item.codigo)};
     row[4] = item.nome;
     row[5] = Number(item.qtdEnviada || item.qtd || 0);
     row[6] = item.unidade;
@@ -188,8 +188,8 @@ const PaginaAtendimento = ({ user }) => {
   useEffect(() => { if (modoLeitor && inputLeitorRef.current) inputLeitorRef.current.focus(); }, [modoLeitor]);
 
   const processarCodigo = useCallback((codigo) => {
-    const cod = String(codigo).trim().replace(/^0+/,'');
-    const idx  = itensConferencia.findIndex(i => String(i.codigo).replace(/^0+/,'') === cod);
+    const cod = String(codigo).trim();
+    const idx  = itensConferencia.findIndex(i => String(i.codigo) === cod);
     if (idx === -1) {
       setFeedbackLeitor({ tipo:'erro', msg:`Código ${cod} não está neste pedido` });
     } else {
@@ -244,7 +244,7 @@ const PaginaAtendimento = ({ user }) => {
   const itensExibicao = [...itensConferencia].sort((a,b)=>(b.prioridade||0)-(a.prioridade||0)||(a.nome||'').localeCompare(b.nome||''));
 
   return (
-    <div className="flex gap-6 animate-in fade-in duration-500">
+    <div className="flex flex-col md:flex-row gap-6 animate-in fade-in duration-500">
 
       {mostrarImpressao && pedidoSelecionado && (
         <FolhaImpressao pedido={{...pedidoSelecionado, itens:itensConferencia}} onFechar={()=>setMostrarImpressao(false)}/>
@@ -286,7 +286,7 @@ const PaginaAtendimento = ({ user }) => {
       )}
 
       {/* ── FILA LATERAL ── */}
-      <div className="w-64 flex-shrink-0 space-y-3">
+      <div className="w-full md:w-64 flex-shrink-0 space-y-3">
         <div className="flex items-center justify-between px-2">
           <h2 className="text-[10px] font-black uppercase tracking-widest" style={{color:'var(--text-muted)'}}>Cargas na Fila</h2>
           <button onClick={carregarFila} style={{color:'var(--text-muted)'}}><RefreshCw size={13} className={carregando?'animate-spin':''}/></button>
@@ -375,11 +375,11 @@ const PaginaAtendimento = ({ user }) => {
 
             {/* ── LISTA DE ITENS DO PEDIDO ── */}
             {itensExibicao.length > 0 && (
-              <div className="rounded-[24px] border overflow-hidden" style={{backgroundColor:'var(--bg-card)',borderColor:'var(--border)'}}>
-                <div style={{padding:'0.6rem 1rem',backgroundColor:'rgba(59,130,246,0.08)',borderBottom:'1px solid var(--border)'}}>
+              <div className="rounded-[24px] border overflow-hidden overflow-x-auto custom-scrollbar" style={{backgroundColor:'var(--bg-card)',borderColor:'var(--border)'}}>
+                <div style={{padding:'0.6rem 1rem',backgroundColor:'rgba(59,130,246,0.08)',borderBottom:'1px solid var(--border)',minWidth:'600px'}}>
                   <span style={{fontSize:'0.65rem',fontWeight:800,textTransform:'uppercase',color:'var(--accent-bright)'}}>Itens para Separação ({itensExibicao.length})</span>
                 </div>
-                <table className="w-full text-left">
+                <table className="w-full text-left" style={{minWidth:'600px'}}>
                   <thead style={{backgroundColor:'var(--bg-elevated)'}}>
                     <tr style={{color:'var(--text-muted)',fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase'}}>
                       <th className="px-4 py-2">Produto</th>
@@ -404,7 +404,7 @@ const PaginaAtendimento = ({ user }) => {
                             </div>
                           </td>
                           <td className="px-4 py-3 text-center" style={{fontSize:'0.8rem',color:'#f59e0b'}}>
-                            {'★'.repeat(item.prioridade||0)}{'☆'.repeat(5-(item.prioridade||0))}
+                            {'★'.repeat(item.prioridade||0)}{'☆'.repeat(3-(item.prioridade||0))}
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center justify-center gap-2">

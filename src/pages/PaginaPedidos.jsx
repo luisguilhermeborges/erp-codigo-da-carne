@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ShoppingCart, Trash2, ChevronDown, ChevronRight, CheckCircle, AlertCircle, Star, X, Search, SlidersHorizontal, ArrowRight, Building2 } from 'lucide-react';
+import { ShoppingCart, Trash2, ChevronDown, ChevronRight, CheckCircle, AlertCircle, Star, X, Search, SlidersHorizontal, ArrowRight, Building2, Package, Briefcase } from 'lucide-react';
 import { BANCO_PADRAO } from '../data/bancoPadrao';
 import { api } from '../services/api';
 import { getPrecos, getFiliais } from '../services/cache';
 
 const Prioridade = ({ valor, onChange }) => (
   <div className="flex gap-0.5">
-    {[1,2,3,4,5].map(n => (
+    {[1,2,3].map(n => (
       <button key={n} onClick={() => onChange(n === valor ? 0 : n)}
         style={{ color: n <= valor ? '#f59e0b' : 'var(--border-bright)', transition:'color 0.15s' }}
         onMouseEnter={e => e.currentTarget.style.color = '#f59e0b'}
@@ -17,7 +17,7 @@ const Prioridade = ({ valor, onChange }) => (
   </div>
 );
 
-const ORDEM_CATS = ["CHURRASCO","DIA A DIA","HAMBURGUER","KIT BURGUER","BEBIDA","MERCEARIA","ACESSÓRIO"];
+const ORDEM_CATS = ["CHURRASCO","DIA A DIA","HAMBURGUER","KIT BURGUER","BEBIDA","MERCEARIA","ACESSÓRIO","USO/CONSUMO"];
 const SUBCATS = {
   "CHURRASCO":   ["BOVINO","PICANHA","MAMINHA","CHORIZO","ANCHO","COSTELA","SHORT RIB","FRALDA","FRALDA RED","T BONE","CUPIM","FLAT IRON","ENTRANHA","DENVER","CAPA DE FILE","PEITO","ASSADO DE TIRAS","TOMAHAWK","PRIME RIB","SUINO","CORDEIRO","LINGUIÇA","ESPETINHO","FRANGO","WAGYU"],
   "DIA A DIA":   ["BOVINO","FRANGO","SUINO","PEIXE","ACOMPANHAMENTO","CHURRASCO"],
@@ -26,6 +26,7 @@ const SUBCATS = {
   "BEBIDA":      ["CERVEJA","REFRIGERANTE","AGUA"],
   "MERCEARIA":   ["TEMPERO","MOLHO","SALGADINHO","PAO","QUEIJO","AZEITE","ACOMPANHAMENTO","CHURRASCO","GERAL"],
   "ACESSÓRIO":   ["GRELHA","ESPETO","CARVAO","LENHA","FACA","ACENDEDOR","EMBALAGEM","VESTUARIO","CHURRASQUEIRA","GERAL"],
+  "USO/CONSUMO": ["LIMPEZA", "ESCRITORIO", "EMBALAGEM", "DESCARTAVEL", "GERAL"],
 };
 const SUBCATS_VISIVEIS = 5;
 
@@ -44,6 +45,7 @@ const PaginaPedidos = ({ user }) => {
   const [modalSub, setModalSub]                   = useState(false);
   const [buscaSub, setBuscaSub]                   = useState('');
   const [alertaPrioridade, setAlertaPrioridade]   = useState(false);
+  const [tipoPedido, setTipoPedido]               = useState('REVENDA'); // REVENDA ou USO_CONSUMO
 
   const cargo    = user?.cargo?.toLowerCase();
   const isMulti  = cargo === 'master' || cargo === 'adm'; // pode escolher origem
@@ -62,7 +64,7 @@ const PaginaPedidos = ({ user }) => {
 
       const precos = await getPrecos();
       const lista = Object.entries(BANCO_PADRAO).map(([nome, v]) => {
-        const cod = String(v.codigo ?? '').trim().replace(/^0+/, '');
+        const cod = String(v.codigo ?? '').trim();
         return { id:cod, codigo:cod, nome, preco:precos[cod]??0, unidade:v.unidade, categoria:v.categoria, tags:v.tags||[v.categoria] };
       });
       setEstoque(lista.filter(p => p.preco > 0));
@@ -112,7 +114,10 @@ const PaginaPedidos = ({ user }) => {
     ? todasFiliais
     : todasFiliais.filter(f => (user?.unidades||[]).includes(f.nome));
 
-  const catsDisponiveis = ORDEM_CATS.filter(c => estoque.some(p => p.categoria === c));
+  const catsDisponiveis = ORDEM_CATS.filter(c => 
+    estoque.some(p => p.categoria === c) &&
+    (tipoPedido === 'REVENDA' ? c !== 'USO/CONSUMO' : c === 'USO/CONSUMO')
+  );
   const buscaAtiva      = pesquisa.trim().length > 0;
   const isCatAberta     = (cat)    => buscaAtiva || categoriasAbertas.includes(cat);
   const isSubAberta     = (subKey) => buscaAtiva || categoriasAbertas.includes(subKey);
@@ -134,7 +139,7 @@ const PaginaPedidos = ({ user }) => {
         unidadeOrigem: filialOrigem,
         destino:       filialDestino,
         data:          new Date().toLocaleString(),
-        tipo:          'PEDIDO_LOJA',
+        tipo:          tipoPedido === 'USO_CONSUMO' ? 'PEDIDO_USO_CONSUMO' : 'PEDIDO_LOJA',
         status:        'Pendente',
         usuario:       user.nome,
         itens:         carrinho,
@@ -158,7 +163,7 @@ const PaginaPedidos = ({ user }) => {
   const pedidoValido = filialOrigem && filialDestino && filialOrigem !== filialDestino && carrinho.length > 0;
 
   return (
-    <div className="flex h-full gap-6 relative">
+    <div className="flex flex-col xl:flex-row h-full gap-6 relative">
 
       {/* Modal aviso */}
       {aviso.show && (
@@ -236,7 +241,21 @@ const PaginaPedidos = ({ user }) => {
 
       {/* ── LISTA DE PRODUTOS ── */}
       <div className="flex-1 overflow-y-auto space-y-3 pr-2">
-        <h2 className="text-4xl font-black uppercase italic tracking-tighter" style={{color:'var(--text-primary)'}}>Realizar Pedido</h2>
+        <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-4" style={{color:'var(--text-primary)'}}>Realizar Pedido</h2>
+
+        {/* Toggle Tipo Pedido */}
+        <div className="flex bg-[var(--bg-elevated)] p-1.5 rounded-[20px] mb-4" style={{ border: '1px solid var(--border)' }}>
+          <button onClick={() => { setTipoPedido('REVENDA'); setCatFiltro('TODAS'); setSubFiltro('TODAS'); }} 
+            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[14px] text-xs font-black uppercase transition-all" 
+            style={{ backgroundColor: tipoPedido === 'REVENDA' ? 'var(--accent)' : 'transparent', color: tipoPedido === 'REVENDA' ? '#fff' : 'var(--text-muted)', boxShadow: tipoPedido === 'REVENDA' ? '0 4px 12px var(--accent-glow)' : 'none' }}>
+            <Package size={16} /> Produtos (Revenda)
+          </button>
+          <button onClick={() => { setTipoPedido('USO_CONSUMO'); setCatFiltro('TODAS'); setSubFiltro('TODAS'); }} 
+            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[14px] text-xs font-black uppercase transition-all" 
+            style={{ backgroundColor: tipoPedido === 'USO_CONSUMO' ? 'var(--accent)' : 'transparent', color: tipoPedido === 'USO_CONSUMO' ? '#fff' : 'var(--text-muted)', boxShadow: tipoPedido === 'USO_CONSUMO' ? '0 4px 12px var(--accent-glow)' : 'none' }}>
+            <Briefcase size={16} /> Uso / Consumo
+          </button>
+        </div>
 
         {/* Busca */}
         <div className="flex items-center gap-3 p-4 rounded-[24px] border-2" style={{backgroundColor:'var(--bg-card)',borderColor:'var(--border-bright)'}}>
@@ -290,7 +309,10 @@ const PaginaPedidos = ({ user }) => {
 
         {/* Accordion categorias */}
         <div className="space-y-3">
-          {ORDEM_CATS.filter(cat => produtosPorCategoria[cat]).map(categoria => {
+          {ORDEM_CATS.filter(cat => 
+            produtosPorCategoria[cat] && 
+            (tipoPedido === 'REVENDA' ? cat !== 'USO/CONSUMO' : cat === 'USO/CONSUMO')
+          ).map(categoria => {
             const subcats   = produtosPorCategoria[categoria];
             const catAberta = isCatAberta(categoria);
             const total     = Object.values(subcats).reduce((a,b)=>a+b.length,0);
@@ -359,7 +381,7 @@ const PaginaPedidos = ({ user }) => {
               </div>
             );
           })}
-          {ORDEM_CATS.every(cat => !produtosPorCategoria[cat]) && (
+          {ORDEM_CATS.every(cat => !produtosPorCategoria[cat] || (tipoPedido === 'REVENDA' && cat === 'USO/CONSUMO') || (tipoPedido === 'USO_CONSUMO' && cat !== 'USO/CONSUMO')) && (
             <div className="py-20 text-center opacity-30">
               <Search size={40} className="mx-auto mb-3" style={{color:'var(--text-muted)'}}/>
               <p className="font-black uppercase text-xs tracking-widest" style={{color:'var(--text-muted)'}}>Nenhum produto encontrado</p>
@@ -369,7 +391,7 @@ const PaginaPedidos = ({ user }) => {
       </div>
 
       {/* ── CARRINHO ── */}
-      <div className="w-[390px] rounded-[44px] shadow-2xl overflow-hidden sticky top-0 h-[calc(100vh-64px)] flex flex-col"
+      <div className="w-full xl:w-[390px] rounded-[44px] shadow-2xl overflow-hidden xl:sticky top-0 xl:h-[calc(100vh-64px)] flex flex-col"
         style={{backgroundColor:'var(--bg-surface)',border:'1px solid var(--border)'}}>
 
         {/* ── TOPO FIXO ── */}

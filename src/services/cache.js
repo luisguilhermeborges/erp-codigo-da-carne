@@ -2,7 +2,7 @@
 import { api } from './api';
 import { BANCO_PADRAO } from '../data/bancoPadrao';
 
-const limparCodigo = (v) => String(v ?? '').trim().replace(/^0+/, '');
+const limparCodigo = (v) => String(v ?? '').trim();
 
 // ── Preços ────────────────────────────────────────────────────────────────────
 export const getPrecos = async () => {

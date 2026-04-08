@@ -4,7 +4,7 @@ import * as XLSX from 'xlsx';
 import { BANCO_PADRAO } from '../data/bancoPadrao';
 import { api } from '../services/api';
 
-const limparCodigo = (v) => String(v ?? '').trim().replace(/^0+/, '');
+const limparCodigo = (v) => String(v ?? '').trim();
 const converterPreco = (v) => { const n = parseFloat(String(v ?? '').trim().replace(',','.')); return isNaN(n) ? 0 : n; };
 const fmt = (v) => Number(v).toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
 

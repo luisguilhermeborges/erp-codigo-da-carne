@@ -16,7 +16,7 @@ const PaginaTransferenciaAvulsa = ({ user }) => {
     getEstoque().then(setCatalogoProdutos).catch(() => {
       const precos = JSON.parse(localStorage.getItem('precos_cdc') || '{}');
       const dados = Object.entries(BANCO_PADRAO).map(([nome, v]) => {
-        const cod = String(v.codigo ?? '').trim().replace(/^0+/, '');
+        const cod = String(v.codigo ?? '').trim();
         return { id:cod, codigo:cod, nome, unidade:v.unidade, categoria:v.categoria, tags:v.tags||[v.categoria], preco:precos[cod]??0 };
       });
       setCatalogoProdutos(dados);
@@ -65,8 +65,8 @@ const PaginaTransferenciaAvulsa = ({ user }) => {
   );
 
   return (
-    <div className="flex gap-8 animate-in fade-in duration-500">
-      <div className="flex-1 space-y-6">
+    <div className="flex flex-col xl:flex-row gap-8 animate-in fade-in duration-500">
+      <div className="flex-1 space-y-6 overflow-x-hidden">
         <header>
           <h2 className="text-2xl font-black uppercase italic tracking-tighter" style={{ color:'var(--text-primary)' }}>Transferência Avulsa / Retorno</h2>
           <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color:'var(--text-muted)' }}>Permitido adicionar múltiplos motivos para o mesmo item</p>
@@ -98,8 +98,8 @@ const PaginaTransferenciaAvulsa = ({ user }) => {
           )}
         </div>
 
-        <div className="rounded-[32px] border overflow-hidden" style={{ backgroundColor:'var(--bg-card)', borderColor:'var(--border)' }}>
-          <table className="w-full text-left">
+        <div className="rounded-[32px] border overflow-hidden overflow-x-auto custom-scrollbar" style={{ backgroundColor:'var(--bg-card)', borderColor:'var(--border)' }}>
+          <table className="w-full text-left" style={{minWidth:'600px'}}>
             <thead style={{ backgroundColor:'var(--bg-elevated)' }}>
               <tr className="text-[10px] font-black uppercase" style={{ color:'var(--text-muted)' }}>
                 <th className="p-8">Produto</th>
@@ -148,8 +148,8 @@ const PaginaTransferenciaAvulsa = ({ user }) => {
         </div>
       </div>
 
-      <div className="w-[420px]">
-        <div className="p-8 rounded-[40px] sticky top-8 shadow-2xl border" style={{ backgroundColor:'var(--bg-surface)', borderColor:'var(--border)', color:'var(--text-primary)' }}>
+      <div className="w-full xl:w-[420px]">
+        <div className="p-8 rounded-[40px] xl:sticky top-8 shadow-2xl border" style={{ backgroundColor:'var(--bg-surface)', borderColor:'var(--border)', color:'var(--text-primary)' }}>
           <h2 className="text-xs font-black uppercase tracking-[0.3em] mb-8 italic" style={{ color:'var(--accent-bright)' }}>Resumo do Envio</h2>
           <div className="space-y-4 mb-8 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
             {itensTransferencia.map(item => (

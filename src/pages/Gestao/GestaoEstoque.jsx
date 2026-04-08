@@ -34,7 +34,7 @@ const GestaoEstoque = ({ user }) => {
   // Monta lista de produtos do banco com preços
   const produtos = useMemo(() => {
     return Object.entries(BANCO_PADRAO).map(([nome, v]) => {
-      const cod = String(v.codigo ?? '').trim().replace(/^0+/, '');
+      const cod = String(v.codigo ?? '').trim();
       return {
         codigo:    cod,
         codigoOriginal: v.codigo,
@@ -73,7 +73,7 @@ const GestaoEstoque = ({ user }) => {
     setSalvando(true);
     try {
       // Salva o preço no server
-      const cod = String(form.codigo).trim().replace(/^0+/, '');
+      const cod = String(form.codigo).trim();
       await api.precos.importar({ [cod]: parseFloat(form.preco) });
 
       // Atualiza cache local

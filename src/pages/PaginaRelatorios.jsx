@@ -36,8 +36,14 @@ const exportarXLSX = (pedido) => {
   ];
   const rows = itens.map((item,i)=>{
     const r = new Array(20).fill("");
-    r[0]=""; r[1]=i+1; r[3]=item.codigo; r[4]=item.nome;
-    r[5]=Number(item.qtdEnviada||item.qtd||0); r[6]=item.unidade; r[9]="V";
+    r[0]=""; 
+    r[1]=i+1; 
+    r[2]={t: 's', v: String(item.codigo), z: '@'}; 
+    r[3]={t: 's', v: String(item.codigo), z: '@'}; 
+    r[4]=item.nome;
+    r[5]=Number(item.qtdEnviada||item.qtd||0); 
+    r[6]=item.unidade; 
+    r[9]="V";
     return r;
   });
   const ws = XLSX.utils.aoa_to_sheet([cab,...rows]);
@@ -91,7 +97,7 @@ const ImprimirRelatorio = ({ pedidos, onFechar }) => {
                         <td style={{padding:'0.35rem 0.6rem',color:'#94a3b8'}}>{i+1}</td>
                         <td style={{padding:'0.35rem 0.6rem',fontWeight:600,textTransform:'uppercase'}}>{item.nome}</td>
                         <td style={{padding:'0.35rem 0.6rem',fontFamily:'monospace',color:'#475569'}}>{item.codigo}</td>
-                        <td style={{padding:'0.35rem 0.6rem',color:'#f59e0b'}}>{'★'.repeat(item.prioridade||0)}{'☆'.repeat(5-(item.prioridade||0))}</td>
+                        <td style={{padding:'0.35rem 0.6rem',color:'#f59e0b'}}>{'★'.repeat(item.prioridade||0)}{'☆'.repeat(3-(item.prioridade||0))}</td>
                         <td style={{padding:'0.35rem 0.6rem',fontWeight:700}}>{Number(item.qtdEnviada||item.qtd||0)} {item.unidade}</td>
                       </tr>
                     ))}
@@ -113,7 +119,7 @@ const ImprimirRelatorio = ({ pedidos, onFechar }) => {
                         <td style={{padding:'0.35rem 0.6rem',color:'#94a3b8'}}>{i+1}</td>
                         <td style={{padding:'0.35rem 0.6rem',fontWeight:600,textTransform:'uppercase'}}>{item.nome}</td>
                         <td style={{padding:'0.35rem 0.6rem',fontFamily:'monospace',color:'#475569'}}>{item.codigo}</td>
-                        <td style={{padding:'0.35rem 0.6rem',color:'#f59e0b'}}>{'★'.repeat(item.prioridade||0)}{'☆'.repeat(5-(item.prioridade||0))}</td>
+                        <td style={{padding:'0.35rem 0.6rem',color:'#f59e0b'}}>{'★'.repeat(item.prioridade||0)}{'☆'.repeat(3-(item.prioridade||0))}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -198,8 +204,8 @@ const CardRelatorio = ({ reg }) => {
                 <CheckCircle size={14} style={{color:'#10b981'}}/>
                 <span style={{fontSize:'0.65rem',fontWeight:800,textTransform:'uppercase',color:'#10b981'}}>Atendidos — {atendidos.length} itens</span>
               </div>
-              <div style={{borderRadius:'0.875rem',overflow:'hidden',border:'1px solid rgba(16,185,129,0.2)'}}>
-                <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.68rem'}}>
+              <div style={{borderRadius:'0.875rem',overflow:'hidden',overflowX:'auto',border:'1px solid rgba(16,185,129,0.2)'}} className="custom-scrollbar">
+                <table style={{width:'100%',minWidth:'500px',borderCollapse:'collapse',fontSize:'0.68rem'}}>
                   <thead style={{backgroundColor:'rgba(16,185,129,0.06)'}}>
                     <tr style={{color:'var(--text-muted)',fontWeight:700,textTransform:'uppercase',fontSize:'0.58rem'}}>
                       <th style={{padding:'0.4rem 0.75rem',textAlign:'left'}}>Produto</th>
@@ -213,7 +219,7 @@ const CardRelatorio = ({ reg }) => {
                       <tr key={i} style={{borderTop:'1px solid rgba(16,185,129,0.1)'}}>
                         <td style={{padding:'0.4rem 0.75rem',fontWeight:600,textTransform:'uppercase',color:'var(--text-primary)'}}>{item.nome}</td>
                         <td style={{padding:'0.4rem 0.75rem',fontFamily:'monospace',fontSize:'0.62rem',color:'var(--text-muted)'}}>{item.codigo}</td>
-                        <td style={{padding:'0.4rem 0.75rem',textAlign:'center',color:'#f59e0b'}}>{'★'.repeat(item.prioridade||0)}{'☆'.repeat(5-(item.prioridade||0))}</td>
+                        <td style={{padding:'0.4rem 0.75rem',textAlign:'center',color:'#f59e0b'}}>{'★'.repeat(item.prioridade||0)}{'☆'.repeat(3-(item.prioridade||0))}</td>
                         <td style={{padding:'0.4rem 0.75rem',textAlign:'right',fontWeight:700,color:'#10b981'}}>{Number(item.qtdEnviada||item.qtd||0)} {item.unidade}</td>
                       </tr>
                     ))}
@@ -230,8 +236,8 @@ const CardRelatorio = ({ reg }) => {
                 <XCircle size={14} style={{color:'#ef4444'}}/>
                 <span style={{fontSize:'0.65rem',fontWeight:800,textTransform:'uppercase',color:'#ef4444'}}>Não Atendidos — {naoAtendidos.length} itens</span>
               </div>
-              <div style={{borderRadius:'0.875rem',overflow:'hidden',border:'1px solid rgba(239,68,68,0.2)'}}>
-                <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.68rem'}}>
+              <div style={{borderRadius:'0.875rem',overflow:'hidden',overflowX:'auto',border:'1px solid rgba(239,68,68,0.2)'}} className="custom-scrollbar">
+                <table style={{width:'100%',minWidth:'500px',borderCollapse:'collapse',fontSize:'0.68rem'}}>
                   <thead style={{backgroundColor:'rgba(239,68,68,0.04)'}}>
                     <tr style={{color:'var(--text-muted)',fontWeight:700,textTransform:'uppercase',fontSize:'0.58rem'}}>
                       <th style={{padding:'0.4rem 0.75rem',textAlign:'left'}}>Produto</th>
@@ -247,7 +253,7 @@ const CardRelatorio = ({ reg }) => {
                       <tr key={i} style={{borderTop:'1px solid rgba(239,68,68,0.1)'}}>
                         <td style={{padding:'0.4rem 0.75rem',fontWeight:600,textTransform:'uppercase',color:'var(--text-primary)'}}>{item.nome}</td>
                         <td style={{padding:'0.4rem 0.75rem',fontFamily:'monospace',fontSize:'0.62rem',color:'var(--text-muted)'}}>{item.codigo}</td>
-                        <td style={{padding:'0.4rem 0.75rem',textAlign:'center',color:'#f59e0b'}}>{'★'.repeat(item.prioridade||0)}{'☆'.repeat(5-(item.prioridade||0))}</td>
+                        <td style={{padding:'0.4rem 0.75rem',textAlign:'center',color:'#f59e0b'}}>{'★'.repeat(item.prioridade||0)}{'☆'.repeat(3-(item.prioridade||0))}</td>
                         <td style={{padding:'0.4rem 0.75rem',textAlign:'right'}}>
                           <span style={{display:'inline-flex',alignItems:'center',gap:'0.25rem',fontSize:'0.6rem',fontWeight:700,padding:'2px 7px',borderRadius:'999px',backgroundColor:'rgba(245,158,11,0.1)',color:'#d97706'}}>
                             <Clock size={9}/> {tempoDecorrido(reg.dataAtendimento||reg.data)}
