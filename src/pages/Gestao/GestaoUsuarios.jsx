@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserPlus, Trash2, Edit2, CheckCircle, AlertCircle } from 'lucide-react';
 
-const GestaoUsuarios = () => {
+const GestaoUsuarios = ({ user }) => {
   const [usuarios, setUsuarios] = useState([]);
   const [aviso, setAviso] = useState({ show: false, titulo: '', msg: '', tipo: 'sucesso' });
   const [form, setForm] = useState({ nome: '', login: '', senha: '', cargo: 'comercial', unidades: [] });
@@ -55,17 +55,19 @@ const GestaoUsuarios = () => {
       )}
 
       <header className="flex justify-between items-center bg-slate-900 p-8 rounded-[40px] text-white">
-        <h1 className="text-3xl font-black uppercase italic tracking-tighter">Gestão de Equipa</h1>
+        <h1 className="text-3xl font-black uppercase italic tracking-tighter">Gestão de Equipe</h1>
         <UserPlus size={32} className="text-blue-500" />
       </header>
 
       <form onSubmit={salvar} className="bg-white p-8 rounded-[40px] shadow-sm grid grid-cols-1 md:grid-cols-2 gap-6 border border-slate-100">
-        <input className="p-4 bg-slate-50 rounded-2xl font-bold text-xs uppercase outline-none" placeholder="Nome" value={form.nome} onChange={e => setForm({...form, nome: e.target.value})} required />
-        <input className="p-4 bg-slate-50 rounded-2xl font-bold text-xs uppercase outline-none" placeholder="Login" value={form.login} onChange={e => setForm({...form, login: e.target.value})} required />
-        <input className="p-4 bg-slate-50 rounded-2xl font-bold text-xs uppercase outline-none" type="password" placeholder="Senha" value={form.senha} onChange={e => setForm({...form, senha: e.target.value})} />
-        <select className="p-4 bg-slate-50 rounded-2xl font-bold text-xs uppercase" value={form.cargo} onChange={e => setForm({...form, cargo: e.target.value})}>
+        <input className="p-4 bg-slate-50 rounded-2xl font-bold text-xs uppercase outline-none" placeholder="Nome" value={form.nome} onChange={e => setForm({ ...form, nome: e.target.value })} required />
+        <input className="p-4 bg-slate-50 rounded-2xl font-bold text-xs uppercase outline-none" placeholder="Login" value={form.login} onChange={e => setForm({ ...form, login: e.target.value })} required />
+        <input className="p-4 bg-slate-50 rounded-2xl font-bold text-xs uppercase outline-none" type="password" placeholder="Senha" value={form.senha} onChange={e => setForm({ ...form, senha: e.target.value })} />
+        <select className="p-4 bg-slate-50 rounded-2xl font-bold text-xs uppercase" value={form.cargo} onChange={e => setForm({ ...form, cargo: e.target.value })}>
           <option value="comercial">Comercial</option>
           <option value="adm">Administrador</option>
+          <option value="estoque">Estoque</option>
+          {user?.cargo?.toLowerCase() === 'master' && <option value="master">Master</option>}
         </select>
 
         <div className="md:col-span-2 space-y-3">
@@ -87,18 +89,27 @@ const GestaoUsuarios = () => {
             <tr><th className="p-6">Nome</th><th className="p-6">Acessos</th><th className="p-6 text-right">Ações</th></tr>
           </thead>
           <tbody>
-            {usuarios.map(u => (
+            {usuarios.map(u => {
+              const isTargetMaster = u.cargo?.toLowerCase() === 'master';
+              const canEdit = !isTargetMaster || user?.cargo?.toLowerCase() === 'master';
+
+              return (
               <tr key={u._id} className="border-b border-slate-50 hover:bg-slate-50/50">
-                <td className="p-6 font-black text-xs uppercase">{u.nome} <span className="block text-[8px] text-blue-500">{u.cargo}</span></td>
+                <td className="p-6 font-black text-xs uppercase">{u.nome} {isTargetMaster && <span className="ml-2 text-amber-500">★</span>}<span className="block text-[8px] text-blue-500">{u.cargo}</span></td>
                 <td className="p-6 flex flex-wrap gap-1">
                   {u.unidades?.map(un => <span key={un} className="bg-slate-100 text-slate-500 text-[8px] font-black px-2 py-1 rounded uppercase">{un}</span>)}
                 </td>
                 <td className="p-6 text-right">
-                  <button onClick={() => setForm(u)} className="p-2 text-blue-400"><Edit2 size={16}/></button>
-                  <button onClick={async () => { await fetch(`https://api-codigo-da-carne.onrender.com/api/usuarios/${u._id}`, {method:'DELETE'}); carregar(); }} className="p-2 text-red-300"><Trash2 size={16}/></button>
+                  {canEdit && (
+                    <>
+                      <button onClick={() => setForm(u)} className="p-2 text-blue-400"><Edit2 size={16} /></button>
+                      <button onClick={async () => { await fetch(`https://api-codigo-da-carne.onrender.com/api/usuarios/${u._id}`, { method: 'DELETE' }); carregar(); }} className="p-2 text-red-300"><Trash2 size={16} /></button>
+                    </>
+                  )}
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>

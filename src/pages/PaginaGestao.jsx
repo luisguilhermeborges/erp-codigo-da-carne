@@ -13,33 +13,34 @@ const PaginaGestao = ({ user }) => {
   const [abaAtiva, setAbaAtiva] = useState('estoque');
 
   // Configuração das abas com a restrição para o cargo PCP
-  // O PCP ou gestorestoque não têm permissão para ver ou editar a equipa ou filiais
+  // O PCP ou gestorestoque não têm permissão para ver ou editar a equipe ou filiais
   const isMasterOrAdm = ['master', 'adm'].includes(user?.cargo?.toLowerCase());
+  const isLogistica = ['master', 'adm', 'estoque', 'gestorestoque'].includes(user?.cargo?.toLowerCase());
 
   const abas = [
-    { 
-      id: 'estoque', 
-      rotulo: 'Estoque / Produtos', 
+    {
+      id: 'estoque',
+      rotulo: 'Estoque / Produtos',
       icone: Beef,
       permissao: true // Todos os gestores acedem
     },
-    { 
-      id: 'usuarios', 
-      rotulo: 'Usuários / Gestão de Equipe', 
+    {
+      id: 'usuarios',
+      rotulo: 'Usuários / Gestão de Equipe',
       icone: Users,
       permissao: isMasterOrAdm
     },
-    { 
-      id: 'filiais', 
-      rotulo: 'Filiais / Lojas', 
+    {
+      id: 'filiais',
+      rotulo: 'Filiais / Lojas',
       icone: MapPin,
       permissao: isMasterOrAdm
     },
     {
       id: 'importacao',
       rotulo: 'Importar Layout',
-      icone: Beef, // Using Beef as icon or we can just use another icon, but let's stick to what's available
-      permissao: isMasterOrAdm
+      icone: Beef,
+      permissao: isLogistica
     },
     {
       id: 'admin',
@@ -64,7 +65,7 @@ const PaginaGestao = ({ user }) => {
             Controle administrativo Código da Carne
           </p>
         </div>
-        
+
         {/* Badge de Nível de Acesso */}
         <div className="flex items-center gap-2 px-4 py-2 rounded-xl" style={{ backgroundColor: 'var(--bg-elevated)' }}>
           <ShieldCheck size={14} style={{ color: 'var(--accent-bright)' }} />
@@ -108,15 +109,15 @@ const PaginaGestao = ({ user }) => {
         <div className="relative z-10">
           {/* Renderização Condicional Protegida */}
           {abaAtiva === 'estoque' && <GestaoEstoque user={user} />}
-          
+
           {abaAtiva === 'usuarios' && isMasterOrAdm && (
             <GestaoUsuarios user={user} />
           )}
-          
+
           {abaAtiva === 'filiais' && isMasterOrAdm && <GestaoFiliais user={user} />}
 
-          {abaAtiva === 'importacao' && isMasterOrAdm && <PaginaImportacao user={user} />}
-          
+          {abaAtiva === 'importacao' && isLogistica && <PaginaImportacao user={user} />}
+
           {abaAtiva === 'admin' && user?.cargo?.toLowerCase() === 'master' && <PaginaAdmin user={user} />}
         </div>
       </div>

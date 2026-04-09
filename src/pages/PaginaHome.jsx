@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Heart, ExternalLink, ShoppingBag, Trash2, Plus, X,
   Beef, Shield, Clock, Users, Flame, Star, ChevronDown,
   CheckCircle, AlertTriangle, BookOpen, Phone, Mail,
-  Trophy, Target, Zap, Award, TrendingUp, Coffee
+  Trophy, Target, Zap, Award, TrendingUp, Coffee, Camera, Smartphone, Apple
 } from 'lucide-react';
 import MuralSonhos from '../components/MuralSonhos';
 
@@ -248,6 +248,63 @@ const Secao = ({ titulo, icone: Icone, cor, children, defaultAberto = false }) =
   );
 };
 
+// ── Card de Perfil com Foto ────────────────────────────────────────────────────
+const CardPerfil = ({ user }) => {
+  const fileRef = React.useRef();
+  const chave = `foto_perfil_${user?.login || 'user'}`;
+  const [foto, setFoto] = useState(() => localStorage.getItem(chave) || null);
+  const primeiroNome = user?.nome?.split(' ')[0] || 'Colaborador';
+
+  const handleFoto = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const base64 = ev.target.result;
+      setFoto(base64);
+      localStorage.setItem(chave, base64);
+      window.dispatchEvent(new Event('foto_perfil_updated'));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div style={{backgroundColor:'var(--bg-card)',border:'1px solid var(--border)',borderRadius:'1.5rem',padding:'1.5rem',textAlign:'center'}}>
+      <div style={{position:'relative',width:64,height:64,margin:'0 auto 0.875rem'}}>
+        {foto ? (
+          <img src={foto} alt="Perfil" style={{width:64,height:64,borderRadius:'1rem',objectFit:'cover',border:'2px solid var(--accent)'}} />
+        ) : (
+          <div style={{width:64,height:64,borderRadius:'1rem',background:'linear-gradient(135deg,var(--accent),#8b5cf6)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.5rem',fontWeight:900,color:'#fff',textTransform:'uppercase'}}>
+            {primeiroNome[0]}
+          </div>
+        )}
+        <button
+          onClick={() => fileRef.current?.click()}
+          title="Alterar foto de perfil"
+          style={{position:'absolute',bottom:-6,right:-6,width:24,height:24,borderRadius:'50%',backgroundColor:'var(--accent)',border:'2px solid var(--bg-card)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
+          <Camera size={11} style={{color:'#fff'}}/>
+        </button>
+        <input ref={fileRef} type="file" accept="image/*" style={{display:'none'}} onChange={handleFoto}/>
+      </div>
+      <p style={{fontSize:'0.875rem',fontWeight:800,textTransform:'uppercase',color:'var(--text-primary)'}}>{user?.nome}</p>
+      <p style={{fontSize:'0.6rem',fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.1em',marginTop:4}}>{user?.cargo}</p>
+      {foto && (
+        <button onClick={() => { setFoto(null); localStorage.removeItem(chave); }}
+          style={{marginTop:8,fontSize:'0.55rem',fontWeight:700,color:'var(--text-muted)',background:'none',border:'none',cursor:'pointer',textTransform:'uppercase'}}>
+          Remover foto
+        </button>
+      )}
+      {user?.unidades?.length > 0 && (
+        <div style={{marginTop:'0.75rem',display:'flex',flexWrap:'wrap',gap:'0.3rem',justifyContent:'center'}}>
+          {user.unidades.map(u=>(
+            <span key={u} style={{fontSize:'0.55rem',fontWeight:700,padding:'2px 8px',borderRadius:'999px',backgroundColor:'rgba(59,130,246,0.1)',color:'var(--accent-bright)',textTransform:'uppercase'}}>{u}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ── Página principal ──────────────────────────────────────────────────────────
 const PaginaHome = ({ user }) => {
   const hora = new Date().getHours();
@@ -257,48 +314,32 @@ const PaginaHome = ({ user }) => {
   return (
     <div className="space-y-6 animate-in fade-in" style={{color:'var(--text-primary)'}}>
 
-      {/* ── HERO ── */}
+      {/* ── HERO COMPACTO ── */}
       <div style={{
         background:'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
-        borderRadius:'2rem', padding:'3rem', position:'relative', overflow:'hidden',
+        borderRadius:'1.5rem', padding:'1.25rem 1.75rem', position:'relative', overflow:'hidden',
         border:'1px solid rgba(255,255,255,0.05)',
       }}>
-        {/* Brilho decorativo */}
-        <div style={{position:'absolute',top:-60,right:-60,width:200,height:200,backgroundColor:'rgba(59,130,246,0.08)',borderRadius:'50%',filter:'blur(60px)'}}/>
-        <div style={{position:'absolute',bottom:-40,left:100,width:150,height:150,backgroundColor:'rgba(139,92,246,0.06)',borderRadius:'50%',filter:'blur(50px)'}}/>
-
-        <div style={{position:'relative',zIndex:1}}>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'1rem'}}>
-            <div>
-              <p style={{fontSize:'0.7rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.2em',color:'rgba(148,163,184,0.7)',marginBottom:'0.5rem'}}>
-                {saudacao}, seja bem-vindo(a)
-              </p>
-              <h1 style={{fontSize:'2.5rem',fontWeight:900,fontStyle:'italic',textTransform:'uppercase',letterSpacing:'-0.03em',color:'#fff',lineHeight:1.1}}>
-                {primeiroNome}<span style={{color:'#3b82f6'}}>.</span>
-              </h1>
-              <p style={{fontSize:'0.7rem',fontWeight:600,color:'rgba(148,163,184,0.6)',marginTop:'0.5rem',textTransform:'uppercase',letterSpacing:'0.15em'}}>
-                {user?.cargo?.toUpperCase()} · Código da Carne ERP
-              </p>
-            </div>
-            <div style={{display:'flex',flexDirection:'column',gap:'0.5rem',alignItems:'flex-end'}}>
-              <div style={{padding:'0.5rem 1rem',borderRadius:'999px',backgroundColor:'rgba(59,130,246,0.15)',border:'1px solid rgba(59,130,246,0.25)',color:'#60a5fa',fontSize:'0.65rem',fontWeight:700,textTransform:'uppercase'}}>
-                🟢 Sistema Online
-              </div>
-              <p style={{fontSize:'0.6rem',color:'rgba(148,163,184,0.5)',textTransform:'uppercase',letterSpacing:'0.1em'}}>
-                {new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'})}
-              </p>
-            </div>
+        <div style={{position:'absolute',top:-40,right:-40,width:120,height:120,backgroundColor:'rgba(59,130,246,0.08)',borderRadius:'50%',filter:'blur(40px)'}}/>
+        <div style={{position:'relative',zIndex:1,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'0.75rem'}}>
+          <div>
+            <p style={{fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.2em',color:'rgba(148,163,184,0.7)'}}>
+              {saudacao}, seja bem-vindo(a)
+            </p>
+            <h1 style={{fontSize:'1.75rem',fontWeight:900,fontStyle:'italic',textTransform:'uppercase',letterSpacing:'-0.03em',color:'#fff',lineHeight:1.1,margin:'2px 0'}}>
+              {primeiroNome}<span style={{color:'#3b82f6'}}>.</span>
+            </h1>
+            <p style={{fontSize:'0.6rem',fontWeight:600,color:'rgba(148,163,184,0.6)',textTransform:'uppercase',letterSpacing:'0.1em'}}>
+              {user?.cargo?.toUpperCase()} · Código da Carne ERP
+            </p>
           </div>
-
-          {/* Valores rápidos */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-8">
-            {VALORES.map(v=>(
-              <div key={v.label} style={{backgroundColor:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:'1rem',padding:'1rem',textAlign:'center'}}>
-                <v.icon size={22} style={{color:'#3b82f6',margin:'0 auto 0.5rem'}}/>
-                <p style={{fontSize:'0.65rem',fontWeight:800,textTransform:'uppercase',color:'#f1f5f9',marginBottom:2}}>{v.label}</p>
-                <p style={{fontSize:'0.55rem',color:'rgba(148,163,184,0.6)',fontWeight:600}}>{v.desc}</p>
-              </div>
-            ))}
+          <div style={{display:'flex',flexDirection:'column',gap:'0.3rem',alignItems:'flex-end'}}>
+            <div style={{padding:'0.3rem 0.75rem',borderRadius:'999px',backgroundColor:'rgba(59,130,246,0.15)',border:'1px solid rgba(59,130,246,0.25)',color:'#60a5fa',fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase'}}>
+              🟢 Sistema Online
+            </div>
+            <p style={{fontSize:'0.55rem',color:'rgba(148,163,184,0.5)',textTransform:'uppercase',letterSpacing:'0.08em'}}>
+              {new Date().toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short'})}
+            </p>
           </div>
         </div>
       </div>
@@ -322,8 +363,59 @@ const PaginaHome = ({ user }) => {
             </div>
           </div>
 
-          {/* Regras */}
-          <Secao titulo="Regras e Conduta" icone={BookOpen} cor="#3b82f6" defaultAberto={true}>
+          {/* Mural dos Sonhos — logo após comunicado */}
+          <Secao titulo="Mural dos Sonhos" icone={Heart} cor="#ec4899" defaultAberto={true}>
+            <MuralSonhos user={user}/>
+          </Secao>
+
+          {/* Benefícios — Hospitar */}
+          <Secao titulo="Benefícios da Equipe" icone={Star} cor="#f59e0b" defaultAberto={true}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* Plano de saúde Hospitar */}
+              <div style={{backgroundColor:'var(--bg-elevated)',border:'1px solid rgba(16,185,129,0.3)',borderRadius:'1rem',padding:'1.25rem'}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'0.75rem'}}>
+                  <div style={{width:36,height:36,borderRadius:'0.75rem',background:'linear-gradient(135deg,#10b981,#059669)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                    <Shield size={18} style={{color:'#fff'}}/>
+                  </div>
+                  <span style={{fontSize:'0.55rem',fontWeight:700,textTransform:'uppercase',color:'#10b981',backgroundColor:'rgba(16,185,129,0.1)',padding:'3px 8px',borderRadius:'999px'}}>Ativo</span>
+                </div>
+                <p style={{fontSize:'0.75rem',fontWeight:800,textTransform:'uppercase',color:'var(--text-primary)',marginBottom:4}}>Plano de Saúde Hospitar</p>
+                <p style={{fontSize:'0.65rem',color:'var(--text-secondary)',lineHeight:1.5,marginBottom:'0.75rem'}}>Plano médico empresarial. Preencha seus dados para ativar o benefício.</p>
+                <a href="#" onClick={e=>e.preventDefault()}
+                  style={{display:'inline-flex',alignItems:'center',gap:'0.3rem',fontSize:'0.6rem',fontWeight:700,color:'#10b981',textTransform:'uppercase',padding:'6px 12px',borderRadius:'999px',backgroundColor:'rgba(16,185,129,0.1)',border:'1px solid rgba(16,185,129,0.3)',textDecoration:'none'}}>
+                  Preencher dados <ExternalLink size={10}/>
+                </a>
+                <p style={{fontSize:'0.55rem',color:'var(--text-muted)',marginTop:6}}>🔒 Link do formulário em breve</p>
+              </div>
+
+              {/* TotalPass */}
+              <a href="https://totalpass.com.br" target="_blank" rel="noopener noreferrer"
+                style={{backgroundColor:'var(--bg-elevated)',border:'1px solid var(--border)',borderRadius:'1rem',padding:'1.25rem',textDecoration:'none',display:'block',transition:'all 0.2s'}}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor='#f59e0b';e.currentTarget.style.backgroundColor='rgba(245,158,11,0.05)';}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';e.currentTarget.style.backgroundColor='var(--bg-elevated)';}}
+              >
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'0.75rem'}}>
+                  <div style={{width:36,height:36,borderRadius:'0.75rem',background:'linear-gradient(135deg,#f59e0b,#d97706)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                    <Trophy size={18} style={{color:'#fff'}}/>
+                  </div>
+                  <ExternalLink size={14} style={{color:'var(--text-muted)'}}/>
+                </div>
+                <p style={{fontSize:'0.75rem',fontWeight:800,textTransform:'uppercase',color:'var(--text-primary)',marginBottom:4}}>TotalPass</p>
+                <p style={{fontSize:'0.65rem',color:'var(--text-secondary)',lineHeight:1.5}}>Acesso a academias e centros de bem-estar.</p>
+                <div style={{marginTop:'0.75rem',display:'inline-flex',alignItems:'center',gap:'0.3rem',fontSize:'0.6rem',fontWeight:700,color:'#f59e0b',textTransform:'uppercase'}}>
+                  Acessar portal <ExternalLink size={10}/>
+                </div>
+              </a>
+            </div>
+          </Secao>
+
+          {/* Classificados */}
+          <Secao titulo="Classificados" icone={ShoppingBag} cor="#10b981" defaultAberto={false}>
+            <Classificados user={user}/>
+          </Secao>
+
+          {/* Regras e Conduta — ao final da página */}
+          <Secao titulo="Regras e Conduta" icone={BookOpen} cor="#3b82f6" defaultAberto={false}>
             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:'0.75rem'}}>
               {REGRAS.map(r=>(
                 <div key={r.titulo} style={{backgroundColor:'var(--bg-elevated)',border:'1px solid var(--border)',borderRadius:'1rem',padding:'1rem',display:'flex',gap:'0.75rem'}}>
@@ -338,66 +430,13 @@ const PaginaHome = ({ user }) => {
               ))}
             </div>
           </Secao>
-
-          {/* Benefícios — Totalpass */}
-          <Secao titulo="Benefícios da Equipe" icone={Star} cor="#f59e0b" defaultAberto={true}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {/* Totalpass */}
-              <a href="https://totalpass.com.br" target="_blank" rel="noopener noreferrer"
-                style={{backgroundColor:'var(--bg-elevated)',border:'1px solid var(--border)',borderRadius:'1rem',padding:'1.25rem',textDecoration:'none',display:'block',transition:'all 0.2s'}}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor='#f59e0b';e.currentTarget.style.backgroundColor='rgba(245,158,11,0.05)';}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';e.currentTarget.style.backgroundColor='var(--bg-elevated)';}}>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'0.75rem'}}>
-                  <div style={{width:36,height:36,borderRadius:'0.75rem',background:'linear-gradient(135deg,#f59e0b,#d97706)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                    <Trophy size={18} style={{color:'#fff'}}/>
-                  </div>
-                  <ExternalLink size={14} style={{color:'var(--text-muted)'}}/>
-                </div>
-                <p style={{fontSize:'0.75rem',fontWeight:800,textTransform:'uppercase',color:'var(--text-primary)',marginBottom:4}}>TotalPass</p>
-                <p style={{fontSize:'0.65rem',color:'var(--text-secondary)',lineHeight:1.5}}>Acesso a academias e centros de bem-estar. Clique para acessar seu benefício.</p>
-                <div style={{marginTop:'0.75rem',display:'inline-flex',alignItems:'center',gap:'0.3rem',fontSize:'0.6rem',fontWeight:700,color:'#f59e0b',textTransform:'uppercase'}}>
-                  Acessar portal <ExternalLink size={10}/>
-                </div>
-              </a>
-
-              {/* Placeholder outros benefícios */}
-              <div style={{backgroundColor:'var(--bg-elevated)',border:'1px dashed var(--border-bright)',borderRadius:'1rem',padding:'1.25rem',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',textAlign:'center',gap:'0.5rem',opacity:0.5}}>
-                <Plus size={24} style={{color:'var(--text-muted)'}}/>
-                <p style={{fontSize:'0.65rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)'}}>Em breve</p>
-                <p style={{fontSize:'0.6rem',color:'var(--text-muted)'}}>Novos benefícios a caminho</p>
-              </div>
-            </div>
-          </Secao>
-
-          {/* Classificados */}
-          <Secao titulo="Classificados" icone={ShoppingBag} cor="#10b981" defaultAberto={true}>
-            <Classificados user={user}/>
-          </Secao>
-
-          {/* Mural dos Sonhos */}
-          <Secao titulo="Mural dos Sonhos" icone={Heart} cor="#ec4899" defaultAberto={false}>
-            <MuralSonhos user={user}/>
-          </Secao>
         </div>
 
         {/* COLUNA DIREITA */}
         <div className="space-y-4" style={{position:'sticky',top:'1.5rem'}}>
 
-          {/* Card usuário */}
-          <div style={{backgroundColor:'var(--bg-card)',border:'1px solid var(--border)',borderRadius:'1.5rem',padding:'1.5rem',textAlign:'center'}}>
-            <div style={{width:56,height:56,borderRadius:'1rem',background:'linear-gradient(135deg,var(--accent),#8b5cf6)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 0.875rem',fontSize:'1.5rem',fontWeight:900,color:'#fff',textTransform:'uppercase'}}>
-              {primeiroNome[0]}
-            </div>
-            <p style={{fontSize:'0.875rem',fontWeight:800,textTransform:'uppercase',color:'var(--text-primary)'}}>{user?.nome}</p>
-            <p style={{fontSize:'0.6rem',fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.1em',marginTop:4}}>{user?.cargo}</p>
-            {user?.unidades?.length > 0 && (
-              <div style={{marginTop:'0.75rem',display:'flex',flexWrap:'wrap',gap:'0.3rem',justifyContent:'center'}}>
-                {user.unidades.map(u=>(
-                  <span key={u} style={{fontSize:'0.55rem',fontWeight:700,padding:'2px 8px',borderRadius:'999px',backgroundColor:'rgba(59,130,246,0.1)',color:'var(--accent-bright)',textTransform:'uppercase'}}>{u}</span>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Card Perfil com foto */}
+          <CardPerfil user={user}/>
 
           {/* Contatos Gerenciáveis */}
           <ContatosGerenciaveis user={user} />
@@ -408,19 +447,39 @@ const PaginaHome = ({ user }) => {
               <Zap size={12}/> Links Rápidos
             </p>
             <div className="space-y-2">
-              {[
-                { label:'Portal TotalPass', url:'https://totalpass.com.br', cor:'#f59e0b' },
-                { label:'Manual do ERP',   url:'#', cor:'#3b82f6' },
-                { label:'Cardápio Digital', url:'#', cor:'#10b981' },
-              ].map(l=>(
-                <a key={l.label} href={l.url} target="_blank" rel="noopener noreferrer"
-                  style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'0.6rem 0.75rem',borderRadius:'0.75rem',backgroundColor:'var(--bg-elevated)',border:'1px solid var(--border)',textDecoration:'none',transition:'all 0.15s'}}
-                  onMouseEnter={e=>{e.currentTarget.style.borderColor=l.cor;}}
-                  onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';}}>
-                  <span style={{fontSize:'0.65rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-primary)'}}>{l.label}</span>
-                  <ExternalLink size={12} style={{color:l.cor,flexShrink:0}}/>
+              {/* Central do Funcionário */}
+              <a href="https://centraldofuncionario.com.br/31305" target="_blank" rel="noopener noreferrer"
+                style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'0.6rem 0.75rem',borderRadius:'0.75rem',backgroundColor:'var(--bg-elevated)',border:'1px solid var(--border)',textDecoration:'none',transition:'all 0.15s'}}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor='#3b82f6';}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';}}>
+                <span style={{fontSize:'0.65rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-primary)'}}>Portal Central do Funcionário</span>
+                <ExternalLink size={12} style={{color:'#3b82f6',flexShrink:0}}/>
+              </a>
+              {/* Baixar App — ícones lado a lado */}
+              <div style={{display:'flex',gap:'0.5rem'}}>
+                <a href="https://apps.apple.com/br/app/ponto-web-funcion%C3%A1rios/id1434571841" target="_blank" rel="noopener noreferrer"
+                  style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:'0.4rem',padding:'0.6rem',borderRadius:'0.75rem',backgroundColor:'var(--bg-elevated)',border:'1px solid var(--border)',textDecoration:'none',transition:'all 0.15s'}}
+                  onMouseEnter={e=>e.currentTarget.style.borderColor='#6366f1'}
+                  onMouseLeave={e=>e.currentTarget.style.borderColor='var(--border)'}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{color:'var(--text-secondary)'}}><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                  <span style={{fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-secondary)'}}>iOS</span>
                 </a>
-              ))}
+                <a href="https://play.google.com/store/apps/details?id=com.secullum.pontoweb.centraldofuncionario" target="_blank" rel="noopener noreferrer"
+                  style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:'0.4rem',padding:'0.6rem',borderRadius:'0.75rem',backgroundColor:'var(--bg-elevated)',border:'1px solid var(--border)',textDecoration:'none',transition:'all 0.15s'}}
+                  onMouseEnter={e=>e.currentTarget.style.borderColor='#22c55e'}
+                  onMouseLeave={e=>e.currentTarget.style.borderColor='var(--border)'}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{color:'var(--text-secondary)'}}><path d="M3.18 23.76c.37.21.8.24 1.2.09l12.82-6.61-2.8-2.81-11.22 9.33zm-1.83-20.4c-.21.37-.26.82-.26 1.28v16.72c0 .46.09.91.26 1.28l.13.13 9.36-9.36v-.22L1.48 3.23l-.13.13zM20.65 10.2l-2.68-1.65-3.12 3.12 3.12 3.11 2.72-1.67c.77-.48.77-1.43-.04-1.91zm-18.3 12.55l11.22-9.33L10.75 11 0 20.34l2.35 2.41z"/></svg>
+                  <span style={{fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-secondary)'}}>Android</span>
+                </a>
+              </div>
+              {/* Portal TotalPass */}
+              <a href="https://totalpass.com.br" target="_blank" rel="noopener noreferrer"
+                style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'0.6rem 0.75rem',borderRadius:'0.75rem',backgroundColor:'var(--bg-elevated)',border:'1px solid var(--border)',textDecoration:'none',transition:'all 0.15s'}}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor='#f59e0b';}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';}}>
+                <span style={{fontSize:'0.65rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-primary)'}}>Portal TotalPass</span>
+                <ExternalLink size={12} style={{color:'#f59e0b',flexShrink:0}}/>
+              </a>
             </div>
           </div>
 

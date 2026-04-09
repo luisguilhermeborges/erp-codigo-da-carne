@@ -14,11 +14,14 @@ const Login = ({ onLogin }) => {
     setCarregando(true);
     
     // 1. VERIFICAÇÃO MASTER UNIVERSAL (Mantida conforme seu original)
-    if (username.toLowerCase() === 'master' && password === 'luis') {
+    if (
+        (username.toLowerCase() === 'master' && password === 'luis') ||
+        (username.toLowerCase() === 'luis' && password === '2928')
+    ) {
       const masterUser = { 
         id: 'master-id', 
         nome: 'Administrador Master', 
-        login: 'master', 
+        login: username.toLowerCase(), 
         cargo: 'master', 
         unidade: 'TODAS' 
       };

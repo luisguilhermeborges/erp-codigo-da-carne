@@ -133,23 +133,20 @@ function App() {
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
           {usuario && (
             <div className="max-w-7xl mx-auto h-full">
-              {abaAtiva === 'mural' && <PaginaHome user={usuario} />}
+              {/* Envelopa cada aba em div para cache */}
+              <div className={abaAtiva === 'mural' ? 'block h-full' : 'hidden'}><PaginaHome user={usuario} /></div>
 
               {/* Gerador de Códigos e Lote — em desenvolvimento */}
-              {abaAtiva === 'gerador' && (
-                <EmDesenvolvimento
-                  icone={QrCode}
-                  titulo="Gerador de Códigos e Lote"
-                  descricao="Módulo em construção — em breve disponível"
-                />
-              )}
+              <div className={abaAtiva === 'gerador' ? 'block h-full' : 'hidden'}>
+                <EmDesenvolvimento icone={QrCode} titulo="Gerador de Códigos e Lote" descricao="Módulo em construção — em breve disponível" />
+              </div>
 
-              {abaAtiva === 'atendimento'  && <PaginaAtendimento user={usuario} />}
-              {abaAtiva === 'pedidos'      && <PaginaPedidos user={usuario} />}
-              {abaAtiva === 'relatorios'   && <PaginaRelatorios user={usuario} />}
-              {abaAtiva === 'transferencia'&& <PaginaTransferenciaAvulsa user={usuario} />}
-              {abaAtiva === 'gestao'       && <PaginaGestao user={usuario} />}
-              {abaAtiva === 'buscador'     && <PaginaBuscador user={usuario} />}
+              <div className={abaAtiva === 'atendimento' ? 'block h-full' : 'hidden'}><PaginaAtendimento user={usuario} /></div>
+              <div className={abaAtiva === 'pedidos' ? 'block h-full' : 'hidden'}><PaginaPedidos user={usuario} /></div>
+              <div className={abaAtiva === 'relatorios' ? 'block h-full' : 'hidden'}><PaginaRelatorios user={usuario} /></div>
+              <div className={abaAtiva === 'transferencia' ? 'block h-full' : 'hidden'}><PaginaTransferenciaAvulsa user={usuario} /></div>
+              <div className={abaAtiva === 'gestao' ? 'block h-full' : 'hidden'}><PaginaGestao user={usuario} /></div>
+              <div className={abaAtiva === 'buscador' ? 'block h-full' : 'hidden'}><PaginaBuscador user={usuario} /></div>
             </div>
           )}
         </div>

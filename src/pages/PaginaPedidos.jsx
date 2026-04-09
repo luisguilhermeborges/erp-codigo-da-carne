@@ -53,8 +53,10 @@ const PaginaPedidos = ({ user }) => {
   const [tipoPedido, setTipoPedido]               = useState('REVENDA'); // REVENDA ou USO_CONSUMO
 
   const cargo    = user?.cargo?.toLowerCase();
-  const isMulti  = cargo === 'master' || cargo === 'adm'; // pode escolher origem
+  const isMulti  = cargo === 'master' || cargo === 'adm'; // pode escolher origem livremente
   const isComercial = cargo === 'comercial';
+  // Origem sempre travada em "Estoque / Produção"
+  const ORIGEM_FIXA = 'Estoque / Produção';
 
   useEffect(() => {
     if (!user) return;
@@ -62,10 +64,12 @@ const PaginaPedidos = ({ user }) => {
       const filiais = await getFiliais();
       setTodasFiliais(filiais);
 
-      // Se não é multi-filial, origem é a filial do usuário
-      if (!isMulti && user.unidades?.length > 0) {
-        setFilialOrigem(user.unidades[0]);
-      }
+      // Origem sempre = Estoque / Produção
+      setFilialOrigem(ORIGEM_FIXA);
+
+      // Destino = filial selecionada no topbar (user.unidade) ou primeira unidade
+      const destAuto = user.unidade || user.unidades?.[0] || '';
+      if (destAuto) setFilialDestino(destAuto);
 
       const precos = await getPrecos();
       const lista = Object.entries(BANCO_PADRAO).map(([nome, v]) => {
@@ -422,23 +426,15 @@ const PaginaPedidos = ({ user }) => {
 
           {/* Rota origem → destino */}
           <div style={{display:'grid',gridTemplateColumns:'1fr auto 1fr',gap:'0.4rem',alignItems:'center'}}>
-            {/* Origem */}
+            {/* Origem — sempre travada em Estoque / Produção */}
             <div>
               <p style={{fontSize:'0.55rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)',marginBottom:3,display:'flex',alignItems:'center',gap:3}}>
                 <Building2 size={9}/> Origem
               </p>
-              {isMulti ? (
-                <select value={filialOrigem} onChange={e=>{setFilialOrigem(e.target.value);setFilialDestino('');}}
-                  className="w-full p-2 rounded-xl text-[10px] font-bold uppercase outline-none"
-                  style={{backgroundColor:'var(--bg-elevated)',color:filialOrigem?'var(--text-primary)':'var(--text-muted)',border:`1px solid ${filialOrigem?'var(--accent)':'var(--border)'}`}}>
-                  <option value="">Selecionar...</option>
-                  {todasFiliais.map(f=><option key={f.id||f._id} value={f.nome}>{f.nome}</option>)}
-                </select>
-              ) : (
-                <div className="p-2 rounded-xl text-[10px] font-black uppercase" style={{backgroundColor:'var(--bg-elevated)',border:'1px solid var(--border)',color:'var(--text-primary)'}}>
-                  {filialOrigem || user?.unidades?.[0] || '—'}
-                </div>
-              )}
+              <div className="p-2 rounded-xl text-[10px] font-black uppercase" 
+                style={{backgroundColor:'rgba(59,130,246,0.08)',border:'1px solid rgba(59,130,246,0.3)',color:'#3b82f6'}}>
+                📦 Estoque / Produção
+              </div>
             </div>
 
             {/* Seta */}
@@ -446,17 +442,24 @@ const PaginaPedidos = ({ user }) => {
               <ArrowRight size={16} style={{color:'var(--accent-bright)'}}/>
             </div>
 
-            {/* Destino */}
+            {/* Destino — filial do topbar (travado para não-master) */}
             <div>
               <p style={{fontSize:'0.55rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)',marginBottom:3,display:'flex',alignItems:'center',gap:3}}>
                 <Building2 size={9}/> Destino
               </p>
-              <select value={filialDestino} onChange={e=>setFilialDestino(e.target.value)}
-                className="w-full p-2 rounded-xl text-[10px] font-bold uppercase outline-none"
-                style={{backgroundColor:'var(--bg-elevated)',color:filialDestino?'var(--text-primary)':'var(--text-muted)',border:`1px solid ${filialDestino?'var(--accent)':'var(--border)'}`}}>
-                <option value="">Selecionar...</option>
-                {filiaisDestino.map(f=><option key={f.id||f._id} value={f.nome}>{f.nome}</option>)}
-              </select>
+              {isMulti ? (
+                <select value={filialDestino} onChange={e=>setFilialDestino(e.target.value)}
+                  className="w-full p-2 rounded-xl text-[10px] font-bold uppercase outline-none"
+                  style={{backgroundColor:'var(--bg-elevated)',color:filialDestino?'var(--text-primary)':'var(--text-muted)',border:`1px solid ${filialDestino?'var(--accent)':'var(--border)'}`}}>
+                  <option value="">Selecionar...</option>
+                  {todasFiliais.map(f=><option key={f.id||f._id} value={f.nome}>{f.nome}</option>)}
+                </select>
+              ) : (
+                <div className="p-2 rounded-xl text-[10px] font-black uppercase"
+                  style={{backgroundColor:'rgba(16,185,129,0.08)',border:'1px solid rgba(16,185,129,0.3)',color:'#10b981'}}>
+                  🏪 {filialDestino || user?.unidade || user?.unidades?.[0] || '—'}
+                </div>
+              )}
             </div>
           </div>
 
