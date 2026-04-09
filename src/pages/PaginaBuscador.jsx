@@ -170,7 +170,8 @@ const PaginaBuscador = () => {
                     </span>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         ) : (
