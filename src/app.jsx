@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 
 // Importação das Páginas
 import Login from './pages/Login';
@@ -116,10 +116,10 @@ function App() {
                        window.location.reload();
                     }}
                   >
-                    <option value="Loja 1">Loja 1</option>
-                    <option value="Loja 2">Loja 2</option>
-                    <option value="Loja 3">Loja 3</option>
-                    <option value="Matriz">Matriz</option>
+                    <option value="001 - CENTRO">001 - Centro</option>
+                    <option value="002 - ALPHAVILLE">002 - Alphaville</option>
+                    <option value="003 - GLEBA">003 - Gleba</option>
+                    <option value="000 - PRODUCAO">000 - Producao</option>
                     <option value="">Todas</option>
                   </select>
                 ) : (
