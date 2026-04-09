@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, ShoppingCart, Package, Users, FileText, Repeat, LogOut, Heart, Sun, Moon, QrCode, FileDown, Shield, X } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Package, Users, FileText, Repeat, LogOut, Heart, Sun, Moon, QrCode, FileDown, Shield, X, Search } from 'lucide-react';
 
 const BarraLateral = ({ usuario, abaAtiva, setAbaAtiva, onLogout, menuAberto, setMenuAberto }) => {
   const [tema, setTema] = useState(() => localStorage.getItem('tema_cdc') || 'light');
@@ -12,15 +12,14 @@ const BarraLateral = ({ usuario, abaAtiva, setAbaAtiva, onLogout, menuAberto, se
   const alternarTema = () => setTema(t => t === 'dark' ? 'light' : 'dark');
 
   const menuItens = [
-    { id: 'mural',        label: 'Home',              icon: Heart,           roles: ['comercial', 'adm', 'master', 'pcp'] },
-    { id: 'atendimento',  label: 'Atendimento',      icon: LayoutDashboard, roles: ['comercial', 'adm', 'master'] },
+    { id: 'mural',        label: 'Home',              icon: Heart,           roles: ['comercial', 'adm', 'master', 'pcp', 'gestorestoque'] },
+    { id: 'atendimento',  label: 'Atendimento',      icon: LayoutDashboard, roles: ['comercial', 'adm', 'master', 'gestorestoque'] },
     { id: 'pedidos',      label: 'Fazer Pedidos',    icon: ShoppingCart,    roles: ['comercial', 'adm', 'master'] },
-    { id: 'transferencia',label: 'Transferência',    icon: Repeat,          roles: ['comercial', 'adm', 'master'] },
+    { id: 'transferencia',label: 'Transferência',    icon: Repeat,          roles: ['comercial', 'adm', 'master', 'gestorestoque'] },
     { id: 'relatorios',   label: 'Relatórios',       icon: FileText,        roles: ['adm', 'master'] },
-    { id: 'gestao',       label: 'Gestão',           icon: Users,           roles: ['adm', 'master'] },
-    { id: 'importacao',   label: 'Importar Layout',  icon: FileDown,        roles: ['adm', 'master'] },
-    { id: 'admin',        label: 'Admin Requisições', icon: Shield,          roles: ['master'] },
-    { id: 'gerador',      label: 'Gerador Cód/Lote', icon: QrCode,          roles: ['adm', 'master', 'pcp', 'comercial'] },
+    { id: 'gestao',       label: 'Gestão',           icon: Users,           roles: ['adm', 'master', 'gestorestoque'] },
+    { id: 'buscador',     label: 'Pesquisar Produto',icon: Search,          roles: ['adm', 'master', 'gestorestoque', 'comercial', 'pcp'] },
+    { id: 'gerador',      label: 'Gerador Cód/Lote', icon: QrCode,          roles: ['adm', 'master', 'pcp', 'comercial', 'gestorestoque'] },
   ];
 
   const itensVisiveis = menuItens.filter(item =>

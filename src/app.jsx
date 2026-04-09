@@ -17,7 +17,7 @@ import BarraLateral from './components/BarraLateral';
 import BannerBoasVindas from './components/BannerBoasVindas';
 // import MuralSonhos from './components/MuralSonhos'; — desabilitado temporariamente
 
-import { Heart, Wrench, QrCode, Menu } from 'lucide-react';
+import { Heart, Wrench, QrCode, Menu, ChevronDown, User, MapPin } from 'lucide-react';
 
 // Placeholder reutilizável para páginas em desenvolvimento
 const EmDesenvolvimento = ({ icone: Icone, titulo, descricao }) => (
@@ -72,7 +72,7 @@ function App() {
       {usuario && (
         <div className="md:hidden flex items-center justify-between p-4 border-b z-20" style={{backgroundColor:'var(--bg-surface)', borderColor:'var(--border)'}}>
           <h1 style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--text-primary)', textTransform: 'uppercase', fontStyle: 'italic', letterSpacing: '-0.05em', margin: 0 }}>
-            ESTOQUE<span style={{ color: 'var(--accent-bright)' }}>CDC</span>
+            SAAS<span style={{ color: 'var(--accent-bright)' }}>CDC</span>
           </h1>
           <button onClick={() => setMenuAberto(true)} style={{ color: 'var(--text-primary)', background: 'none', border: 'none', cursor: 'pointer' }}>
             <Menu size={24} />
@@ -92,10 +92,48 @@ function App() {
         setMenuAberto={setMenuAberto}
       />
 
-      <main className="flex-1 overflow-y-auto p-4 md:p-8 relative" style={{ backgroundColor: 'var(--bg-base)' }}>
+      <main className="flex-1 flex flex-col overflow-hidden relative" style={{ backgroundColor: 'var(--bg-base)' }}>
+        {/* Discreeta Topbar Global Desktop */}
         {usuario && (
-          <div className="max-w-7xl mx-auto">
-            {abaAtiva === 'mural' && <PaginaHome user={usuario} />}
+          <header className="hidden md:flex items-center justify-end px-8 py-3 border-b z-10 shrink-0" style={{backgroundColor:'var(--bg-surface)', borderColor:'var(--border)'}}>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border" style={{borderColor:'var(--border)', backgroundColor:'var(--bg-elevated)'}}>
+                <User size={14} style={{color:'var(--accent)'}}/>
+                <span className="text-[10px] font-bold uppercase" style={{color:'var(--text-secondary)'}}>{usuario.nome?.split(' ')[0]} ({usuario.cargo})</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border" style={{borderColor:'var(--border)', backgroundColor:'var(--bg-elevated)'}}>
+                <MapPin size={14} style={{color:'var(--accent-bright)'}}/>
+                <span className="text-[10px] font-bold uppercase" style={{color:'var(--text-secondary)'}}>Filial:</span>
+                {['master', 'adm'].includes(usuario.cargo?.toLowerCase()) ? (
+                  <select 
+                    className="bg-transparent border-none text-[10px] font-black uppercase outline-none cursor-pointer"
+                    style={{color:'var(--text-primary)'}}
+                    value={usuario.unidade || ''}
+                    onChange={(e) => {
+                       const nu = {...usuario, unidade: e.target.value};
+                       setUsuario(nu);
+                       localStorage.setItem('usuario_logado', JSON.stringify(nu));
+                       window.location.reload();
+                    }}
+                  >
+                    <option value="Loja 1">Loja 1</option>
+                    <option value="Loja 2">Loja 2</option>
+                    <option value="Loja 3">Loja 3</option>
+                    <option value="Matriz">Matriz</option>
+                    <option value="">Todas</option>
+                  </select>
+                ) : (
+                  <span className="text-[10px] font-black uppercase" style={{color:'var(--text-primary)'}}>{usuario.unidade || 'Sem filial'}</span>
+                )}
+              </div>
+            </div>
+          </header>
+        )}
+
+        <div className="flex-1 overflow-y-auto p-4 md:p-8">
+          {usuario && (
+            <div className="max-w-7xl mx-auto h-full">
+              {abaAtiva === 'mural' && <PaginaHome user={usuario} />}
 
               {/* Gerador de Códigos e Lote — em desenvolvimento */}
               {abaAtiva === 'gerador' && (
@@ -111,10 +149,10 @@ function App() {
               {abaAtiva === 'relatorios'   && <PaginaRelatorios user={usuario} />}
               {abaAtiva === 'transferencia'&& <PaginaTransferenciaAvulsa user={usuario} />}
               {abaAtiva === 'gestao'       && <PaginaGestao user={usuario} />}
-              {abaAtiva === 'importacao'   && <PaginaImportacao user={usuario} />}
-              {abaAtiva === 'admin'        && <PaginaAdmin user={usuario} />}
+              {abaAtiva === 'buscador'     && <PaginaBuscador user={usuario} />}
             </div>
-        )}
+          )}
+        </div>
       </main>
     </div>
   );

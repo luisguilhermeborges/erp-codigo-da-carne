@@ -23,19 +23,19 @@ const FolhaImpressao = ({ pedido, onFechar }) => {
         </div>
 
         {/* Cabeçalho */}
-        <div style={{borderBottom:'2px solid #000',paddingBottom:'1rem',marginBottom:'1.5rem'}}>
+        <div style={{borderBottom:'2px solid #000',paddingBottom:'0.5rem',marginBottom:'0.75rem'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
             <div>
-              <h1 style={{fontSize:'1.4rem',fontWeight:900,textTransform:'uppercase',margin:0}}>CÓDIGO DA CARNE</h1>
-              <p style={{fontSize:'0.7rem',fontWeight:600,textTransform:'uppercase',color:'#475569',margin:'0.2rem 0 0'}}>Folha de Separação de Pedido</p>
+              <h1 style={{fontSize:'1.1rem',fontWeight:900,textTransform:'uppercase',margin:0}}>CÓDIGO DA CARNE</h1>
+              <p style={{fontSize:'0.6rem',fontWeight:600,textTransform:'uppercase',color:'#475569',margin:0}}>Folha de Separação de Pedido</p>
             </div>
             <div style={{textAlign:'right'}}>
-              <p style={{fontSize:'0.75rem',fontWeight:700,margin:0}}>#{pedido.idExterno}</p>
-              <p style={{fontSize:'0.65rem',color:'#475569',margin:'0.1rem 0 0'}}>{pedido.data}</p>
-              {pedido.dataAtendimento && <p style={{fontSize:'0.65rem',color:'#475569',margin:'0.1rem 0 0'}}>Atendido: {pedido.dataAtendimento}</p>}
+              <p style={{fontSize:'0.65rem',fontWeight:700,margin:0}}>#{pedido.idExterno}</p>
+              <p style={{fontSize:'0.55rem',color:'#475569',margin:0}}>{pedido.data}</p>
+              {pedido.dataAtendimento && <p style={{fontSize:'0.55rem',color:'#475569',margin:0}}>Atendido: {pedido.dataAtendimento}</p>}
             </div>
           </div>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'0.5rem',marginTop:'0.875rem',padding:'0.6rem 0.875rem',backgroundColor:'#f8fafc',borderRadius:'0.5rem',fontSize:'0.7rem'}}>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'0.25rem',marginTop:'0.5rem',padding:'0.4rem',backgroundColor:'#f8fafc',borderRadius:'0.3rem',fontSize:'0.6rem'}}>
             <div><strong>Origem:</strong> {pedido.unidadeOrigem||'—'}</div>
             <div><strong>Destino:</strong> {pedido.filial||pedido.destino||'—'}</div>
             <div><strong>Solicitante:</strong> {pedido.usuario||'—'}</div>
@@ -45,27 +45,23 @@ const FolhaImpressao = ({ pedido, onFechar }) => {
         {/* Tabela atendidos */}
         {atendidos.length > 0 && (
           <>
-            <h2 style={{fontSize:'0.8rem',fontWeight:800,textTransform:'uppercase',marginBottom:'0.5rem',color:'#16a34a'}}>✓ Itens Atendidos ({atendidos.length})</h2>
-            <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.7rem',marginBottom:'1.5rem'}}>
+            <h2 style={{fontSize:'0.7rem',fontWeight:800,textTransform:'uppercase',marginBottom:'0.25rem',color:'#16a34a'}}>✓ Itens Atendidos ({atendidos.length})</h2>
+            <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.6rem',marginBottom:'1rem'}}>
               <thead>
                 <tr style={{backgroundColor:'#1e293b',color:'#fff'}}>
-                  {['#','Produto','Código','Prioridade','Qtd Enviada','Valor Unit.'].map(h=>(
-                    <th key={h} style={{padding:'0.5rem 0.6rem',textAlign:'left',fontWeight:700,textTransform:'uppercase',fontSize:'0.6rem'}}>{h}</th>
+                  {['#','Produto','Código','Prioridade (+ Baixa / Alta)','Qtd'].map(h=>(
+                    <th key={h} style={{padding:'0.25rem 0.4rem',textAlign:'left',fontWeight:700,textTransform:'uppercase'}}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {atendidos.map((item,i)=>(
-                  <tr key={i} style={{borderBottom:'1px solid #e2e8f0',backgroundColor:i%2===0?'#fff':'#f8fafc'}}>
-                    <td style={{padding:'0.5rem 0.6rem',color:'#94a3b8',fontWeight:600}}>{i+1}</td>
-                    <td style={{padding:'0.5rem 0.6rem'}}>
-                      <p style={{fontWeight:700,textTransform:'uppercase',margin:0}}>{item.nome}</p>
-                      <p style={{fontSize:'0.6rem',color:'#94a3b8',margin:'0.1rem 0 0'}}>{item.categoria}</p>
-                    </td>
-                    <td style={{padding:'0.5rem 0.6rem',fontFamily:'monospace',fontSize:'0.65rem',color:'#475569'}}>{item.codigo}</td>
-                    <td style={{padding:'0.5rem 0.6rem',fontSize:'0.85rem',color:'#f59e0b'}}>{'★'.repeat(item.prioridade||0)}{'☆'.repeat(3-(item.prioridade||0))}</td>
-                    <td style={{padding:'0.5rem 0.6rem',fontWeight:700}}>{Number(item.qtdEnviada||item.qtd||0)} {item.unidade}</td>
-                    <td style={{padding:'0.5rem 0.6rem',color:'#16a34a',fontWeight:700}}>{item.preco?Number(item.preco).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'—'}</td>
+                  <tr key={i} style={{borderBottom:'1px solid #e2e8f0',backgroundColor:i%2===0?'#fff':'#f8fafc',height:'1.5rem'}}>
+                    <td style={{padding:'0.25rem 0.4rem',color:'#94a3b8',fontWeight:600}}>{i+1}</td>
+                    <td style={{padding:'0.25rem 0.4rem',fontWeight:700,textTransform:'uppercase'}}>{item.nome}</td>
+                    <td style={{padding:'0.25rem 0.4rem',fontFamily:'monospace',color:'#475569'}}>{item.codigo}</td>
+                    <td style={{padding:'0.25rem 0.4rem',color:'#f59e0b'}}>{['Baixa','Normal','Alta'][(item.prioridade||1)-1] || 'Normal'}</td>
+                    <td style={{padding:'0.25rem 0.4rem',fontWeight:700}}>{Number(item.qtdEnviada||item.qtd||0)} {item.unidade}</td>
                   </tr>
                 ))}
               </tbody>
@@ -76,22 +72,22 @@ const FolhaImpressao = ({ pedido, onFechar }) => {
         {/* Tabela não atendidos */}
         {naoAtendidos.length > 0 && (
           <>
-            <h2 style={{fontSize:'0.8rem',fontWeight:800,textTransform:'uppercase',marginBottom:'0.5rem',color:'#dc2626'}}>✗ Itens Não Atendidos ({naoAtendidos.length})</h2>
-            <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.7rem',marginBottom:'1.5rem'}}>
+            <h2 style={{fontSize:'0.7rem',fontWeight:800,textTransform:'uppercase',marginBottom:'0.25rem',color:'#dc2626'}}>✗ Itens Não Atendidos ({naoAtendidos.length})</h2>
+            <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.6rem',marginBottom:'1rem'}}>
               <thead>
                 <tr style={{backgroundColor:'#7f1d1d',color:'#fff'}}>
                   {['#','Produto','Código','Prioridade'].map(h=>(
-                    <th key={h} style={{padding:'0.5rem 0.6rem',textAlign:'left',fontWeight:700,textTransform:'uppercase',fontSize:'0.6rem'}}>{h}</th>
+                    <th key={h} style={{padding:'0.25rem 0.4rem',textAlign:'left',fontWeight:700,textTransform:'uppercase'}}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {naoAtendidos.map((item,i)=>(
-                  <tr key={i} style={{borderBottom:'1px solid #fecaca',backgroundColor:i%2===0?'#fff7f7':'#fff'}}>
-                    <td style={{padding:'0.5rem 0.6rem',color:'#94a3b8',fontWeight:600}}>{i+1}</td>
-                    <td style={{padding:'0.5rem 0.6rem'}}><p style={{fontWeight:700,textTransform:'uppercase',margin:0}}>{item.nome}</p></td>
-                    <td style={{padding:'0.5rem 0.6rem',fontFamily:'monospace',fontSize:'0.65rem',color:'#475569'}}>{item.codigo}</td>
-                    <td style={{padding:'0.5rem 0.6rem',fontSize:'0.85rem',color:'#f59e0b'}}>{'★'.repeat(item.prioridade||0)}{'☆'.repeat(3-(item.prioridade||0))}</td>
+                  <tr key={i} style={{borderBottom:'1px solid #fecaca',backgroundColor:i%2===0?'#fff7f7':'#fff',height:'1.5rem'}}>
+                    <td style={{padding:'0.25rem 0.4rem',color:'#94a3b8',fontWeight:600}}>{i+1}</td>
+                    <td style={{padding:'0.25rem 0.4rem',fontWeight:700,textTransform:'uppercase'}}>{item.nome}</td>
+                    <td style={{padding:'0.25rem 0.4rem',fontFamily:'monospace',color:'#475569'}}>{item.codigo}</td>
+                    <td style={{padding:'0.25rem 0.4rem',color:'#f59e0b'}}>{['Baixa','Normal','Alta'][(item.prioridade||1)-1] || 'Normal'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -166,7 +162,7 @@ const PaginaAtendimento = ({ user }) => {
       const filtrados = ['master','adm'].includes(user?.cargo?.toLowerCase())
         ? dados
         : dados.filter(p => p.unidadeOrigem === user?.unidade || !p.unidadeOrigem);
-      setFila(filtrados);
+      setFila(filtrados.slice().reverse()); // os recebidos por último ficam em cima
     } catch { } finally { setCarregando(false); }
   }, [user]);
 
@@ -187,28 +183,54 @@ const PaginaAtendimento = ({ user }) => {
 
   useEffect(() => { if (modoLeitor && inputLeitorRef.current) inputLeitorRef.current.focus(); }, [modoLeitor]);
 
-  const processarCodigo = useCallback((codigo) => {
-    const cod = String(codigo).trim();
-    const idx  = itensConferencia.findIndex(i => String(i.codigo) === cod);
-    if (idx === -1) {
-      setFeedbackLeitor({ tipo:'erro', msg:`Código ${cod} não está neste pedido` });
-    } else {
-      setItensConferencia(prev => prev.map((i,k) => k===idx ? {...i, qtdEnviada:(Number(i.qtdEnviada)||0)+1} : i));
-      setFeedbackLeitor({ tipo:'ok', msg:`✓ ${itensConferencia[idx].nome}` });
+  const processarBusca = useCallback(() => {
+    const termo = buscaAdd.trim();
+    if (!termo) return;
+
+    let ehBalanca = false;
+    let codBalanca = '';
+    let pesoBalanca = 0;
+
+    // Detecta código de balança padrão CDC 13 dígitos
+    if (termo.length === 13 && termo.startsWith('2') && /^\d+$/.test(termo)) {
+      ehBalanca = true;
+      codBalanca = termo.substring(1, 7); // índices 1 a 6 são o código
+      pesoBalanca = parseInt(termo.substring(7, 12), 10) / 1000; // peso em kg
     }
-    setCodigoLido('');
+
+    const codBusca = ehBalanca ? codBalanca : termo;
+    const qtdExtra = ehBalanca ? pesoBalanca : 1;
+
+    // Procura no pedido sendo atendido
+    const idx  = itensConferencia.findIndex(i => String(i.codigo) === codBusca);
+    if (idx !== -1) {
+      setItensConferencia(prev => prev.map((i,k) => k===idx ? {...i, qtdEnviada:(Number(i.qtdEnviada)||0)+qtdExtra} : i));
+      setFeedbackLeitor({ tipo:'ok', msg:`✓ ${itensConferencia[idx].nome} (+${qtdExtra})` });
+      setBuscaAdd('');
+    } else {
+      // Procura no inventario geral
+      const prodCat = catalogoAdd.find(p => String(p.codigo) === codBusca);
+      if (prodCat) {
+        adicionarItemExtra(prodCat, qtdExtra);
+        setFeedbackLeitor({ tipo:'ok', msg:`✓ ${prodCat.nome} (EXTRA +${qtdExtra})` });
+        setBuscaAdd('');
+      } else {
+        setFeedbackLeitor({ tipo:'erro', msg:`Não encontrado: ${codBusca}` });
+      }
+    }
+
     setTimeout(() => setFeedbackLeitor(null), 2500);
     if (inputLeitorRef.current) inputLeitorRef.current.focus();
-  }, [itensConferencia]);
+  }, [buscaAdd, itensConferencia, catalogoAdd]);
 
-  const adicionarItemExtra = (prod) => {
-    if (itensConferencia.find(i => i.codigo === prod.codigo)) {
+  const adicionarItemExtra = (prod, defaultQtd = 1) => {
+    if (itensConferencia.find(i => String(i.codigo) === String(prod.codigo))) {
       setFeedbackLeitor({ tipo:'aviso', msg:'Item já está na lista' });
       setTimeout(() => setFeedbackLeitor(null), 2000);
       return;
     }
-    setItensConferencia(prev => [...prev, { ...prod, qtdSolicitada:0, qtdEnviada:1, extra:true }]);
-    setModalAddItem(false); setBuscaAdd('');
+    setItensConferencia(prev => [...prev, { ...prod, qtdSolicitada:0, qtdEnviada:defaultQtd, extra:true }]);
+    setBuscaAdd('');
   };
 
   const finalizarAtendimento = async () => {
@@ -250,39 +272,8 @@ const PaginaAtendimento = ({ user }) => {
         <FolhaImpressao pedido={{...pedidoSelecionado, itens:itensConferencia}} onFechar={()=>setMostrarImpressao(false)}/>
       )}
 
-      {/* Modal adicionar item */}
-      {modalAddItem && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center backdrop-blur-sm" style={{backgroundColor:'rgba(0,0,0,0.5)'}}>
-          <div className="rounded-[32px] shadow-2xl w-full max-w-md p-6 space-y-4" style={{backgroundColor:'var(--bg-card)',border:'1px solid var(--border)'}}>
-            <div className="flex justify-between items-center">
-              <h3 className="font-black uppercase text-sm" style={{color:'var(--text-primary)'}}>Adicionar Item ao Pedido</h3>
-              <button onClick={()=>{setModalAddItem(false);setBuscaAdd('');}} style={{color:'var(--text-muted)'}}><XCircle size={18}/></button>
-            </div>
-            <div className="flex items-center gap-3 p-3 rounded-2xl border" style={{backgroundColor:'var(--bg-elevated)',borderColor:'var(--border)'}}>
-              <Search size={14} style={{color:'var(--text-muted)',flexShrink:0}}/>
-              <input autoFocus value={buscaAdd} onChange={e=>setBuscaAdd(e.target.value)}
-                placeholder="Buscar produto ou código..." className="bg-transparent border-none outline-none text-xs font-bold uppercase w-full"
-                style={{color:'var(--text-primary)'}}/>
-            </div>
-            <div className="space-y-1 max-h-72 overflow-y-auto custom-scrollbar">
-              {produtosBusca.slice(0,15).map(p=>(
-                <button key={p.codigo} onClick={()=>adicionarItemExtra(p)}
-                  className="w-full flex justify-between items-center p-3 rounded-2xl transition-all text-left"
-                  style={{color:'var(--text-primary)'}}
-                  onMouseEnter={e=>e.currentTarget.style.backgroundColor='var(--bg-elevated)'}
-                  onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>
-                  <div>
-                    <p style={{fontSize:'0.7rem',fontWeight:700,textTransform:'uppercase'}}>{p.nome}</p>
-                    <p style={{fontSize:'0.6rem',color:'var(--text-muted)'}}>{p.codigo} · {p.categoria}</p>
-                  </div>
-                  <Plus size={16} style={{color:'var(--accent-bright)',flexShrink:0}}/>
-                </button>
-              ))}
-              {buscaAdd.length > 1 && produtosBusca.length === 0 && <p style={{textAlign:'center',fontSize:'0.7rem',color:'var(--text-muted)',padding:'1rem'}}>Nenhum produto encontrado</p>}
-              {buscaAdd.length <= 1 && <p style={{textAlign:'center',fontSize:'0.7rem',color:'var(--text-muted)',padding:'1rem'}}>Digite para buscar...</p>}
-            </div>
-          </div>
-        </div>
+      {mostrarImpressao && pedidoSelecionado && (
+        <FolhaImpressao pedido={{...pedidoSelecionado, itens:itensConferencia}} onFechar={()=>setMostrarImpressao(false)}/>
       )}
 
       {/* ── FILA LATERAL ── */}
@@ -335,14 +326,6 @@ const PaginaAtendimento = ({ user }) => {
                     style={{display:'flex',alignItems:'center',gap:'0.3rem',padding:'0.5rem 0.875rem',borderRadius:'0.75rem',border:'1px solid var(--border)',backgroundColor:'var(--bg-elevated)',color:'var(--text-secondary)',fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',cursor:'pointer'}}>
                     <Printer size={13}/> Imprimir
                   </button>
-                  <button onClick={()=>setModoLeitor(!modoLeitor)}
-                    style={{display:'flex',alignItems:'center',gap:'0.3rem',padding:'0.5rem 0.875rem',borderRadius:'0.75rem',border:'1px solid '+(modoLeitor?'var(--accent)':'var(--border)'),backgroundColor:modoLeitor?'rgba(59,130,246,0.1)':'var(--bg-elevated)',color:modoLeitor?'var(--accent-bright)':'var(--text-secondary)',fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',cursor:'pointer'}}>
-                    <Barcode size={13}/> {modoLeitor?'Leitor Ativo':'Leitor'}
-                  </button>
-                  <button onClick={()=>setModalAddItem(true)}
-                    style={{display:'flex',alignItems:'center',gap:'0.3rem',padding:'0.5rem 0.875rem',borderRadius:'0.75rem',border:'none',backgroundColor:'var(--accent)',color:'#fff',fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',cursor:'pointer'}}>
-                    <Plus size={13}/> Adicionar Item
-                  </button>
                   <button onClick={finalizarAtendimento} disabled={finalizando}
                     style={{display:'flex',alignItems:'center',gap:'0.3rem',padding:'0.5rem 1rem',borderRadius:'0.75rem',border:'none',backgroundColor:'#10b981',color:'#fff',fontSize:'0.6rem',fontWeight:800,textTransform:'uppercase',cursor:'pointer',boxShadow:'0 4px 16px rgba(16,185,129,0.3)'}}>
                     {finalizando?<RefreshCw size={13} className="animate-spin"/>:<CheckCircle size={13}/>}
@@ -351,26 +334,43 @@ const PaginaAtendimento = ({ user }) => {
                 </div>
               </div>
 
-              {/* Leitor */}
-              {modoLeitor && (
-                <div className="mt-3 space-y-2">
-                  <div className="flex items-center gap-3 p-3 rounded-2xl border-2" style={{borderColor:'var(--accent)',backgroundColor:'rgba(59,130,246,0.05)'}}>
-                    <Barcode size={16} style={{color:'var(--accent)',flexShrink:0}}/>
-                    <input ref={inputLeitorRef} value={codigoLido} onChange={e=>setCodigoLido(e.target.value)}
-                      onKeyDown={e=>e.key==='Enter'&&codigoLido.trim()&&processarCodigo(codigoLido)}
-                      placeholder="Aguardando leitura do código de barras..." className="flex-1 bg-transparent border-none outline-none font-mono text-sm"
-                      style={{color:'var(--text-primary)'}}/>
-                    {codigoLido && <button onClick={()=>processarCodigo(codigoLido)} style={{padding:'0.3rem 0.75rem',borderRadius:'0.5rem',backgroundColor:'var(--accent)',color:'#fff',fontSize:'0.65rem',fontWeight:700,border:'none',cursor:'pointer'}}>OK</button>}
-                  </div>
-                  {feedbackLeitor && (
-                    <div style={{padding:'0.4rem 0.875rem',borderRadius:'0.75rem',fontSize:'0.7rem',fontWeight:700,textTransform:'uppercase',
-                      backgroundColor:feedbackLeitor.tipo==='ok'?'rgba(16,185,129,0.1)':feedbackLeitor.tipo==='aviso'?'rgba(245,158,11,0.1)':'rgba(239,68,68,0.1)',
-                      color:feedbackLeitor.tipo==='ok'?'#10b981':feedbackLeitor.tipo==='aviso'?'#f59e0b':'#ef4444'}}>
-                      {feedbackLeitor.msg}
-                    </div>
-                  )}
+              {/* Leitor Unificado e Busca de Produtos */}
+              <div className="mt-3 relative z-20">
+                <div className="flex items-center gap-3 p-3 rounded-2xl border-2" style={{borderColor:'var(--accent)',backgroundColor:'rgba(59,130,246,0.05)'}}>
+                  <Barcode size={16} style={{color:'var(--accent)',flexShrink:0}}/>
+                  <input ref={inputLeitorRef} value={buscaAdd} onChange={e=>setBuscaAdd(e.target.value)}
+                    onKeyDown={e=>e.key==='Enter'&&buscaAdd.trim()&&processarBusca()}
+                    placeholder="Bipar item ou digitar id/nome..." className="flex-1 bg-transparent border-none outline-none font-mono text-sm uppercase"
+                    style={{color:'var(--text-primary)'}} autoFocus/>
+                  {buscaAdd && <button onClick={processarBusca} style={{padding:'0.3rem 0.75rem',borderRadius:'0.5rem',backgroundColor:'var(--accent)',color:'#fff',fontSize:'0.65rem',fontWeight:700,border:'none',cursor:'pointer'}}>BUSCAR</button>}
                 </div>
-              )}
+                
+                {produtosBusca.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-2 p-2 rounded-2xl shadow-2xl border max-h-[300px] overflow-y-auto custom-scrollbar" style={{backgroundColor:'var(--bg-card)',borderColor:'var(--border)'}}>
+                    {produtosBusca.slice(0,10).map(p=>(
+                      <button key={p.codigo} onClick={()=>adicionarItemExtra(p)}
+                        className="w-full flex justify-between items-center p-3 rounded-xl transition-all text-left"
+                        style={{color:'var(--text-primary)'}}
+                        onMouseEnter={e=>e.currentTarget.style.backgroundColor='var(--bg-elevated)'}
+                        onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>
+                        <div>
+                          <p style={{fontSize:'0.7rem',fontWeight:700,textTransform:'uppercase'}}>{p.nome}</p>
+                          <p style={{fontSize:'0.6rem',color:'var(--text-muted)'}}>{p.codigo} · {p.categoria}</p>
+                        </div>
+                        <Plus size={16} style={{color:'var(--accent-bright)',flexShrink:0}}/>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                {feedbackLeitor && (
+                  <div className="mt-2" style={{padding:'0.4rem 0.875rem',borderRadius:'0.75rem',fontSize:'0.7rem',fontWeight:700,textTransform:'uppercase',
+                    backgroundColor:feedbackLeitor.tipo==='ok'?'rgba(16,185,129,0.1)':feedbackLeitor.tipo==='aviso'?'rgba(245,158,11,0.1)':'rgba(239,68,68,0.1)',
+                    color:feedbackLeitor.tipo==='ok'?'#10b981':feedbackLeitor.tipo==='aviso'?'#f59e0b':'#ef4444'}}>
+                    {feedbackLeitor.msg}
+                  </div>
+                )}
+              </div>
             </header>
 
             {/* ── LISTA DE ITENS DO PEDIDO ── */}

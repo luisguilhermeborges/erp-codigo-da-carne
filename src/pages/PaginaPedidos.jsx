@@ -4,14 +4,19 @@ import { BANCO_PADRAO } from '../data/bancoPadrao';
 import { api } from '../services/api';
 import { getPrecos, getFiliais } from '../services/cache';
 
+const NOME_PRIORIDADE = ['—', 'Baixa', 'Normal', 'Alta'];
+const COR_PRIORIDADE = ['transparent', '#3b82f6', '#10b981', '#ef4444'];
 const Prioridade = ({ valor, onChange }) => (
-  <div className="flex gap-0.5">
+  <div className="flex gap-1 p-1 rounded-xl" style={{backgroundColor:'var(--bg-elevated)',border:'1px solid var(--border)'}}>
     {[1,2,3].map(n => (
       <button key={n} onClick={() => onChange(n === valor ? 0 : n)}
-        style={{ color: n <= valor ? '#f59e0b' : 'var(--border-bright)', transition:'color 0.15s' }}
-        onMouseEnter={e => e.currentTarget.style.color = '#f59e0b'}
-        onMouseLeave={e => { e.currentTarget.style.color = n <= valor ? '#f59e0b' : 'var(--border-bright)'; }}>
-        <Star size={15} fill={n <= valor ? '#f59e0b' : 'none'} />
+        className="px-2 py-1 rounded-[10px] text-[9px] font-black uppercase transition-all"
+        style={{ 
+          backgroundColor: n === valor ? COR_PRIORIDADE[n] : 'transparent', 
+          color: n === valor ? '#fff' : 'var(--text-muted)',
+          boxShadow: n === valor ? `0 2px 8px ${COR_PRIORIDADE[n]}40` : 'none'
+        }}>
+        {NOME_PRIORIDADE[n]}
       </button>
     ))}
   </div>
@@ -181,7 +186,7 @@ const PaginaPedidos = ({ user }) => {
       {alertaPrioridade && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center backdrop-blur-sm" style={{backgroundColor:'rgba(0,0,0,0.5)'}}>
           <div className="rounded-[40px] shadow-2xl w-full max-w-md p-10 animate-in zoom-in" style={{backgroundColor:'var(--bg-card)'}}>
-            <Star size={64} className="mx-auto mb-4" style={{color:'#f59e0b'}}/>
+            <AlertCircle size={64} className="mx-auto mb-4" style={{color:'#f59e0b'}}/>
             <h3 className="text-xl font-black uppercase italic tracking-tighter text-center" style={{color:'var(--text-primary)'}}>Classifique a Prioridade</h3>
             <p className="mt-2 text-xs font-bold uppercase text-center mb-6" style={{color:'var(--text-secondary)'}}>
               {semPrioridade.length} {semPrioridade.length===1?'item sem':'itens sem'} prioridade
@@ -241,7 +246,15 @@ const PaginaPedidos = ({ user }) => {
 
       {/* ── LISTA DE PRODUTOS ── */}
       <div className="flex-1 overflow-y-auto space-y-3 pr-2">
-        <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-4" style={{color:'var(--text-primary)'}}>Realizar Pedido</h2>
+        <div className="flex justify-between items-end mb-4">
+          <h2 className="text-3xl lg:text-4xl font-black uppercase italic tracking-tighter" style={{color:'var(--text-primary)'}}>Realizar Pedido</h2>
+          
+          <div className="hidden lg:flex gap-4 text-[9px] font-bold uppercase" style={{color:'var(--text-muted)'}}>
+            <span style={{display:'flex',alignItems:'center',gap:4}}><div style={{width:8,height:8,borderRadius:'50%',backgroundColor:'#3b82f6'}}/> Baixa: Reposição/Estoque</span>
+            <span style={{display:'flex',alignItems:'center',gap:4}}><div style={{width:8,height:8,borderRadius:'50%',backgroundColor:'#10b981'}}/> Normal: Demanda Padrão</span>
+            <span style={{display:'flex',alignItems:'center',gap:4}}><div style={{width:8,height:8,borderRadius:'50%',backgroundColor:'#ef4444'}}/> Alta: Urgente/Falta</span>
+          </div>
+        </div>
 
         {/* Toggle Tipo Pedido */}
         <div className="flex bg-[var(--bg-elevated)] p-1.5 rounded-[20px] mb-4" style={{ border: '1px solid var(--border)' }}>
@@ -450,7 +463,7 @@ const PaginaPedidos = ({ user }) => {
           {/* Aviso prioridade pendente */}
           {semPrioridade.length > 0 && carrinho.length > 0 && (
             <div style={{display:'flex',alignItems:'center',gap:'0.5rem',padding:'0.4rem 0.75rem',borderRadius:'0.75rem',backgroundColor:'rgba(245,158,11,0.08)',border:'1px solid rgba(245,158,11,0.25)'}}>
-              <Star size={11} style={{color:'#f59e0b',flexShrink:0}}/>
+              <AlertCircle size={11} style={{color:'#f59e0b',flexShrink:0}}/>
               <p style={{fontSize:'0.6rem',fontWeight:700,color:'#d97706',textTransform:'uppercase'}}>
                 {semPrioridade.length} {semPrioridade.length===1?'item':'itens'} sem prioridade
               </p>

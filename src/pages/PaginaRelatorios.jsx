@@ -283,8 +283,8 @@ const PaginaRelatorios = () => {
 
   const carregar = async () => {
     setCarregando(true);
-    try { const d = await getHistorico(); setHistorico(d); }
-    catch { setHistorico(JSON.parse(localStorage.getItem('historico_pedidos')||'[]')); }
+    try { const d = await getHistorico(); setHistorico(d.slice().reverse()); }
+    catch { setHistorico(JSON.parse(localStorage.getItem('historico_pedidos')||'[]').reverse()); }
     finally { setCarregando(false); }
   };
 
@@ -303,8 +303,8 @@ const PaginaRelatorios = () => {
           (reg.cliente?.toLowerCase().includes(termo)) ||
           (reg.itens?.some(i=>i.nome?.toLowerCase().includes(termo)||i.codigo?.toString().includes(termo)));
         return matchTipo && matchData && matchTexto;
-      })
-      .sort((a,b)=>(a.cliente||'').localeCompare(b.cliente||'')); // ordem alfabética
+      });
+      // A ordem base já vem invertida cronologicamente (último feito no topo).
   }, [pesquisa, filtroData, filtroTipo, historico]);
 
   const totalNaoAtendidos = useMemo(()=>
@@ -321,7 +321,7 @@ const PaginaRelatorios = () => {
         <div>
           <h2 className="text-3xl font-black uppercase italic tracking-tighter" style={{color:'var(--text-primary)'}}>Relatórios</h2>
           <p style={{fontSize:'0.65rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)',marginTop:4}}>
-            {dadosFiltrados.length} pedido(s) · Ordem alfabética
+            {dadosFiltrados.length} pedido(s) · Mais recentes primeiro
             {totalNaoAtendidos > 0 && <span style={{color:'#ef4444',marginLeft:8}}>· {totalNaoAtendidos} item(ns) não atendido(s)</span>}
           </p>
         </div>

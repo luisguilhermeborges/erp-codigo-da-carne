@@ -54,11 +54,71 @@ const VALORES = [
   { icon: TrendingUp,label: 'Crescimento',    desc: 'Evoluímos juntos todos os dias' },
 ];
 
-const CONTATOS = [
-  { icon: Phone,  label: 'Suporte Interno',   valor: '(44) 99999-0000' },
-  { icon: Mail,   label: 'E-mail da equipe',  valor: 'equipe@codigodacarne.com.br' },
-  { icon: Coffee, label: 'RH / Gestão',       valor: '(44) 98888-0001' },
-];
+// ── Contatos Gerenciáveis ─────────────────────────────────────────────────────
+const ContatosGerenciaveis = ({ user }) => {
+  const isMaster = user?.cargo?.toLowerCase() === 'master' || user?.cargo?.toLowerCase() === 'adm';
+  const padrao = [
+    { id: 1, label: 'SUPORTE INTERNO', valor: '(44) 99999-0000' },
+    { id: 2, label: 'RH / GESTÃO', valor: '(44) 98888-0001' },
+    { id: 3, label: 'LOJA MATRIZ', valor: '(44) 3333-3333' }
+  ];
+  
+  const [contatos, setContatos] = useState(() => JSON.parse(localStorage.getItem('contatos_lojas') || JSON.stringify(padrao)));
+  const [editando, setEditando] = useState(false);
+  const [tempContatos, setTempContatos] = useState([...contatos]);
+
+  useEffect(() => {
+    localStorage.setItem('contatos_lojas', JSON.stringify(contatos));
+  }, [contatos]);
+
+  if (editando) {
+    return (
+      <div style={{backgroundColor:'var(--bg-card)',border:'1px solid var(--accent)',borderRadius:'1.5rem',padding:'1.5rem'}}>
+        <div className="flex justify-between items-center mb-3">
+          <p style={{fontSize:'0.65rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'0.08em',color:'var(--accent)'}}>Editar Contatos</p>
+          <button onClick={() => {
+            setContatos(tempContatos);
+            setEditando(false);
+          }} style={{fontSize:'0.6rem',fontWeight:800,textTransform:'uppercase',padding:'4px 10px',backgroundColor:'var(--accent)',color:'#fff',borderRadius:'999px',border:'none'}}>Salvar</button>
+        </div>
+        <div className="space-y-3">
+          {tempContatos.map((c, i) => (
+            <div key={i} className="flex gap-2 items-center">
+              <input value={c.label} onChange={(e) => { const n = [...tempContatos]; n[i].label = e.target.value.toUpperCase(); setTempContatos(n); }} className="flex-1 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-lg p-2 text-xs font-bold uppercase outline-none" placeholder="TÍTULO"/>
+              <input value={c.valor} onChange={(e) => { const n = [...tempContatos]; n[i].valor = e.target.value.toUpperCase(); setTempContatos(n); }} className="flex-1 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-lg p-2 text-xs font-bold uppercase outline-none" placeholder="CONTATO"/>
+              <button onClick={() => setTempContatos(tempContatos.filter((_, idx) => idx !== i))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><Trash2 size={14}/></button>
+            </div>
+          ))}
+          <button onClick={() => setTempContatos([...tempContatos, { id: Date.now(), label: '', valor: '' }])} className="w-full p-2 border border-dashed border-[var(--border-bright)] rounded-lg text-[10px] font-black uppercase text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] cursor-pointer transition-colors">+ Adicionar Contato</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{backgroundColor:'var(--bg-card)',border:'1px solid var(--border)',borderRadius:'1.5rem',padding:'1.5rem', position:'relative'}}>
+      {isMaster && (
+        <button onClick={() => { setTempContatos([...contatos]); setEditando(true); }} style={{position:'absolute',top:16,right:16,fontSize:'0.6rem',fontWeight:800,textTransform:'uppercase',color:'var(--accent-bright)',background:'none',border:'none',cursor:'pointer'}}>Editar</button>
+      )}
+      <p style={{fontSize:'0.65rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'0.08em',color:'var(--text-muted)',marginBottom:'0.875rem',display:'flex',alignItems:'center',gap:'0.4rem'}}>
+        <Phone size={12}/> Contatos
+      </p>
+      <div className="space-y-3">
+        {contatos.map((c, i) => (
+          <div key={i} style={{display:'flex',gap:'0.75rem',alignItems:'center'}}>
+            <div style={{width:28,height:28,borderRadius:'0.5rem',backgroundColor:'var(--bg-elevated)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+              <Phone size={13} style={{color:'var(--accent-bright)'}}/>
+            </div>
+            <div>
+              <p style={{fontSize:'0.6rem',fontWeight:800,color:'var(--text-muted)',textTransform:'uppercase'}}>{c.label}</p>
+              <p style={{fontSize:'0.7rem',fontWeight:800,color:'var(--text-primary)',textTransform:'uppercase'}}>{c.valor}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 // ── Classificados ─────────────────────────────────────────────────────────────
 const Classificados = ({ user }) => {
@@ -339,25 +399,8 @@ const PaginaHome = ({ user }) => {
             )}
           </div>
 
-          {/* Contatos */}
-          <div style={{backgroundColor:'var(--bg-card)',border:'1px solid var(--border)',borderRadius:'1.5rem',padding:'1.5rem'}}>
-            <p style={{fontSize:'0.65rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'0.08em',color:'var(--text-muted)',marginBottom:'0.875rem',display:'flex',alignItems:'center',gap:'0.4rem'}}>
-              <Phone size={12}/> Contatos
-            </p>
-            <div className="space-y-3">
-              {CONTATOS.map(c=>(
-                <div key={c.label} style={{display:'flex',gap:'0.75rem',alignItems:'center'}}>
-                  <div style={{width:28,height:28,borderRadius:'0.5rem',backgroundColor:'var(--bg-elevated)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                    <c.icon size={13} style={{color:'var(--accent-bright)'}}/>
-                  </div>
-                  <div>
-                    <p style={{fontSize:'0.6rem',fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase'}}>{c.label}</p>
-                    <p style={{fontSize:'0.7rem',fontWeight:700,color:'var(--text-primary)'}}>{c.valor}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Contatos Gerenciáveis */}
+          <ContatosGerenciaveis user={user} />
 
           {/* Links rápidos */}
           <div style={{backgroundColor:'var(--bg-card)',border:'1px solid var(--border)',borderRadius:'1.5rem',padding:'1.5rem'}}>

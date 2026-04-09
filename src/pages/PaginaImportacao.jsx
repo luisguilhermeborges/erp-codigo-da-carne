@@ -135,10 +135,20 @@ const PaginaImportacao = ({ user }) => {
             </p>
           </div>
 
-          <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap'}}>
-            {[{k:'todos',label:`Todos (${resultados.length})`},{k:'atualizado',label:`✓ Com preço (${resumo.qtdAtualizado})`},{k:'sem_preco',label:`— Zerado (${resumo.qtdSemPreco})`},{k:'nao_encontrado',label:`✗ Fora banco (${resumo.qtdForaBanco})`}].map(f=>(
-              <button key={f.k} onClick={()=>setFiltro(f.k)} style={{padding:'0.4rem 1rem',borderRadius:'999px',border:'1px solid var(--border)',fontSize:'0.65rem',fontWeight:700,textTransform:'uppercase',cursor:'pointer',backgroundColor:filtro===f.k?'var(--accent)':'var(--bg-elevated)',color:filtro===f.k?'#fff':'var(--text-secondary)',transition:'all 0.15s'}}>{f.label}</button>
-            ))}
+          <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',alignItems:'center',justifyContent:'space-between'}}>
+            <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap'}}>
+              {[{k:'todos',label:`Todos (${resultados.length})`},{k:'atualizado',label:`✓ Com preço (${resumo.qtdAtualizado})`},{k:'sem_preco',label:`— Zerado (${resumo.qtdSemPreco})`},{k:'nao_encontrado',label:`✗ Fora banco (${resumo.qtdForaBanco})`}].map(f=>(
+                <button key={f.k} onClick={()=>setFiltro(f.k)} style={{padding:'0.4rem 1rem',borderRadius:'999px',border:'1px solid var(--border)',fontSize:'0.65rem',fontWeight:700,textTransform:'uppercase',cursor:'pointer',backgroundColor:filtro===f.k?'var(--accent)':'var(--bg-elevated)',color:filtro===f.k?'#fff':'var(--text-secondary)',transition:'all 0.15s'}}>{f.label}</button>
+              ))}
+            </div>
+
+            <div style={{display:'flex',gap:'1rem',justifyContent:'flex-end'}}>
+              <button onClick={reset} style={{padding:'0.6rem 1.5rem',borderRadius:'0.875rem',border:'1px solid var(--border)',fontSize:'0.65rem',fontWeight:700,textTransform:'uppercase',cursor:'pointer',backgroundColor:'var(--bg-elevated)',color:'var(--text-secondary)'}}>Cancelar</button>
+              <button onClick={confirmarImportacao} disabled={resumo.qtdAtualizado===0||salvando} style={{padding:'0.6rem 2rem',borderRadius:'0.875rem',border:'none',fontSize:'0.65rem',fontWeight:800,textTransform:'uppercase',cursor:resumo.qtdAtualizado>0?'pointer':'not-allowed',backgroundColor:resumo.qtdAtualizado>0?'var(--accent)':'var(--bg-elevated)',color:resumo.qtdAtualizado>0?'#fff':'var(--text-muted)',boxShadow:resumo.qtdAtualizado>0?'0 4px 20px var(--accent-glow)':'none',display:'flex',alignItems:'center',gap:'0.5rem'}}>
+                {salvando && <RefreshCw size={14} className="animate-spin"/>}
+                {salvando ? 'Salvando...' : `Confirmar Importação (${resumo.qtdAtualizado})`}
+              </button>
+            </div>
           </div>
 
           <div style={{backgroundColor:'var(--bg-card)',border:'1px solid var(--border)',borderRadius:'1.5rem',overflow:'hidden'}}>
@@ -167,13 +177,7 @@ const PaginaImportacao = ({ user }) => {
             </div>
           </div>
 
-          <div style={{display:'flex',gap:'1rem',justifyContent:'flex-end'}}>
-            <button onClick={reset} style={{padding:'0.875rem 2rem',borderRadius:'0.875rem',border:'1px solid var(--border)',fontSize:'0.7rem',fontWeight:700,textTransform:'uppercase',cursor:'pointer',backgroundColor:'var(--bg-elevated)',color:'var(--text-secondary)'}}>Cancelar</button>
-            <button onClick={confirmarImportacao} disabled={resumo.qtdAtualizado===0||salvando} style={{padding:'0.875rem 2.5rem',borderRadius:'0.875rem',border:'none',fontSize:'0.7rem',fontWeight:800,textTransform:'uppercase',cursor:resumo.qtdAtualizado>0?'pointer':'not-allowed',backgroundColor:resumo.qtdAtualizado>0?'var(--accent)':'var(--bg-elevated)',color:resumo.qtdAtualizado>0?'#fff':'var(--text-muted)',boxShadow:resumo.qtdAtualizado>0?'0 4px 20px var(--accent-glow)':'none',display:'flex',alignItems:'center',gap:'0.5rem'}}>
-              {salvando && <RefreshCw size={14} className="animate-spin"/>}
-              {salvando ? 'Salvando no servidor...' : `Confirmar Importação (${resumo.qtdAtualizado} preços)`}
-            </button>
-          </div>
+
         </div>
       )}
 

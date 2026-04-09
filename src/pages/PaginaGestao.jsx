@@ -5,13 +5,17 @@ import { Users, MapPin, Beef, ShieldCheck } from 'lucide-react';
 import GestaoEstoque from './Gestao/GestaoEstoque';
 import GestaoUsuarios from './Gestao/GestaoUsuarios';
 import GestaoFiliais from './Gestao/GestaoFiliais';
+import PaginaImportacao from './PaginaImportacao';
+import PaginaAdmin from './PaginaAdmin';
 
 const PaginaGestao = ({ user }) => {
   // Define a aba inicial como 'estoque'
   const [abaAtiva, setAbaAtiva] = useState('estoque');
 
   // Configuração das abas com a restrição para o cargo PCP
-  // O PCP não tem permissão para ver ou editar a equipa (Usuários)
+  // O PCP ou gestorestoque não têm permissão para ver ou editar a equipa ou filiais
+  const isMasterOrAdm = ['master', 'adm'].includes(user?.cargo?.toLowerCase());
+
   const abas = [
     { 
       id: 'estoque', 
@@ -21,15 +25,27 @@ const PaginaGestao = ({ user }) => {
     },
     { 
       id: 'usuarios', 
-      rotulo: 'Usuários / Equipe', 
+      rotulo: 'Usuários / Gestão de Equipe', 
       icone: Users,
-      permissao: user.cargo !== 'pcp' // Oculto para PCP
+      permissao: isMasterOrAdm
     },
     { 
       id: 'filiais', 
       rotulo: 'Filiais / Lojas', 
       icone: MapPin,
-      permissao: true // Todos os gestores acedem
+      permissao: isMasterOrAdm
+    },
+    {
+      id: 'importacao',
+      rotulo: 'Importar Layout',
+      icone: Beef, // Using Beef as icon or we can just use another icon, but let's stick to what's available
+      permissao: isMasterOrAdm
+    },
+    {
+      id: 'admin',
+      rotulo: 'Admin Requisições',
+      icone: ShieldCheck,
+      permissao: user?.cargo?.toLowerCase() === 'master'
     }
   ];
 
@@ -93,11 +109,15 @@ const PaginaGestao = ({ user }) => {
           {/* Renderização Condicional Protegida */}
           {abaAtiva === 'estoque' && <GestaoEstoque user={user} />}
           
-          {abaAtiva === 'usuarios' && user.cargo !== 'pcp' && (
+          {abaAtiva === 'usuarios' && isMasterOrAdm && (
             <GestaoUsuarios user={user} />
           )}
           
-          {abaAtiva === 'filiais' && <GestaoFiliais user={user} />}
+          {abaAtiva === 'filiais' && isMasterOrAdm && <GestaoFiliais user={user} />}
+
+          {abaAtiva === 'importacao' && isMasterOrAdm && <PaginaImportacao user={user} />}
+          
+          {abaAtiva === 'admin' && user?.cargo?.toLowerCase() === 'master' && <PaginaAdmin user={user} />}
         </div>
       </div>
 

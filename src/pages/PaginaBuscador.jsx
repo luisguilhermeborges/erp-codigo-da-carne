@@ -1,27 +1,52 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Package, Tag, ArrowRight, RefreshCw } from 'lucide-react';
-import { getEstoque } from '../services/cache';
+import { getEstoque, getHistorico } from '../services/cache';
 
 const PaginaBuscador = () => {
   const [termo, setTermo] = useState('');
   const [catalogo, setCatalogo] = useState([]);
+  const [mapaDatas, setMapaDatas] = useState({});
   const [carregando, setCarregando] = useState(true);
 
   const carregarProdutos = async () => {
     setCarregando(true);
     try {
-      // O getEstoque já traz a estrutura mesclada (bancoPadrao + precos salvos)
-      // Trazemos todos os produtos (apenasComPreco: false) para a pesquisa
-      const dados = await getEstoque({ apenasComPreco: false });
-      
-      // Aqui os dados já possuem .preco e (futuramente) .estoque na estrutura,
-      // mas nós vamos ocultá-los na renderização visual abaixo.
+      const [dados, hist] = await Promise.all([
+        getEstoque({ apenasComPreco: false }),
+        getHistorico().catch(()=>[])
+      ]);
       setCatalogo(dados);
+
+      const mapa = {};
+      hist.forEach(ped => {
+         const strData = (ped.data || '').split(',')[0];
+         const p = strData.split('/');
+         if (p.length === 3) {
+            const d = new Date(`${p[2]}-${p[1]}-${p[0]}T00:00:00`);
+            if (!isNaN(d)) {
+               (ped.itens||[]).forEach(i => {
+                  const cod = String(i.codigo);
+                  if (!mapa[cod] || d > mapa[cod]) mapa[cod] = d;
+               });
+            }
+         }
+      });
+      setMapaDatas(mapa);
     } catch (error) {
       console.error("Erro ao carregar catálogo", error);
     } finally {
       setCarregando(false);
     }
+  };
+
+  const getTempoTexto = (data) => {
+    if (!data) return "Nunca pedido";
+    const hj = new Date(); hj.setHours(0,0,0,0);
+    const dt = new Date(data); dt.setHours(0,0,0,0);
+    const dias = Math.floor((hj - dt) / 86400000);
+    if (dias === 0) return "Hoje";
+    if (dias === 1) return "Ontem";
+    return `Há ${dias} dias`;
   };
 
   useEffect(() => {
@@ -92,14 +117,16 @@ const PaginaBuscador = () => {
                 <th className="px-6 py-4">Código Original</th>
                 <th className="px-6 py-4">Descrição do Produto</th>
                 <th className="px-6 py-4">Categoria</th>
-                {/* As colunas de PREÇO e ESTOQUE estão ocultas na interface por enquanto */}
-                {/* <th className="px-6 py-4 text-right">Estoque</th> */}
-                {/* <th className="px-6 py-4 text-right">Preço</th> */}
-                <th className="px-6 py-4 w-12"></th>
+                <th className="px-6 py-4 text-center">Último Pedido</th>
               </tr>
             </thead>
             <tbody>
-              {produtosFiltrados.map((prod, index) => (
+              {produtosFiltrados.map((prod, index) => {
+                const dt = mapaDatas[String(prod.codigo)];
+                const msgTempo = getTempoTexto(dt);
+                const isRecente = dt && Math.floor((new Date().setHours(0,0,0,0) - new Date(dt).setHours(0,0,0,0))/86400000) <= 7;
+                
+                return (
                 <tr key={prod.codigo + index} style={{borderTop:'1px solid var(--border)', transition:'background-color 0.2s'}}
                   onMouseEnter={e=>e.currentTarget.style.backgroundColor='var(--bg-elevated)'}
                   onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
@@ -133,21 +160,14 @@ const PaginaBuscador = () => {
                     </div>
                   </td>
                   
-                  {/* ESTRUTURA PRONTA (COMENTADA) PARA EXIBIR PREÇO E ESTOQUE NO FUTURO */}
-                  {/* <td className="px-6 py-4 text-right">
-                    <span style={{fontWeight:800, fontSize:'0.75rem', color: prod.estoque > 0 ? '#10b981' : '#ef4444'}}>
-                      {prod.estoque || 0} {prod.unidade}
+                  <td className="px-6 py-4 text-center">
+                    <span style={{
+                      fontWeight: 800, fontSize: '0.65rem', textTransform: 'uppercase', padding: '4px 10px', borderRadius: '999px',
+                      backgroundColor: isRecente ? 'rgba(16,185,129,0.1)' : dt ? 'rgba(59,130,246,0.1)' : 'rgba(148,163,184,0.1)',
+                      color: isRecente ? '#10b981' : dt ? '#3b82f6' : 'var(--text-muted)'
+                    }}>
+                      {msgTempo}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <span style={{fontWeight:800, fontSize:'0.75rem', color:'var(--text-primary)'}}>
-                      {Number(prod.preco || 0).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}
-                    </span>
-                  </td> 
-                  */}
-                  
-                  <td className="px-6 py-4 text-right">
-                    <ArrowRight size={16} style={{color:'var(--border-bright)'}}/>
                   </td>
                 </tr>
               ))}
