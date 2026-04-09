@@ -13,20 +13,30 @@ const Login = ({ onLogin }) => {
     setErro('');
     setCarregando(true);
     
-    // 1. VERIFICAÇÃO MASTER UNIVERSAL (Mantida conforme seu original)
-    if (
-        (username.toLowerCase() === 'master' && password === 'luis') ||
-        (username.toLowerCase() === 'luis' && password === '2928')
-    ) {
+    // 1. VERIFICAÇÃO MASTER UNIVERSAL — perfis separados
+    if (username.toLowerCase() === 'master' && password === 'luis') {
       const masterUser = { 
         id: 'master-id', 
         nome: 'Administrador Master', 
-        login: username.toLowerCase(), 
+        login: 'master', 
         cargo: 'master', 
         unidade: 'TODAS' 
       };
       localStorage.setItem('usuario_logado', JSON.stringify(masterUser));
       onLogin(masterUser);
+      return;
+    }
+
+    if (username.toLowerCase() === 'luis' && password === '2928') {
+      const luisUser = {
+        id: 'luis-id',
+        nome: 'Luis Guilherme',
+        login: 'luis',
+        cargo: 'master',
+        unidade: 'TODAS'
+      };
+      localStorage.setItem('usuario_logado', JSON.stringify(luisUser));
+      onLogin(luisUser);
       return;
     }
 
