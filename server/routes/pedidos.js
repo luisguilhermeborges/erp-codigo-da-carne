@@ -32,6 +32,29 @@ router.get('/todos', async (req, res) => {
   }
 });
 
+// GET /api/pedidos/para-receber?destino=XXX — transferências pendentes para uma unidade
+router.get('/para-receber', async (req, res) => {
+  try {
+    const { destino } = req.query;
+    if (!destino) return res.status(400).json({ error: 'Parâmetro destino obrigatório' });
+
+    // O destino pode ser o código (ex: "001") ou o nome completo (ex: "001 - CENTRO")
+    const codigoDestino = destino.split(' - ')[0]?.trim();
+    const pendentes = await Pedido.find({
+      tipo: 'TRANSFERENCIA_AVULSA',
+      status: 'Pendente',
+      $or: [
+        { destino: destino },
+        { destino: codigoDestino },
+      ]
+    }).sort({ criadoEm: -1 });
+
+    res.json(pendentes);
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao buscar transferências para receber' });
+  }
+});
+
 // POST /api/pedidos — criar pedido ou transferência
 router.post('/', async (req, res) => {
   try {
@@ -75,6 +98,26 @@ router.put('/:id/finalizar', async (req, res) => {
     res.json(pedido);
   } catch (err) {
     res.status(500).json({ error: 'Erro ao finalizar pedido' });
+  }
+});
+
+// PUT /api/pedidos/:id/receber — confirmar recebimento pelo comercial
+router.put('/:id/receber', async (req, res) => {
+  try {
+    const pedido = await Pedido.findOneAndUpdate(
+      { idExterno: req.params.id },
+      {
+        status:          'Recebido',
+        itens:           req.body.itens,
+        dataRecebimento: req.body.dataRecebimento,
+        recebidoPor:     req.body.recebidoPor,
+      },
+      { new: true }
+    );
+    if (!pedido) return res.status(404).json({ error: 'Pedido não encontrado' });
+    res.json(pedido);
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao confirmar recebimento' });
   }
 });
 

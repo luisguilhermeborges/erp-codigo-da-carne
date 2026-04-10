@@ -14,13 +14,15 @@ export const api = {
   },
   // Pedidos
   pedidos: {
-    fila:       ()    => get('/pedidos/fila'),
-    historico:  ()    => get('/pedidos/historico'),
-    todos:      ()    => get('/pedidos/todos'),
-    criar:      (p)   => post('/pedidos', p),
-    finalizar:  (id, dados) => put(`/pedidos/${id}/finalizar`, dados),
-    apagar:     (id)  => del(`/pedidos/${id}`),
-    limpar:     (status) => del(`/pedidos${status ? `?status=${status}` : ''}`),
+    fila:          ()              => get('/pedidos/fila'),
+    historico:     ()              => get('/pedidos/historico'),
+    todos:         ()              => get('/pedidos/todos'),
+    criar:         (p)             => post('/pedidos', p),
+    finalizar:     (id, dados)     => put(`/pedidos/${id}/finalizar`, dados),
+    apagar:        (id)            => del(`/pedidos/${id}`),
+    limpar:        (status)        => del(`/pedidos${status ? `?status=${status}` : ''}`),
+    paraReceber:   (destino)       => get(`/pedidos/para-receber?destino=${encodeURIComponent(destino)}`),
+    receber:       (id, dados)     => put(`/pedidos/${id}/receber`, dados),
   },
   // Filiais
   filiais: {

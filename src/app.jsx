@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // Importação das Páginas
 import Login from './pages/Login';
@@ -11,6 +11,7 @@ import PaginaGestao from './pages/PaginaGestao';
 import PaginaAdmin from './pages/PaginaAdmin';
 import PaginaImportacao from './pages/PaginaImportacao';
 import PaginaBuscador from './pages/PaginaBuscador';
+import PaginaRecebimento from './pages/PaginaRecebimento';
 
 // Importação de Componentes
 import BarraLateral from './components/BarraLateral';
@@ -145,6 +146,7 @@ function App() {
               <div className={abaAtiva === 'pedidos' ? 'block h-full' : 'hidden'}><PaginaPedidos user={usuario} /></div>
               <div className={abaAtiva === 'relatorios' ? 'block h-full' : 'hidden'}><PaginaRelatorios user={usuario} /></div>
               <div className={abaAtiva === 'transferencia' ? 'block h-full' : 'hidden'}><PaginaTransferenciaAvulsa user={usuario} /></div>
+              <div className={abaAtiva === 'recebimento' ? 'block h-full' : 'hidden'}><PaginaRecebimento user={usuario} /></div>
               <div className={abaAtiva === 'gestao' ? 'block h-full' : 'hidden'}><PaginaGestao user={usuario} /></div>
               <div className={abaAtiva === 'buscador' ? 'block h-full' : 'hidden'}><PaginaBuscador user={usuario} /></div>
             </div>

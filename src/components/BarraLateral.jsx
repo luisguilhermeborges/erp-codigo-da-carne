@@ -1,25 +1,42 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, ShoppingCart, Package, Users, FileText, Repeat, LogOut, Heart, Sun, Moon, QrCode, FileDown, Shield, X, Search } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Package, Users, FileText, Repeat, LogOut, Heart, Sun, Moon, QrCode, FileDown, Shield, X, Search, PackageCheck } from 'lucide-react';
+import { api } from '../services/api';
 
 const BarraLateral = ({ usuario, abaAtiva, setAbaAtiva, onLogout, menuAberto, setMenuAberto }) => {
-  const [tema, setTema] = useState(() => localStorage.getItem('tema_cdc') || 'light');
+  const [tema, setTema]                       = useState(() => localStorage.getItem('tema_cdc') || 'light');
+  const [pendentesRecebimento, setPendentes]  = useState(0);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', tema);
     localStorage.setItem('tema_cdc', tema);
   }, [tema]);
 
+  // Polling para badge de recebimentos pendentes
+  useEffect(() => {
+    const unidade = usuario?.unidade;
+    if (!unidade) return;
+    const buscar = () => {
+      api.pedidos.paraReceber(unidade)
+        .then(data => setPendentes(Array.isArray(data) ? data.length : 0))
+        .catch(() => {});
+    };
+    buscar();
+    const interval = setInterval(buscar, 60000); // re-polling a cada 60s
+    return () => clearInterval(interval);
+  }, [usuario?.unidade]);
+
   const alternarTema = () => setTema(t => t === 'dark' ? 'light' : 'dark');
 
   const menuItens = [
-    { id: 'mural',        label: 'Home',              icon: Heart,           roles: ['comercial', 'adm', 'master', 'pcp', 'gestorestoque', 'estoque'] },
+    { id: 'mural',        label: 'Home',              icon: Heart,         roles: ['comercial', 'adm', 'master', 'pcp', 'gestorestoque', 'estoque'] },
     { id: 'atendimento',  label: 'Atendimento',      icon: LayoutDashboard, roles: ['comercial', 'adm', 'master', 'gestorestoque', 'estoque'] },
-    { id: 'pedidos',      label: 'Fazer Pedidos',    icon: ShoppingCart,    roles: ['comercial', 'adm', 'master', 'estoque'] },
-    { id: 'transferencia',label: 'Transferência',    icon: Repeat,          roles: ['comercial', 'adm', 'master', 'gestorestoque', 'estoque'] },
-    { id: 'relatorios',   label: 'Relatórios',       icon: FileText,        roles: ['adm', 'master'] },
-    { id: 'gestao',       label: 'Gestão',           icon: Users,           roles: ['adm', 'master', 'gestorestoque', 'estoque'] },
-    { id: 'buscador',     label: 'Pesquisar Produto',icon: Search,          roles: ['adm', 'master', 'gestorestoque', 'comercial', 'pcp', 'estoque'] },
-    { id: 'gerador',      label: 'Gerador Cód/Lote', icon: QrCode,          roles: ['adm', 'master', 'pcp', 'comercial', 'gestorestoque', 'estoque'] },
+    { id: 'pedidos',      label: 'Fazer Pedidos',    icon: ShoppingCart,  roles: ['comercial', 'adm', 'master', 'estoque'] },
+    { id: 'transferencia',label: 'Transferência',    icon: Repeat,        roles: ['comercial', 'adm', 'master', 'gestorestoque', 'estoque'] },
+    { id: 'recebimento',  label: 'Recebimento',      icon: PackageCheck,  roles: ['comercial', 'adm', 'master'], badge: pendentesRecebimento },
+    { id: 'relatorios',   label: 'Relatórios',       icon: FileText,      roles: ['adm', 'master'] },
+    { id: 'gestao',       label: 'Gestão',           icon: Users,         roles: ['adm', 'master', 'gestorestoque', 'estoque'] },
+    { id: 'buscador',     label: 'Pesquisar Produto',icon: Search,        roles: ['adm', 'master', 'gestorestoque', 'comercial', 'pcp', 'estoque'] },
+    { id: 'gerador',      label: 'Gerador Cód/Lote', icon: QrCode,        roles: ['adm', 'master', 'pcp', 'comercial', 'gestorestoque', 'estoque'] },
   ];
 
   const itensVisiveis = menuItens.filter(item =>
@@ -88,7 +105,16 @@ const BarraLateral = ({ usuario, abaAtiva, setAbaAtiva, onLogout, menuAberto, se
               onMouseLeave={e => { if (!ativo) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}}
             >
               <Icone size={18} />
-              {item.label}
+              <span style={{ flex: 1, textAlign: 'left' }}>{item.label}</span>
+              {item.badge > 0 && (
+                <span style={{
+                  minWidth: 18, height: 18, borderRadius: 999, backgroundColor: '#f59e0b',
+                  color: '#fff', fontSize: '0.55rem', fontWeight: 900,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px'
+                }}>
+                  {item.badge}
+                </span>
+              )}
             </button>
           );
         })}
