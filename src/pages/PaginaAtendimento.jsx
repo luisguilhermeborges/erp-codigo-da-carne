@@ -214,7 +214,7 @@ const PaginaAtendimento = ({ user }) => {
           };
         }
         // Item específico (pedidos antigos ou transferências)
-        return { ...item, qtdSolicitada: Number(item.qtd)||1, qtdEnviada: Number(item.qtd)||1 };
+        return { ...item, qtdSolicitada: Number(item.qtd)||1, qtdEnviada: 0 };
       });
     setItensConferencia(itens);
   }, [pedidoSelecionado]);
