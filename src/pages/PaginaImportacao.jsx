@@ -83,6 +83,8 @@ const PaginaImportacao = ({ user }) => {
       // 3. Atualiza localStorage como cache local para acesso offline
       const anteriores = JSON.parse(localStorage.getItem('precos_cdc') || '{}');
       localStorage.setItem('precos_cdc', JSON.stringify({ ...anteriores, ...mapa }));
+      // 4. Salva timestamp da última importação
+      localStorage.setItem('precos_data_importacao', new Date().toISOString());
 
       setResumo(prev => ({ ...prev, aplicados: Object.keys(mapa).length }));
       setEtapa('resultado');
