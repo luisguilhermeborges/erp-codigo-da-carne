@@ -35,20 +35,29 @@ const LINHAS_MARCAS = new Set([
   'TEMPERADO','TEMPERADA','DESOSSADA','RECHEADA','INTEIRO','FATIADO',
 ]);
 
-// Palavras que indicam finalidade (buscadas em toda a lista de tags)
+// Palavras que indicam finalidade (buscadas em toda a lista de tags ou na categoria original)
 const FINALIDADE_MAP = [
-  { key:'CHURRASCO',  match: ['CHURRASCO'] },
-  { key:'DIA A DIA',  match: ['DIA A DIA'] },
-  { key:'HAMBURGUER', match: ['HAMBURGUER','BURGUER'] },
-  { key:'PETISCO',    match: ['PETISCO','TORRESMO'] },
-  { key:'KIT',        match: ['KIT BURGUER','KIT'] },
+  { key:'CHURRASCO',       match: ['CHURRASCO','HAMBURGUER','BURGUER','KIT','PETISCO'] },
+  { key:'DIA A DIA',       match: ['DIA A DIA','DIA-A-DIA'] },
+  { key:'ACOMPANHAMENTO',  match: ['ACOMPANHAMENTO','QUEIJO','MOLHO','TORRESMO','SORVETE','FAROFA','BATATA','SAL','EMPÓRIO'] },
+  { key:'BEBIDAS',         match: ['BEBIDA','BEBIDAS','CERVEJA','REFRIGERANTE','AGUA','SUCO','GELO'] },
+  { key:'ACESSORIOS',      match: ['ACESSORIO','ACESSORIOS','ACESSÓRIOS','DEFUMACAO','DEFUMAÇÃO','CARVAO','GRELHA','CARVÃO','LENHA'] },
 ];
 
-const extrairFinalidade = (tags = []) => {
+const extrairFinalidade = (tags = [], catOriginal = '') => {
   for (const { key, match } of FINALIDADE_MAP) {
-    if (match.some(m => tags.includes(m))) return key;
+    if (match.some(m => tags.includes(m) || catOriginal === m)) return key;
   }
   return 'GERAL';
+};
+
+const extrairMarca = (tags = []) => {
+  if (tags.some(t => t === 'LA REINA')) return 'LA REINA';
+  if (tags.some(t => t === 'LA MAJESTAD')) return 'LA MAJESTAD';
+  if (tags.some(t => t === 'CODIGO SERIES')) return 'CODIGO SERIES';
+  if (tags.some(t => t === 'FSW')) return 'FSW';
+  if (tags.some(t => t === 'LA DUQUESA' || t === 'DIA A DIA' || t === 'DIA-A-DIA')) return 'LA DUQUESA/DIA A DIA';
+  return 'OUTRAS MARCAS';
 };
 
 const extrairCorte = (tags = []) => {
@@ -69,9 +78,8 @@ const extrairCorte = (tags = []) => {
 const CATS_USO_CONSUMO = new Set(['USO/CONSUMO','LIMPEZA','ESCRITORIO','DESCARTAVEL','EMBALAGEM']);
 
 // Ordem de exibição
-const ORDEM_CATS = ['BOVINO','FRANGO','SUINO','LINGUICA','CORDEIRO','PESCADOS',
-  'QUEIJO','CERVEJA','BEBIDAS','ACOMPANHAMENTO','TORRESMO','SORVETE','ACESSORIOS','DEFUMACAO'];
-const ORDEM_FIN  = ['CHURRASCO','DIA A DIA','HAMBURGUER','KIT','PETISCO','GERAL'];
+const ORDEM_CATS = ['LA REINA','LA MAJESTAD','CODIGO SERIES','FSW','LA DUQUESA/DIA A DIA','OUTRAS MARCAS'];
+const ORDEM_FIN  = ['CHURRASCO','DIA A DIA','ACOMPANHAMENTO','BEBIDAS','ACESSORIOS','GERAL'];
 
 // ── Componente principal ───────────────────────────────────────────────────────
 const PaginaPedidos = ({ user }) => {
@@ -112,11 +120,11 @@ const PaginaPedidos = ({ user }) => {
           nome,
           preco:      precos[cod] ?? 0,
           unidade:    v.unidade,
-          categoria:  v.categoria || tags[0] || 'OUTROS',
+          categoria:  eUsoConsumo ? (v.categoria || 'OUTROS') : extrairMarca(tags),
           tags,
-          finalidade: extrairFinalidade(tags),
-          corte:      extrairCorte(tags),
-          eUsoConsumo: CATS_USO_CONSUMO.has((v.categoria||'').toUpperCase()),
+          finalidade: eUsoConsumo ? 'USO/CONSUMO' : extrairFinalidade(tags, v.categoria),
+          corte:      eUsoConsumo ? (v.categoria || 'OUTROS') : extrairCorte(tags),
+          eUsoConsumo,
         };
       }).filter(p => p.preco > 0);
       setEstoque(lista);
