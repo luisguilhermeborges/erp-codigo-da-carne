@@ -47,7 +47,7 @@ const PaginaImportacao = ({ user }) => {
         const raw = XLSX.utils.sheet_to_json(ws, { header:1, defval:'' });
         let hi = raw.findIndex(r => r.some(c => String(c).toLowerCase().includes('código') || String(c).toLowerCase().includes('codigo')));
         if (hi === -1) hi = 0;
-        const headers = raw[hi].map(h => String(h).toLowerCase());
+        const headers = raw[hi].map(h => String(h).toLowerCase().trim());
         const iCod  = headers.findIndex(h => h.includes('código') || h.includes('codigo'));
         const iDesc = headers.findIndex(h => h.includes('descri'));
         let iPrec = headers.indexOf('preço venda');
