@@ -43,7 +43,10 @@ const PaginaImportacao = ({ user }) => {
         const headers = raw[hi].map(h => String(h).toLowerCase());
         const iCod  = headers.findIndex(h => h.includes('código') || h.includes('codigo'));
         const iDesc = headers.findIndex(h => h.includes('descri'));
-        let iPrec = headers.findIndex(h => h.includes('venda'));
+        let iPrec = headers.indexOf('preço venda');
+        if (iPrec === -1) iPrec = headers.indexOf('preco venda');
+        if (iPrec === -1) iPrec = headers.findIndex(h => h.includes('preço') && h.includes('venda'));
+        if (iPrec === -1) iPrec = headers.findIndex(h => h.includes('venda'));
         if (iPrec === -1) iPrec = headers.findIndex(h => h.includes('preço') || h.includes('preco'));
         if (iCod === -1) { alert('Coluna "Código" não encontrada.'); setProcessando(false); return; }
         const dados = raw.slice(hi + 1).filter(r => r[iCod] && String(r[iCod]).trim())

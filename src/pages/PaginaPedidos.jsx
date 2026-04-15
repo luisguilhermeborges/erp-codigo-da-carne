@@ -469,7 +469,7 @@ const PaginaPedidos = ({ user }) => {
             );
           })}
 
-          {catsDisponiveis.length === 0 && (
+          {paisDisponiveis.length === 0 && (
             <div className="py-20 text-center opacity-30">
               <Search size={40} className="mx-auto mb-3" style={{color:'var(--text-muted)'}}/>
               <p className="font-black uppercase text-xs tracking-widest" style={{color:'var(--text-muted)'}}>Nenhum produto encontrado</p>
