@@ -40,15 +40,15 @@ const ModalRecebimento = ({ transferencia, user, onClose, onConfirmado }) => {
   const [itens, setItens] = useState(
     (transferencia.itens || []).map(item => ({
       ...item,
-      recebido:   item.recebido ?? true,
+      recebido: item.recebido ?? true,
       dtProducao: item.dtProducao || '',
       dtValidade: item.dtValidade || '',
-      lote:       item.lote || '',
+      lote: item.lote || '',
       precoEtiqueta: item.precoEtiqueta || '',
     }))
   );
   const [enviando, setEnviando] = useState(false);
-  const [erro, setErro]         = useState('');
+  const [erro, setErro] = useState('');
 
   const atualizarItem = (idx, campo, valor) => {
     setItens(prev => prev.map((it, i) => i === idx ? { ...it, [campo]: valor } : it));
@@ -64,7 +64,8 @@ const ModalRecebimento = ({ transferencia, user, onClose, onConfirmado }) => {
     setErro('');
     setEnviando(true);
     try {
-      await api.pedidos.receber(transferencia.idExterno, {
+      const id = transferencia.idExterno || transferencia.id || transferencia._id;
+      await api.pedidos.receber(id, {
         itens,
         dataRecebimento: new Date().toLocaleString('pt-BR'),
         recebidoPor: user?.nome,
@@ -114,7 +115,7 @@ const ModalRecebimento = ({ transferencia, user, onClose, onConfirmado }) => {
           <table className="w-full border-collapse" style={{ fontSize: '0.75rem' }}>
             <thead style={{ position: 'sticky', top: 0, zIndex: 5 }}>
               <tr style={{ backgroundColor: 'var(--bg-elevated)' }}>
-                 {['✓', 'Produto', 'Qtd', 'Lote', 'Preço Et.', 'Produção', 'Validade'].map(h => (
+                {['✓', 'Produto', 'Qtd', 'Lote', 'Preço Et.', 'Produção', 'Validade'].map(h => (
                   <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontSize: '0.6rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', whiteSpace: 'nowrap', borderBottom: '1px solid var(--border)' }}>
                     {h}
                   </th>
@@ -274,7 +275,7 @@ const CardTransferencia = ({ transferencia, onAbrir }) => {
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <span style={{ fontFamily: 'monospace', fontSize: '0.65rem', fontWeight: 800, color: 'var(--accent-bright)', backgroundColor: 'rgba(59,130,246,0.1)', padding: '3px 10px', borderRadius: 999 }}>
-                {transferencia.idExterno}
+                {transferencia.idExterno || transferencia.id || 'N/A'}
               </span>
               <span style={{ fontSize: '0.6rem', fontWeight: 700, padding: '2px 8px', borderRadius: 999, backgroundColor: 'rgba(245,158,11,0.1)', color: '#f59e0b' }}>
                 Pendente
@@ -338,10 +339,10 @@ const CardTransferencia = ({ transferencia, onAbrir }) => {
 // ── Página Principal ──────────────────────────────────────────────────────────
 const PaginaRecebimento = ({ user }) => {
   const [transferencias, setTransferencias] = useState([]);
-  const [carregando, setCarregando]         = useState(true);
-  const [modalAberto, setModalAberto]       = useState(null);
-  const [sucesso, setSucesso]               = useState('');
-  const [erro, setErro]                     = useState('');
+  const [carregando, setCarregando] = useState(true);
+  const [modalAberto, setModalAberto] = useState(null);
+  const [sucesso, setSucesso] = useState('');
+  const [erro, setErro] = useState('');
 
   const unidade = user?.unidade || '';
 
@@ -351,7 +352,9 @@ const PaginaRecebimento = ({ user }) => {
     setErro('');
     try {
       const data = await api.pedidos.paraReceber(unidade);
-      setTransferencias(Array.isArray(data) ? data : []);
+      // Garante que pegamos a lista de transferências mesmo se vier em um objeto { pedidos: [...] }
+      const lista = Array.isArray(data) ? data : (data?.pedidos || data?.transferencias || []);
+      setTransferencias(lista);
     } catch {
       setErro('Erro ao carregar transferências. Verifique a conexão.');
     } finally {
@@ -363,7 +366,7 @@ const PaginaRecebimento = ({ user }) => {
 
   const handleConfirmado = (id) => {
     setModalAberto(null);
-    setTransferencias(prev => prev.filter(t => t.idExterno !== id));
+    setTransferencias(prev => prev.filter(t => (t.idExterno || t.id || t._id) !== id));
     setSucesso('Recebimento confirmado com sucesso!');
     setTimeout(() => setSucesso(''), 4000);
   };
@@ -429,8 +432,8 @@ const PaginaRecebimento = ({ user }) => {
       {!unidade && !carregando && (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, opacity: 0.5, textAlign: 'center', padding: '4rem 2rem' }}>
           <AlertTriangle size={48} style={{ color: 'var(--text-muted)' }} />
-          <p style={{ fontSize: '0.85rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)' }}>Sem unidade associada</p>
-          <p style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)' }}>Seu usuário precisa ter uma unidade definida para ver recebimentos.</p>
+          <p style={{ fontSize: '0.85rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)' }}>Filial não definida</p>
+          <p style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)' }}>Selecione uma filial no menu superior para ver os recebimentos pendentes.</p>
         </div>
       )}
 

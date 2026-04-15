@@ -355,39 +355,36 @@ const PaginaPedidos = ({ user }) => {
 
                       return (
                         <div key={filho}>
-                          {/* ── Nível 2: Filho (Subcategoria) ── */}
+                          {/* ── Nível 2: Filho (oculto se único) ── */}
                           {!singleFilho && (
-                            <div className="flex items-center gap-2 px-4 py-3 mt-4 mb-2">
-                              <div className="h-[2px] w-4 bg-[var(--accent)] rounded-full opacity-50"/>
-                              <span style={{fontSize:'0.65rem',fontWeight:900,textTransform:'uppercase',letterSpacing:'0.12em',color:'var(--accent-bright)'}}>
-                                {filho}
-                              </span>
-                              <span style={{fontSize:'0.55rem',fontWeight:700,padding:'1px 6px',borderRadius:'999px',backgroundColor:'var(--bg-elevated)',color:'var(--text-muted)'}}>{filhoCount}</span>
-                              <div className="h-[1px] flex-1 bg-[var(--border)] opacity-50"/>
-                            </div>
+                            <button
+                              onClick={()=>toggle(filhoKey)}
+                              className="w-full flex items-center justify-between px-4 py-2.5 rounded-[18px] border transition-all mt-1"
+                              style={{backgroundColor:'var(--bg-surface)',borderColor:'var(--border)',color:'var(--text-secondary)'}}
+                              onMouseEnter={e=>e.currentTarget.style.backgroundColor='var(--bg-elevated)'}
+                              onMouseLeave={e=>e.currentTarget.style.backgroundColor='var(--bg-surface)'}>
+                              <div className="flex items-center gap-2">
+                                <span style={{fontSize:'0.62rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'0.1em',color:'var(--accent-bright)'}}>{filho}</span>
+                                <span style={{fontSize:'0.55rem',fontWeight:700,padding:'1px 6px',borderRadius:'999px',backgroundColor:'var(--bg-elevated)',color:'var(--text-muted)'}}>{filhoCount}</span>
+                              </div>
+                              {filhoOpen ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
+                            </button>
                           )}
 
-                          {/* Conteúdo de filho — Sempre aberto quando o pai está aberto */}
-                          <div className={`space-y-2 ${!singleFilho ? 'px-1' : ''}`}>
+                          {/* Conteúdo de filho — auto-aberto quando único */}
+                          {(singleFilho || filhoOpen) && (
+                            <div className={`space-y-3 ${!singleFilho ? 'mt-2 pl-3' : ''}`}>
                               {netos.map(neto => {
-                                const netoKey   = `${filhoKey}|${neto}`;
-                                const netoOpen  = estaAberto(netoKey);
                                 const produtos   = filhoH[neto] || [];
                                 const selecionados = produtos.filter(p=>idsNoCarrinho.has(p.id)).length;
-                                // Se o neto for "Geral" (fallback do script) ou vázio, e for Dia a Dia, talvez queira abrir direto.
                                 const isGeral = neto === 'Geral';
 
                                 return (
-                                  <div key={neto} className="rounded-[18px] border overflow-hidden"
+                                  <div key={neto} className="rounded-[18px] border overflow-hidden pb-2 mb-2"
                                     style={{borderColor: selecionados>0?'rgba(59,130,246,0.4)':'var(--border)',backgroundColor:'var(--bg-surface)'}}>
 
-                                    {/* ── Nível 3: Neto (Corte) ── */}
-                                    <button
-                                      onClick={()=>toggle(netoKey)}
-                                      className="w-full flex items-center justify-between px-4 py-3 transition-all"
-                                      style={{color:'var(--text-secondary)'}}
-                                      onMouseEnter={e=>e.currentTarget.style.backgroundColor='var(--bg-elevated)'}
-                                      onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>
+                                    {/* ── Nível 3: Neto (Corte) — Auto-Aberto ── */}
+                                    <div className="w-full flex items-center justify-between px-4 py-3" style={{color:'var(--text-secondary)'}}>
                                       <div className="flex items-center gap-2">
                                         <span style={{fontSize:'0.7rem',fontWeight:900,textTransform:'uppercase',letterSpacing:'0.08em',color: selecionados>0?'var(--accent-bright)':'var(--text-primary)'}}>
                                           {isGeral ? 'Cortes' : neto}
@@ -401,61 +398,58 @@ const PaginaPedidos = ({ user }) => {
                                           </span>
                                         )}
                                       </div>
-                                      {netoOpen ? <ChevronDown size={13}/> : <ChevronRight size={13}/>}
-                                    </button>
+                                    </div>
 
-                                    {/* Produtos individuais */}
-                                    {netoOpen && (
-                                      <div className="p-3 pt-0 grid grid-cols-1 md:grid-cols-2 gap-2">
-                                        {produtos.map(prod => {
-                                          const noCarrinho = idsNoCarrinho.has(prod.id);
-                                          return (
-                                            <button key={prod.id} onClick={()=>toggleItem(prod)}
-                                              className="p-3 rounded-[14px] border text-left transition-all w-full"
-                                              style={{
-                                                backgroundColor: noCarrinho?'rgba(59,130,246,0.08)':'var(--bg-card)',
-                                                borderColor:     noCarrinho?'var(--accent)':'var(--border)',
-                                                cursor:          'pointer',
-                                                boxShadow:       noCarrinho?'0 0 0 1px var(--accent)':'none',
-                                              }}
-                                              onMouseEnter={e=>{if(!noCarrinho){e.currentTarget.style.backgroundColor='var(--bg-elevated)';e.currentTarget.style.borderColor='var(--accent)';}}}
-                                              onMouseLeave={e=>{if(!noCarrinho){e.currentTarget.style.backgroundColor='var(--bg-card)';e.currentTarget.style.borderColor='var(--border)';}}}
-                                            >
-                                              <div className="flex items-center gap-2">
-                                                <div className="flex-1 min-w-0">
-                                                  <div style={{display:'flex',justifyContent:'between',alignItems:'start'}}>
-                                                     <h4 style={{fontSize:'0.6rem',fontWeight:800,textTransform:'uppercase',color:noCarrinho?'var(--accent-bright)':'var(--text-primary)',lineHeight:1.35,flex:1}}>
-                                                      {prod.nome}
-                                                    </h4>
-                                                    {prod.bisneto && (
-                                                      <span style={{fontSize:'0.45rem',fontWeight:900,padding:'1px 5px',borderRadius:'4px',backgroundColor:'var(--bg-elevated)',color:'var(--text-muted)',marginLeft:4,border:'1px solid var(--border)'}}>
-                                                        {prod.bisneto}
-                                                      </span>
-                                                    )}
-                                                  </div>
-                                                  <div style={{display:'flex',alignItems:'center',gap:'0.3rem',marginTop:3}}>
-                                                    <span style={{fontSize:'0.62rem',fontFamily:'monospace',fontWeight:700,padding:'1px 6px',borderRadius:'4px',backgroundColor:noCarrinho?'rgba(59,130,246,0.15)':'var(--bg-elevated)',color:noCarrinho?'var(--accent-bright)':'var(--text-secondary)',border:`1px solid ${noCarrinho?'rgba(59,130,246,0.3)':'var(--border)'}`}}>{prod.codigo}</span>
-                                                    <span style={{fontSize:'0.52rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)'}}>{prod.unidade}</span>
-                                                  </div>
+                                    {/* Produtos individuais (Sempre exposto se Filho está aberto) */}
+                                    <div className="px-3 pt-0 grid grid-cols-1 md:grid-cols-2 gap-2">
+                                      {produtos.map(prod => {
+                                        const noCarrinho = idsNoCarrinho.has(prod.id);
+                                        return (
+                                          <button key={prod.id} onClick={()=>toggleItem(prod)}
+                                            className="p-3 rounded-[14px] border text-left transition-all w-full"
+                                            style={{
+                                              backgroundColor: noCarrinho?'rgba(59,130,246,0.08)':'var(--bg-card)',
+                                              borderColor:     noCarrinho?'var(--accent)':'var(--border)',
+                                              cursor:          'pointer',
+                                              boxShadow:       noCarrinho?'0 0 0 1px var(--accent)':'none',
+                                            }}
+                                            onMouseEnter={e=>{if(!noCarrinho){e.currentTarget.style.backgroundColor='var(--bg-elevated)';e.currentTarget.style.borderColor='var(--accent)';}}}
+                                            onMouseLeave={e=>{if(!noCarrinho){e.currentTarget.style.backgroundColor='var(--bg-card)';e.currentTarget.style.borderColor='var(--border)';}}}
+                                          >
+                                            <div className="flex items-center gap-2">
+                                              <div className="flex-1 min-w-0">
+                                                <div style={{display:'flex',justifyContent:'between',alignItems:'start'}}>
+                                                   <h4 style={{fontSize:'0.6rem',fontWeight:800,textTransform:'uppercase',color:noCarrinho?'var(--accent-bright)':'var(--text-primary)',lineHeight:1.35,flex:1}}>
+                                                    {prod.nome}
+                                                  </h4>
+                                                  {prod.bisneto && (
+                                                    <span style={{fontSize:'0.45rem',fontWeight:900,padding:'1px 5px',borderRadius:'4px',backgroundColor:'var(--bg-elevated)',color:'var(--text-muted)',marginLeft:4,border:'1px solid var(--border)'}}>
+                                                      {prod.bisneto}
+                                                    </span>
+                                                  )}
                                                 </div>
-                                                <div style={{
-                                                  width:24,height:24,borderRadius:'0.4rem',flexShrink:0,
-                                                  display:'flex',alignItems:'center',justifyContent:'center',
-                                                  backgroundColor: noCarrinho?'var(--accent)':'var(--bg-elevated)',
-                                                  border:          noCarrinho?'none':'1px solid var(--border)',
-                                                  transition:'all 0.15s',
-                                                }}>
-                                                  {noCarrinho
-                                                    ? <CheckCircle size={13} color="#fff"/>
-                                                    : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" style={{color:'var(--text-muted)'}}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                                                  }
+                                                <div style={{display:'flex',alignItems:'center',gap:'0.3rem',marginTop:3}}>
+                                                  <span style={{fontSize:'0.62rem',fontFamily:'monospace',fontWeight:700,padding:'1px 6px',borderRadius:'4px',backgroundColor:noCarrinho?'rgba(59,130,246,0.15)':'var(--bg-elevated)',color:noCarrinho?'var(--accent-bright)':'var(--text-secondary)',border:`1px solid ${noCarrinho?'rgba(59,130,246,0.3)':'var(--border)'}`}}>{prod.codigo}</span>
+                                                  <span style={{fontSize:'0.52rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)'}}>{prod.unidade}</span>
                                                 </div>
                                               </div>
-                                            </button>
-                                          );
-                                        })}
-                                      </div>
-                                    )}
+                                              <div style={{
+                                                width:24,height:24,borderRadius:'0.4rem',flexShrink:0,
+                                                display:'flex',alignItems:'center',justifyContent:'center',
+                                                backgroundColor: noCarrinho?'var(--accent)':'var(--bg-elevated)',
+                                                border:          noCarrinho?'none':'1px solid var(--border)',
+                                                transition:'all 0.15s',
+                                              }}>
+                                                {noCarrinho
+                                                  ? <CheckCircle size={13} color="#fff"/>
+                                                  : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" style={{color:'var(--text-muted)'}}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                                }
+                                              </div>
+                                            </div>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
                                   </div>
                                 );
                               })}
@@ -563,7 +557,7 @@ const PaginaPedidos = ({ user }) => {
           )}
 
           {/* Botão confirmar */}
-          <button onClick={finalizarPedido} disabled={enviando}
+          <button onClick={finalizarPedido} disabled={enviando || !pedidoValido}
             className="w-full py-4 rounded-2xl font-black uppercase text-xs tracking-widest transition-all"
             style={{
               backgroundColor: pedidoValido?'var(--accent)':'var(--bg-elevated)',
