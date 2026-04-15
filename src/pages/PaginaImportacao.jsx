@@ -5,7 +5,14 @@ import { BANCO_COMPLETO } from '../data/bancoPadrao';
 import { api } from '../services/api';
 
 const limparCodigo = (v) => String(v ?? '').trim();
-const converterPreco = (v) => { const n = parseFloat(String(v ?? '').trim().replace(',','.')); return isNaN(n) ? 0 : n; };
+const converterPreco = (v) => {
+  if (typeof v === 'number') return v;
+  let s = String(v || '').trim().replace(/[^\d.,-]/g, '');
+  if (s.lastIndexOf(',') > s.lastIndexOf('.')) s = s.replace(/\./g, '').replace(',', '.');
+  else s = s.replace(/,/g, '');
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+};
 const fmt = (v) => Number(v).toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
 
 const Badge = ({ tipo }) => {

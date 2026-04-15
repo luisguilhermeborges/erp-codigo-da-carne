@@ -145,8 +145,18 @@ const PaginaBuscador = () => {
       const dataRows = rows.slice(headerRow + 1);
       dataRows.forEach(row => {
         const cod   = String(row[codIdx] || '').trim();
-        const preco = parseFloat(String(row[precoIdx] || '').replace(',', '.'));
-        if (cod && !isNaN(preco) && preco > 0) {
+        const v = row[precoIdx];
+        let preco = 0;
+        if (typeof v === 'number') {
+          preco = v;
+        } else {
+          let s = String(v || '').trim().replace(/[^\d.,-]/g, '');
+          if (s.lastIndexOf(',') > s.lastIndexOf('.')) s = s.replace(/\./g, '').replace(',', '.');
+          else s = s.replace(/,/g, '');
+          preco = parseFloat(s);
+          if (isNaN(preco)) preco = 0;
+        }
+        if (cod && preco > 0) {
           mapa[cod] = preco;
         }
       });
