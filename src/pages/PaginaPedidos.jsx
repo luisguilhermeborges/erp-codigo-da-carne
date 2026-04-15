@@ -128,7 +128,13 @@ const PaginaPedidos = ({ user }) => {
   }, [paiFiltro, hierarquia]);
 
   // ── Accordion helpers ──────────────────────────────────────────────────────
-  const estaAberto = (key) => pesquisa.trim().length > 0 || !!abertos[key];
+  const estaAberto = (key) => {
+    if (pesquisa.trim().length > 0) return true;
+    if (abertos[key]) return true;
+    // Auto-abrir se o filtro de categoria (Nível 1) for igual à chave
+    if (paiFiltro !== 'TODAS' && key === paiFiltro) return true;
+    return false;
+  };
   const toggle     = (key) => setAbertos(prev => ({ ...prev, [key]: !prev[key] }));
 
   // ── Carrinho helpers ───────────────────────────────────────────────────────
@@ -349,25 +355,20 @@ const PaginaPedidos = ({ user }) => {
 
                       return (
                         <div key={filho}>
-                          {/* ── Nível 2: Filho (oculto se único) ── */}
+                          {/* ── Nível 2: Filho (Subcategoria) ── */}
                           {!singleFilho && (
-                            <button
-                              onClick={()=>toggle(filhoKey)}
-                              className="w-full flex items-center justify-between px-4 py-2.5 rounded-[18px] border transition-all"
-                              style={{backgroundColor:'var(--bg-surface)',borderColor:'var(--border)',color:'var(--text-secondary)'}}
-                              onMouseEnter={e=>e.currentTarget.style.backgroundColor='var(--bg-elevated)'}
-                              onMouseLeave={e=>e.currentTarget.style.backgroundColor='var(--bg-surface)'}>
-                              <div className="flex items-center gap-2">
-                                <span style={{fontSize:'0.62rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'0.1em',color:'var(--accent-bright)'}}>{filho}</span>
-                                <span style={{fontSize:'0.55rem',fontWeight:700,padding:'1px 6px',borderRadius:'999px',backgroundColor:'var(--bg-elevated)',color:'var(--text-muted)'}}>{filhoCount}</span>
-                              </div>
-                              {filhoOpen ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
-                            </button>
+                            <div className="flex items-center gap-2 px-4 py-3 mt-4 mb-2">
+                              <div className="h-[2px] w-4 bg-[var(--accent)] rounded-full opacity-50"/>
+                              <span style={{fontSize:'0.65rem',fontWeight:900,textTransform:'uppercase',letterSpacing:'0.12em',color:'var(--accent-bright)'}}>
+                                {filho}
+                              </span>
+                              <span style={{fontSize:'0.55rem',fontWeight:700,padding:'1px 6px',borderRadius:'999px',backgroundColor:'var(--bg-elevated)',color:'var(--text-muted)'}}>{filhoCount}</span>
+                              <div className="h-[1px] flex-1 bg-[var(--border)] opacity-50"/>
+                            </div>
                           )}
 
-                          {/* Conteúdo de filho — auto-aberto quando único */}
-                          {(singleFilho || filhoOpen) && (
-                            <div className={`space-y-2 ${!singleFilho ? 'mt-2 pl-3' : ''}`}>
+                          {/* Conteúdo de filho — Sempre aberto quando o pai está aberto */}
+                          <div className={`space-y-2 ${!singleFilho ? 'px-1' : ''}`}>
                               {netos.map(neto => {
                                 const netoKey   = `${filhoKey}|${neto}`;
                                 const netoOpen  = estaAberto(netoKey);
