@@ -1,6 +1,6 @@
 // Cache centralizado — server primeiro, localStorage como fallback
 import { api } from './api';
-import { BANCO_PADRAO } from '../data/bancoPadrao';
+import { BANCO_COMPLETO } from '../data/bancoPadrao';
 
 const limparCodigo = (v) => String(v ?? '').trim();
 
@@ -30,7 +30,7 @@ export const getFiliais = async () => {
 // ── Estoque (banco + preços) ──────────────────────────────────────────────────
 export const getEstoque = async ({ apenasComPreco = false } = {}) => {
   const precos = await getPrecos();
-  const lista = Object.entries(BANCO_PADRAO).map(([nome, v]) => {
+  const lista = Object.entries(BANCO_COMPLETO).map(([nome, v]) => {
     const cod = limparCodigo(v.codigo);
     return {
       id:        cod,
@@ -39,8 +39,8 @@ export const getEstoque = async ({ apenasComPreco = false } = {}) => {
       nome,
       preco:     precos[cod] ?? 0,
       unidade:   v.unidade,
-      categoria: v.categoria,
-      tags:      v.tags || [v.categoria],
+      pai:       v.pai || 'Outros',
+      filho:     v.filho || 'Outros',
     };
   });
   return apenasComPreco ? lista.filter(p => p.preco > 0) : lista;

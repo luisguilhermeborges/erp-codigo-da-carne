@@ -412,7 +412,7 @@ const PaginaAtendimento = ({ user }) => {
                         onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>
                         <div>
                           <p style={{fontSize:'0.7rem',fontWeight:700,textTransform:'uppercase'}}>{p.nome}</p>
-                          <p style={{fontSize:'0.6rem',color:'var(--text-muted)'}}>{p.codigo} · {p.categoria}</p>
+                          <p style={{fontSize:'0.6rem',color:'var(--text-muted)'}}>{p.codigo} · {p.pai} ({p.filho})</p>
                         </div>
                         <Plus size={16} style={{color:'var(--accent-bright)',flexShrink:0}}/>
                       </button>
@@ -557,7 +557,7 @@ const PaginaAtendimento = ({ user }) => {
                                     onMouseLeave={e=>e.currentTarget.style.backgroundColor='var(--bg-surface)'}>
                                     <div>
                                       <p style={{fontSize:'0.65rem',fontWeight:700,textTransform:'uppercase'}}>{p.nome}</p>
-                                      <p style={{fontSize:'0.6rem',color:'var(--text-muted)'}}>{p.codigo} · {p.categoria}</p>
+                                      <p style={{fontSize:'0.6rem',color:'var(--text-muted)'}}>{p.codigo} · {p.pai} ({p.filho})</p>
                                     </div>
                                     <Plus size={14} style={{color:'var(--accent-bright)',flexShrink:0}}/>
                                   </button>

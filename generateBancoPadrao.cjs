@@ -16,9 +16,9 @@ function getCategoriaPai(nome) {
   if (n.includes('ESPETO') && !n.includes('BOV') && !n.includes('FRANGO') && !n.includes('QUEIJO')) return 'Acessório';
   if (n.includes('GRELHA') || n.includes('FACAS') || n.includes('AFIADOR') || n.includes('ABRIDOR') || n.includes('CHURRASQUEIRA') || n.includes('TABUA') || n.includes('LUVA') || n.includes('TERMIC') || n.includes('ISOPOR') || n.includes('CARVÃO') || n.includes('CARVAO') || n.includes('ACENDEDOR') || n.includes('GEL ') || n.includes('FÓSFORO') || n.includes('ALUMÍNIO') || n.includes('ASSAR') || n.includes('FILME')) return 'Acessório';
   if (n.includes('LENHA') || n.includes('SERRAGEM')) return 'Acessório';
-  if (n.includes('TORRESMO') || n.includes('TORRESMINHO')) return 'Outros'; // Petiscos
+  if (n.includes('TORRESMO') || n.includes('TORRESMINHO')) return 'Outros'; 
   if (n.includes('SORVETE') || n.includes('PICOLE')) return 'Sobremesa';
-  if (n.includes('KIT BURGUER') || n.includes('BURGUER')) return 'Dia a Dia'; // Pode ser Bovino ou Dia a Dia
+  if (n.includes('KIT BURGUER') || n.includes('BURGUER')) return 'Dia a Dia'; 
   return 'Outros';
 }
 
@@ -48,7 +48,7 @@ function getBisneto(nome) {
 
 function getNeto(nome, filho) {
   const n = nome.toUpperCase();
-  if (filho === 'Dia a Dia') return ''; // Empty neto for Day to day
+  if (filho === 'Dia a Dia') return ''; 
 
   const cortes = ['ANCHO', 'ACEM', 'ACÉM', 'CHUCK EYE', 'ACENDEDOR', 'AFIADOR', 'AGUA', 'ÁGUA', 'ALCATRA', 'ASSADO DE TIRAS', 'BANANINHA', 'CERVEJA', 'REFRIGERANTE', 'CHORIZO', 'COSTELA', 'CUPIM', 'DENVER', 'ENTRANHA', 'FRALDA', 'FRALDINHA', 'LINGUIÇA', 'MAMINHA', 'MATAMBRITO', 'PEITO', 'PICANHA', 'PRIME RIB', 'PRIME STEAK', 'FLAT IRON', 'RAQUETE', 'SHORT RIB', 'T BONE', 'T-BONE', 'TORRESMO'];
   
@@ -57,12 +57,29 @@ function getNeto(nome, filho) {
       if (corte === 'ACÉM') return 'ACEM';
       if (corte === 'ÁGUA') return 'AGUA';
       if (corte === 'FRALDINHA') return 'FRALDA';
-      if (corte === 'FLAT IRON') return 'RAQUETE'; // Normalize
+      if (corte === 'FLAT IRON') return 'RAQUETE'; 
       return corte;
     }
   }
   
   return 'OUTROS';
+}
+
+function processItem(nomeO, info) {
+    const pai = getCategoriaPai(nomeO);
+    const filho = getFilho(nomeO, pai);
+    const neto = getNeto(nomeO, filho);
+    const bisneto = getBisneto(nomeO);
+
+    return {
+      codigo: info.codigo,
+      unidade: info.unidade,
+      preco_venda: info.preco_venda,
+      pai,
+      filho,
+      neto,
+      bisneto
+    };
 }
 
 function run() {
@@ -73,55 +90,51 @@ function run() {
   const databaseData = xlsx.utils.sheet_to_json(databaseSheet);
 
   const dbMap = {};
+  const generatedCompleto = {};
+
   for (const item of itensDbData) {
     const desc = (item['(*) Descrição'] || '').toUpperCase().trim();
     if (desc) {
-      dbMap[desc] = {
+      const info = {
         codigo: item['(*) Código'],
         unidade: item['(*) Unidade de Medida'],
         preco_venda: item['Preço Venda']
       };
+      dbMap[desc] = info;
+      
+      const nomeOriginal = item['(*) Descrição'].trim();
+      generatedCompleto[nomeOriginal] = processItem(nomeOriginal, info);
     }
   }
 
-  const generated = {};
+  const generatedPadrao = {};
   
   for (const d of databaseData) {
-    const nome = Object.values(d)[0]; // DESCRIÇÃO
+    const nome = Object.values(d)[0]; 
     if (!nome) continue;
     const nomeO = nome.trim();
     const nomeUp = nomeO.toUpperCase();
 
     const info = dbMap[nomeUp] || { codigo: "N/A", unidade: "UN", preco_venda: "0" };
-
-    const pai = getCategoriaPai(nomeO);
-    const filho = getFilho(nomeO, pai);
-    const neto = getNeto(nomeO, filho);
-    const bisneto = getBisneto(nomeO);
-
-    generated[nomeO] = {
-      codigo: info.codigo,
-      unidade: info.unidade,
-      preco_venda: info.preco_venda,
-      pai,
-      filho,
-      neto,
-      bisneto
-    };
+    generatedPadrao[nomeO] = processItem(nomeO, info);
   }
 
-  const out = `// Arquivo gerado automaticamente pelo script generateBancoPadrao.js
+  const out = `// Arquivo gerado automaticamente pelo script generateBancoPadrao.cjs
 // Banco Padrão Oficial - Código da Carne
 
-export const BANCO_PADRAO = ${JSON.stringify(generated, null, 2)};
+// Itens selecionados para a página de Pedidos (375 itens)
+export const BANCO_PADRAO = ${JSON.stringify(generatedPadrao, null, 2)};
 
-export const ORDEM_CATEGORIAS = [
+// Todos os itens do sistema para a página de Gestão (~895 itens)
+export const BANCO_COMPLETO = ${JSON.stringify(generatedCompleto, null, 2)};
+
+export const ORDEM_CATEGORIAS_PAI = [
   "Bovino",
   "Frango",
   "Suíno",
   "Linguiça",
   "Cordeiro",
-  "Pesados",
+  "Pescados",
   "Queijo",
   "Cerveja",
   "Bebidas",
@@ -131,10 +144,19 @@ export const ORDEM_CATEGORIAS = [
   "Acessório",
   "Dia a Dia"
 ];
+
+export const ORDEM_FILHOS = [
+  "Churrasco",
+  "Dia a Dia",
+  "Bebida",
+  "Acompanhamento",
+  "Acessório",
+  "Outros"
+];
 `;
 
   fs.writeFileSync('src/data/bancoPadrao.js', out);
-  console.log("bancoPadrao.js generated with", Object.keys(generated).length, "items.");
+  console.log("bancoPadrao.js generated with", Object.keys(generatedPadrao).length, "standard items and", Object.keys(generatedCompleto).length, "complete items.");
 }
 
 run();

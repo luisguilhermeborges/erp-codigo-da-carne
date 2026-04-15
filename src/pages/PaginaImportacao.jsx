@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { CheckCircle, RefreshCw, FileSpreadsheet, Info } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { BANCO_PADRAO } from '../data/bancoPadrao';
+import { BANCO_COMPLETO } from '../data/bancoPadrao';
 import { api } from '../services/api';
 
 const limparCodigo = (v) => String(v ?? '').trim();
@@ -28,7 +28,7 @@ const PaginaImportacao = ({ user }) => {
   const inputRef = useRef();
 
   const idxBanco = {};
-  Object.entries(BANCO_PADRAO).forEach(([nome, v]) => { idxBanco[limparCodigo(v.codigo)] = { ...v, nome }; });
+  Object.entries(BANCO_COMPLETO).forEach(([nome, v]) => { idxBanco[limparCodigo(v.codigo)] = { ...v, nome }; });
 
   const lerArquivo = useCallback((file) => {
     setProcessando(true);
@@ -43,7 +43,8 @@ const PaginaImportacao = ({ user }) => {
         const headers = raw[hi].map(h => String(h).toLowerCase());
         const iCod  = headers.findIndex(h => h.includes('código') || h.includes('codigo'));
         const iDesc = headers.findIndex(h => h.includes('descri'));
-        const iPrec = headers.findIndex(h => h.includes('preço') || h.includes('preco') || h.includes('venda'));
+        let iPrec = headers.findIndex(h => h.includes('venda'));
+        if (iPrec === -1) iPrec = headers.findIndex(h => h.includes('preço') || h.includes('preco'));
         if (iCod === -1) { alert('Coluna "Código" não encontrada.'); setProcessando(false); return; }
         const dados = raw.slice(hi + 1).filter(r => r[iCod] && String(r[iCod]).trim())
           .map(r => ({ codigo: limparCodigo(r[iCod]), descricao: iDesc !== -1 ? String(r[iDesc]??'').trim() : '', preco: iPrec !== -1 ? converterPreco(r[iPrec]) : 0 }))
@@ -59,9 +60,9 @@ const PaginaImportacao = ({ user }) => {
     const res = dados.map(linha => {
       const item = idxBanco[linha.codigo];
       if (!item) { qtdForaBanco++; return { ...linha, status:'nao_encontrado', nomeBanco:'—', categoria:'—' }; }
-      if (!linha.preco) { qtdSemPreco++; return { ...linha, status:'sem_preco', nomeBanco:item.nome, categoria:item.categoria }; }
+      if (!linha.preco) { qtdSemPreco++; return { ...linha, status:'sem_preco', nomeBanco:item.nome, categoria:item.pai || 'Outros' }; }
       qtdAtualizado++;
-      return { ...linha, status:'atualizado', nomeBanco:item.nome, categoria:item.categoria };
+      return { ...linha, status:'atualizado', nomeBanco:item.nome, categoria:item.pai || 'Outros' };
     });
     setResultados(res);
     setResumo({ qtdAtualizado, qtdSemPreco, qtdForaBanco, total:dados.length });

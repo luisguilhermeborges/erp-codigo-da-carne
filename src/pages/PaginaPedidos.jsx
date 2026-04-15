@@ -23,75 +23,24 @@ const Prioridade = ({ valor, onChange }) => (
   </div>
 );
 
-// ── Extrações de hierarquia ────────────────────────────────────────────────────
-// Nomes comerciais que têm prioridade sobre o grupo anatômico em tags[1]
-const CORTE_COMERCIAL = new Set(['ANCHO', 'CHORIZO', 'CHUCK EYE', 'TOMAHAWK', 'PRIME STEAK']);
-
-// Linhas/marcas que NÃO são nomes de corte
-const LINHAS_MARCAS = new Set([
-  'LA REINA','LA MAJESTAD','CODIGO SERIES','FSW','FRIBOI','OUTRAS MARCAS',
-  'CDC','WAGYU','GUIDARA','LD','NAT','COCAMAR','RICO','SPECIALLI','CANEIROSUL',
-  'FRICASA','ALCATRA','RESERVA','PREMIUM','STEAK','PECA','PRETA','AZUL','RED',
-  'TEMPERADO','TEMPERADA','DESOSSADA','RECHEADA','INTEIRO','FATIADO',
-]);
-
-// Palavras que indicam finalidade (buscadas em toda a lista de tags ou na categoria original)
-const FINALIDADE_MAP = [
-  { key:'CHURRASCO',       match: ['CHURRASCO','HAMBURGUER','BURGUER','KIT','PETISCO'] },
-  { key:'DIA A DIA',       match: ['DIA A DIA','DIA-A-DIA'] },
-  { key:'ACOMPANHAMENTO',  match: ['ACOMPANHAMENTO','QUEIJO','MOLHO','TORRESMO','SORVETE','FAROFA','BATATA','SAL','EMPÓRIO'] },
-  { key:'BEBIDAS',         match: ['BEBIDA','BEBIDAS','CERVEJA','REFRIGERANTE','AGUA','SUCO','GELO'] },
-  { key:'ACESSORIOS',      match: ['ACESSORIO','ACESSORIOS','ACESSÓRIOS','DEFUMACAO','DEFUMAÇÃO','CARVAO','GRELHA','CARVÃO','LENHA'] },
-];
-
-const extrairFinalidade = (tags = [], catOriginal = '') => {
-  for (const { key, match } of FINALIDADE_MAP) {
-    if (match.some(m => tags.includes(m) || catOriginal === m)) return key;
-  }
-  return 'GERAL';
-};
-
-const extrairMarca = (tags = []) => {
-  if (tags.some(t => t === 'LA REINA')) return 'LA REINA';
-  if (tags.some(t => t === 'LA MAJESTAD')) return 'LA MAJESTAD';
-  if (tags.some(t => t === 'CODIGO SERIES')) return 'CODIGO SERIES';
-  if (tags.some(t => t === 'FSW')) return 'FSW';
-  if (tags.some(t => t === 'LA DUQUESA' || t === 'DIA A DIA' || t === 'DIA-A-DIA')) return 'LA DUQUESA/DIA A DIA';
-  return 'OUTRAS MARCAS';
-};
-
-const extrairCorte = (tags = []) => {
-  // Prioridade 1: nome comercial explícito em qualquer posição
-  for (const c of CORTE_COMERCIAL) {
-    if (tags.includes(c)) return c;
-  }
-  // Prioridade 2: tags[1] se não for marca/linha
-  if (tags[1] && !LINHAS_MARCAS.has(tags[1])) return tags[1];
-  // Prioridade 3: próxima tag que não seja marca
-  for (let i = 2; i < tags.length; i++) {
-    if (!LINHAS_MARCAS.has(tags[i])) return tags[i];
-  }
-  return 'OUTROS';
-};
+// ── Hierarquia e Ordem ────────────────────────────────────────────────────────
+import { BANCO_PADRAO, ORDEM_CATEGORIAS_PAI, ORDEM_FILHOS } from '../data/bancoPadrao';
 
 // Categorias de uso/consumo
 const CATS_USO_CONSUMO = new Set(['USO/CONSUMO','LIMPEZA','ESCRITORIO','DESCARTAVEL','EMBALAGEM']);
 
-// Ordem de exibição
-const ORDEM_CATS = ['LA REINA','LA MAJESTAD','CODIGO SERIES','FSW','LA DUQUESA/DIA A DIA','OUTRAS MARCAS'];
-const ORDEM_FIN  = ['CHURRASCO','DIA A DIA','ACOMPANHAMENTO','BEBIDAS','ACESSORIOS','GERAL'];
 
 // ── Componente principal ───────────────────────────────────────────────────────
 const PaginaPedidos = ({ user }) => {
   const [estoque, setEstoque]             = useState([]);
   const [carrinho, setCarrinho]           = useState([]);
   const [pesquisa, setPesquisa]           = useState('');
-  const [catFiltro, setCatFiltro]         = useState('TODAS');
-  const [finFiltro, setFinFiltro]         = useState('TODAS');
+  const [paiFiltro, setPaiFiltro]         = useState('TODAS');
+  const [filhoFiltro, setFilhoFiltro]     = useState('TODAS');
   const [todasFiliais, setTodasFiliais]   = useState([]);
   const [filialOrigem, setFilialOrigem]   = useState('');
   const [filialDestino, setFilialDestino] = useState('');
-  const [abertos, setAbertos]             = useState({});   // { "CAT|FIN|CORTE": bool }
+  const [abertos, setAbertos]             = useState({});   // { "PAI|FILHO|NETO": bool }
   const [aviso, setAviso]                 = useState({ show:false, titulo:'', msg:'', tipo:'sucesso' });
   const [enviando, setEnviando]           = useState(false);
   const [alertaPrio, setAlertaPrio]       = useState(false);
@@ -113,17 +62,18 @@ const PaginaPedidos = ({ user }) => {
       const precos = await getPrecos();
       const lista = Object.entries(BANCO_PADRAO).map(([nome, v]) => {
         const cod  = String(v.codigo ?? '').trim();
-        const tags = v.tags || [v.categoria];
+        const paiT = v.pai || 'Outros';
+        const eUsoConsumo = CATS_USO_CONSUMO.has(paiT.toUpperCase());
         return {
           id:         cod,
           codigo:     cod,
           nome,
           preco:      precos[cod] ?? 0,
           unidade:    v.unidade,
-          categoria:  eUsoConsumo ? (v.categoria || 'OUTROS') : extrairMarca(tags),
-          tags,
-          finalidade: eUsoConsumo ? 'USO/CONSUMO' : extrairFinalidade(tags, v.categoria),
-          corte:      eUsoConsumo ? (v.categoria || 'OUTROS') : extrairCorte(tags),
+          pai:        paiT,
+          filho:      v.filho || 'Outros',
+          neto:       v.neto || '',
+          bisneto:    v.bisneto || 'Outras Marcas',
           eUsoConsumo,
         };
       }).filter(p => p.preco > 0);
@@ -132,51 +82,52 @@ const PaginaPedidos = ({ user }) => {
   }, [user]);
 
   // Reset filtro de finalidade quando muda de categoria
-  useEffect(() => { setFinFiltro('TODAS'); }, [catFiltro]);
+  useEffect(() => { setFilhoFiltro('TODAS'); }, [paiFiltro]);
 
   // ── Produtos filtrados ─────────────────────────────────────────────────────
   const filtrados = useMemo(() => estoque.filter(p => {
     if (tipoPedido === 'REVENDA'     && p.eUsoConsumo) return false;
     if (tipoPedido === 'USO_CONSUMO' && !p.eUsoConsumo) return false;
-    if (catFiltro !== 'TODAS' && p.categoria !== catFiltro) return false;
-    if (finFiltro !== 'TODAS' && p.finalidade !== finFiltro) return false;
+    if (paiFiltro !== 'TODAS' && p.pai !== paiFiltro) return false;
+    if (filhoFiltro !== 'TODAS' && p.filho !== filhoFiltro) return false;
     if (pesquisa) {
       const q = pesquisa.toLowerCase();
       if (!p.nome.toLowerCase().includes(q) &&
-          !p.corte.toLowerCase().includes(q) &&
-          !p.finalidade.toLowerCase().includes(q)) return false;
+          !(p.neto || '').toLowerCase().includes(q) &&
+          !(p.filho || '').toLowerCase().includes(q) &&
+          !(p.bisneto || '').toLowerCase().includes(q)) return false;
     }
     return true;
-  }), [estoque, tipoPedido, catFiltro, finFiltro, pesquisa]);
+  }), [estoque, tipoPedido, paiFiltro, filhoFiltro, pesquisa]);
 
-  // ── Hierarquia CAT → FIN → CORTE → [produtos] ─────────────────────────────
+  // ── Hierarquia PAI → FILHO → NETO → [produtos] ─────────────────────────────
   const hierarquia = useMemo(() => {
     const h = {};
     filtrados.forEach(p => {
-      const cat = p.categoria;
-      const fin = p.finalidade;
-      const cor = p.corte;
-      if (!h[cat]) h[cat] = {};
-      if (!h[cat][fin]) h[cat][fin] = {};
-      if (!h[cat][fin][cor]) h[cat][fin][cor] = [];
-      h[cat][fin][cor].push(p);
+      const pai = p.pai;
+      const filho = p.filho;
+      const neto = p.neto || 'Geral';
+      if (!h[pai]) h[pai] = {};
+      if (!h[pai][filho]) h[pai][filho] = {};
+      if (!h[pai][filho][neto]) h[pai][filho][neto] = [];
+      h[pai][filho][neto].push(p);
     });
     return h;
   }, [filtrados]);
 
   // Categorias e finalidades disponíveis para chips
   const catsDisponiveis = useMemo(() =>
-    ORDEM_CATS.filter(c => hierarquia[c]),
+    ORDEM_CATEGORIAS_PAI.filter(c => hierarquia[c]),
   [hierarquia]);
 
   const finsDisponiveis = useMemo(() => {
-    if (catFiltro === 'TODAS') return [];
-    const catH = hierarquia[catFiltro] || {};
-    const fins = Object.keys(catH);
+    if (paiFiltro === 'TODAS') return [];
+    const paiH = hierarquia[paiFiltro] || {};
+    const filhos = Object.keys(paiH);
     // Só mostra chips de finalidade se houver mais de uma
-    if (fins.length <= 1) return [];
-    return ORDEM_FIN.filter(f => fins.includes(f));
-  }, [catFiltro, hierarquia]);
+    if (filhos.length <= 1) return [];
+    return ORDEM_FILHOS.filter(f => filhos.includes(f));
+  }, [paiFiltro, hierarquia]);
 
   // ── Accordion helpers ──────────────────────────────────────────────────────
   const estaAberto = (key) => pesquisa.trim().length > 0 || !!abertos[key];
@@ -330,26 +281,26 @@ const PaginaPedidos = ({ user }) => {
           {pesquisa && <button onClick={()=>setPesquisa('')} style={{color:'var(--text-muted)'}}><X size={16}/></button>}
         </div>
 
-        {/* Chips de categoria (Nível 1) */}
+        {/* Chips de categoria (Nível 1 - Pai) */}
         <div style={{display:'flex',gap:'0.35rem',flexWrap:'wrap',alignItems:'center'}}>
-          <button style={chip(catFiltro==='TODAS')} onClick={()=>setCatFiltro('TODAS')}>Todas</button>
-          {catsDisponiveis.map(c=>(
-            <button key={c} style={chip(catFiltro===c)} onClick={()=>setCatFiltro(catFiltro===c?'TODAS':c)}>{c}</button>
+          <button style={chip(paiFiltro==='TODAS')} onClick={()=>setPaiFiltro('TODAS')}>Todas</button>
+          {paisDisponiveis.map(c=>(
+            <button key={c} style={chip(paiFiltro===c)} onClick={()=>setPaiFiltro(paiFiltro===c?'TODAS':c)}>{c}</button>
           ))}
-          {(pesquisa||catFiltro!=='TODAS'||finFiltro!=='TODAS') && (
-            <button onClick={()=>{setPesquisa('');setCatFiltro('TODAS');setFinFiltro('TODAS');}}
+          {(pesquisa||paiFiltro!=='TODAS'||filhoFiltro!=='TODAS') && (
+            <button onClick={()=>{setPesquisa('');setPaiFiltro('TODAS');setFilhoFiltro('TODAS');}}
               style={{...chip(false),borderColor:'rgba(239,68,68,0.3)',backgroundColor:'rgba(239,68,68,0.08)',color:'#ef4444',display:'flex',alignItems:'center',gap:'0.25rem'}}>
               <X size={10}/> Limpar
             </button>
           )}
         </div>
 
-        {/* Chips de finalidade (Nível 2 — só aparece quando há múltiplas) */}
-        {finsDisponiveis.length > 0 && (
+        {/* Chips de subcategoria (Nível 2 - Filho — só aparece quando há múltiplas) */}
+        {filhosDisponiveis.length > 0 && (
           <div style={{display:'flex',gap:'0.35rem',flexWrap:'wrap',alignItems:'center',paddingLeft:'0.75rem',borderLeft:'2px solid var(--accent)'}}>
-            <button style={chip(finFiltro==='TODAS','#475569')} onClick={()=>setFinFiltro('TODAS')}>Todas</button>
-            {finsDisponiveis.map(f=>(
-              <button key={f} style={chip(finFiltro===f,'#475569')} onClick={()=>setFinFiltro(finFiltro===f?'TODAS':f)}>{f}</button>
+            <button style={chip(filhoFiltro==='TODAS','#475569')} onClick={()=>setFilhoFiltro('TODAS')}>Todas</button>
+            {filhosDisponiveis.map(f=>(
+              <button key={f} style={chip(filhoFiltro===f,'#475569')} onClick={()=>setFilhoFiltro(filhoFiltro===f?'TODAS':f)}>{f}</button>
             ))}
           </div>
         )}
@@ -363,82 +314,84 @@ const PaginaPedidos = ({ user }) => {
 
         {/* ══ ACCORDION 3 NÍVEIS ══ */}
         <div className="space-y-3">
-          {(catFiltro==='TODAS' ? catsDisponiveis : [catFiltro].filter(c=>hierarquia[c])).map(cat => {
-            const catH     = hierarquia[cat] || {};
-            const catKey   = cat;
-            const catOpen  = estaAberto(catKey);
-            const catCount = Object.values(catH).flatMap(fH=>Object.values(fH)).flat().length;
-            const fins     = ORDEM_FIN.filter(f => catH[f]);
-            const singleFin = fins.length === 1; // oculta nível 2 se só há uma finalidade
+          {(paiFiltro==='TODAS' ? paisDisponiveis : [paiFiltro].filter(c=>hierarquia[c])).map(pai => {
+            const paiH     = hierarquia[pai] || {};
+            const paiKey   = pai;
+            const paiOpen  = estaAberto(paiKey);
+            const paiCount = Object.values(paiH).flatMap(fH=>Object.values(fH)).flat().length;
+            const filhos   = ORDEM_FILHOS.filter(f => paiH[f]);
+            const singleFilho = filhos.length === 1;
 
             return (
-              <div key={cat} className="rounded-[28px] border overflow-hidden"
+              <div key={pai} className="rounded-[28px] border overflow-hidden"
                 style={{backgroundColor:'var(--bg-card)',borderColor:'var(--border)'}}>
 
-                {/* ── Nível 1: Categoria ── */}
+                {/* ── Nível 1: Pai ── */}
                 <button
-                  onClick={()=>toggle(catKey)}
+                  onClick={()=>toggle(paiKey)}
                   className="w-full flex items-center justify-between p-5 transition-all"
                   style={{color:'var(--text-primary)'}}
                   onMouseEnter={e=>e.currentTarget.style.backgroundColor='var(--bg-elevated)'}
                   onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-black uppercase tracking-widest">{cat}</span>
-                    <span style={{fontSize:'0.6rem',fontWeight:700,padding:'2px 8px',borderRadius:'999px',backgroundColor:'var(--bg-elevated)',color:'var(--text-muted)'}}>{catCount}</span>
+                    <span className="text-sm font-black uppercase tracking-widest">{pai}</span>
+                    <span style={{fontSize:'0.6rem',fontWeight:700,padding:'2px 8px',borderRadius:'999px',backgroundColor:'var(--bg-elevated)',color:'var(--text-muted)'}}>{paiCount}</span>
                   </div>
-                  {catOpen ? <ChevronDown size={18}/> : <ChevronRight size={18}/>}
+                  {paiOpen ? <ChevronDown size={18}/> : <ChevronRight size={18}/>}
                 </button>
 
-                {catOpen && (
+                {paiOpen && (
                   <div className="px-4 pb-4 space-y-3">
-                    {(finFiltro==='TODAS' ? fins : fins.filter(f=>f===finFiltro)).map(fin => {
-                      const finH    = catH[fin] || {};
-                      const finKey  = `${catKey}|${fin}`;
-                      const finOpen = estaAberto(finKey);
-                      const finCount= Object.values(finH).flat().length;
-                      const cortes  = Object.keys(finH).sort();
+                    {(filhoFiltro==='TODAS' ? filhos : filhos.filter(f=>f===filhoFiltro)).map(filho => {
+                      const filhoH    = paiH[filho] || {};
+                      const filhoKey  = `${paiKey}|${filho}`;
+                      const filhoOpen = estaAberto(filhoKey);
+                      const filhoCount= Object.values(filhoH).flat().length;
+                      const netos     = Object.keys(filhoH).sort();
 
                       return (
-                        <div key={fin}>
-                          {/* ── Nível 2: Finalidade (oculto se único) ── */}
-                          {!singleFin && (
+                        <div key={filho}>
+                          {/* ── Nível 2: Filho (oculto se único) ── */}
+                          {!singleFilho && (
                             <button
-                              onClick={()=>toggle(finKey)}
+                              onClick={()=>toggle(filhoKey)}
                               className="w-full flex items-center justify-between px-4 py-2.5 rounded-[18px] border transition-all"
                               style={{backgroundColor:'var(--bg-surface)',borderColor:'var(--border)',color:'var(--text-secondary)'}}
                               onMouseEnter={e=>e.currentTarget.style.backgroundColor='var(--bg-elevated)'}
                               onMouseLeave={e=>e.currentTarget.style.backgroundColor='var(--bg-surface)'}>
                               <div className="flex items-center gap-2">
-                                <span style={{fontSize:'0.62rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'0.1em',color:'var(--accent-bright)'}}>{fin}</span>
-                                <span style={{fontSize:'0.55rem',fontWeight:700,padding:'1px 6px',borderRadius:'999px',backgroundColor:'var(--bg-elevated)',color:'var(--text-muted)'}}>{finCount}</span>
+                                <span style={{fontSize:'0.62rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'0.1em',color:'var(--accent-bright)'}}>{filho}</span>
+                                <span style={{fontSize:'0.55rem',fontWeight:700,padding:'1px 6px',borderRadius:'999px',backgroundColor:'var(--bg-elevated)',color:'var(--text-muted)'}}>{filhoCount}</span>
                               </div>
-                              {finOpen ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
+                              {filhoOpen ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
                             </button>
                           )}
 
-                          {/* Conteúdo de finalidade — auto-aberto quando única */}
-                          {(singleFin || finOpen) && (
-                            <div className={`space-y-2 ${!singleFin ? 'mt-2 pl-3' : ''}`}>
-                              {cortes.map(corte => {
-                                const corteKey   = `${finKey}|${corte}`;
-                                const corteOpen  = estaAberto(corteKey);
-                                const produtos   = finH[corte] || [];
+                          {/* Conteúdo de filho — auto-aberto quando único */}
+                          {(singleFilho || filhoOpen) && (
+                            <div className={`space-y-2 ${!singleFilho ? 'mt-2 pl-3' : ''}`}>
+                              {netos.map(neto => {
+                                const netoKey   = `${filhoKey}|${neto}`;
+                                const netoOpen  = estaAberto(netoKey);
+                                const produtos   = filhoH[neto] || [];
                                 const selecionados = produtos.filter(p=>idsNoCarrinho.has(p.id)).length;
+                                // Se o neto for "Geral" (fallback do script) ou vázio, e for Dia a Dia, talvez queira abrir direto.
+                                const isGeral = neto === 'Geral';
 
                                 return (
-                                  <div key={corte} className="rounded-[18px] border overflow-hidden"
+                                  <div key={neto} className="rounded-[18px] border overflow-hidden"
                                     style={{borderColor: selecionados>0?'rgba(59,130,246,0.4)':'var(--border)',backgroundColor:'var(--bg-surface)'}}>
 
-                                    {/* ── Nível 3: Corte ── */}
+                                    {/* ── Nível 3: Neto (Corte) ── */}
                                     <button
-                                      onClick={()=>toggle(corteKey)}
+                                      onClick={()=>toggle(netoKey)}
                                       className="w-full flex items-center justify-between px-4 py-3 transition-all"
                                       style={{color:'var(--text-secondary)'}}
                                       onMouseEnter={e=>e.currentTarget.style.backgroundColor='var(--bg-elevated)'}
                                       onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>
                                       <div className="flex items-center gap-2">
                                         <span style={{fontSize:'0.7rem',fontWeight:900,textTransform:'uppercase',letterSpacing:'0.08em',color: selecionados>0?'var(--accent-bright)':'var(--text-primary)'}}>
-                                          {corte}
+                                          {isGeral ? 'Cortes' : neto}
                                         </span>
                                         <span style={{fontSize:'0.55rem',fontWeight:700,padding:'1px 6px',borderRadius:'999px',backgroundColor:'var(--bg-elevated)',color:'var(--text-muted)'}}>
                                           {produtos.length}
@@ -449,11 +402,11 @@ const PaginaPedidos = ({ user }) => {
                                           </span>
                                         )}
                                       </div>
-                                      {corteOpen ? <ChevronDown size={13}/> : <ChevronRight size={13}/>}
+                                      {netoOpen ? <ChevronDown size={13}/> : <ChevronRight size={13}/>}
                                     </button>
 
                                     {/* Produtos individuais */}
-                                    {corteOpen && (
+                                    {netoOpen && (
                                       <div className="p-3 pt-0 grid grid-cols-1 md:grid-cols-2 gap-2">
                                         {produtos.map(prod => {
                                           const noCarrinho = idsNoCarrinho.has(prod.id);
@@ -471,15 +424,19 @@ const PaginaPedidos = ({ user }) => {
                                             >
                                               <div className="flex items-center gap-2">
                                                 <div className="flex-1 min-w-0">
-                                                  <h4 style={{fontSize:'0.6rem',fontWeight:800,textTransform:'uppercase',color:noCarrinho?'var(--accent-bright)':'var(--text-primary)',lineHeight:1.35}}>
-                                                    {prod.nome}
-                                                  </h4>
+                                                  <div style={{display:'flex',justifyContent:'between',alignItems:'start'}}>
+                                                     <h4 style={{fontSize:'0.6rem',fontWeight:800,textTransform:'uppercase',color:noCarrinho?'var(--accent-bright)':'var(--text-primary)',lineHeight:1.35,flex:1}}>
+                                                      {prod.nome}
+                                                    </h4>
+                                                    {prod.bisneto && (
+                                                      <span style={{fontSize:'0.45rem',fontWeight:900,padding:'1px 5px',borderRadius:'4px',backgroundColor:'var(--bg-elevated)',color:'var(--text-muted)',marginLeft:4,border:'1px solid var(--border)'}}>
+                                                        {prod.bisneto}
+                                                      </span>
+                                                    )}
+                                                  </div>
                                                   <div style={{display:'flex',alignItems:'center',gap:'0.3rem',marginTop:3}}>
-
                                                     <span style={{fontSize:'0.62rem',fontFamily:'monospace',fontWeight:700,padding:'1px 6px',borderRadius:'4px',backgroundColor:noCarrinho?'rgba(59,130,246,0.15)':'var(--bg-elevated)',color:noCarrinho?'var(--accent-bright)':'var(--text-secondary)',border:`1px solid ${noCarrinho?'rgba(59,130,246,0.3)':'var(--border)'}`}}>{prod.codigo}</span>
-
                                                     <span style={{fontSize:'0.52rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)'}}>{prod.unidade}</span>
-
                                                   </div>
                                                 </div>
                                                 <div style={{

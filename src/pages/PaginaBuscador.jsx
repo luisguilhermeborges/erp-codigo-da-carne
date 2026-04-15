@@ -108,7 +108,8 @@ const PaginaBuscador = () => {
         // Identificar colunas
         codIdx = header.findIndex(c => c.includes('código item') || c.includes('codigo item') || c === 'código' || c === 'codigo' || c === 'cod');
         if (codIdx === -1) codIdx = header.findIndex(c => c.includes('código') || c.includes('codigo'));
-        precoIdx = header.findIndex(c => c.includes('venda') || c.includes('preço') || c.includes('preco') || c.includes('unitário') || c.includes('unitario'));
+        precoIdx = header.findIndex(c => c.includes('venda'));
+        if (precoIdx === -1) precoIdx = header.findIndex(c => c.includes('preço') || c.includes('preco') || c.includes('unitário') || c.includes('unitario'));
       } else {
         // Tentar detectar automaticamente: coluna com zeros à esq e coluna numérica subsequente
         headerRow = 0;
@@ -176,7 +177,8 @@ const PaginaBuscador = () => {
     return catalogo.filter(p =>
       (p.nome && p.nome.toLowerCase().includes(busca)) ||
       (p.codigo && p.codigo.includes(busca)) ||
-      (p.categoria && p.categoria.toLowerCase().includes(busca))
+      (p.pai && p.pai.toLowerCase().includes(busca)) ||
+      (p.filho && p.filho.toLowerCase().includes(busca))
     );
   }, [termo, catalogo]);
 
@@ -355,10 +357,13 @@ const PaginaBuscador = () => {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <Tag size={12} style={{color:'var(--text-muted)'}}/>
+                      <div className="flex flex-col gap-1">
                         <span style={{fontSize:'0.65rem', fontWeight:800, textTransform:'uppercase', color:'var(--text-muted)'}}>
-                          {prod.categoria || 'Geral'}
+                          <Tag size={10} className="inline mr-1"/>
+                          {prod.pai || 'Geral'}
+                        </span>
+                        <span style={{fontSize:'0.55rem', fontWeight:700, textTransform:'uppercase', color:'var(--text-muted)', opacity:0.7, paddingLeft:14}}>
+                          {prod.filho}
                         </span>
                       </div>
                     </td>

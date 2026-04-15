@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Package, Plus, Save, Trash2, Edit2, X, Search, RefreshCw, AlertTriangle, CheckCircle, Upload } from 'lucide-react';
-import { BANCO_PADRAO } from '../../data/bancoPadrao';
+import { BANCO_COMPLETO, ORDEM_CATEGORIAS_PAI } from '../../data/bancoPadrao';
 import { api } from '../../services/api';
 import { getPrecos } from '../../services/cache';
 
-const CATEGORIAS = ["CHURRASCO","DIA A DIA","HAMBURGUER","KIT BURGUER","BEBIDA","MERCEARIA","ACESSÓRIO"];
 const UNIDADES   = ["KG","UN","MI","BR"];
 
-const formVazio = { codigo:'', nome:'', categoria:'CHURRASCO', unidade:'KG', preco:'', status:'ATIVO' };
+const formVazio = { codigo:'', nome:'', pai:'Bovino', filho:'Churrasco', unidade:'KG', preco:'', status:'ATIVO' };
 
 const GestaoEstoque = ({ user }) => {
   const cargo = user?.cargo?.toLowerCase();
@@ -33,15 +32,15 @@ const GestaoEstoque = ({ user }) => {
 
   // Monta lista de produtos do banco com preços
   const produtos = useMemo(() => {
-    return Object.entries(BANCO_PADRAO).map(([nome, v]) => {
+    return Object.entries(BANCO_COMPLETO).map(([nome, v]) => {
       const cod = String(v.codigo ?? '').trim();
       return {
         codigo:    cod,
         codigoOriginal: v.codigo,
         nome,
-        categoria: v.categoria,
+        pai:       v.pai || 'Outros',
+        filho:     v.filho || 'Outros',
         unidade:   v.unidade,
-        tags:      v.tags || [],
         preco:     precos[cod] ?? 0,
       };
     });
@@ -50,12 +49,12 @@ const GestaoEstoque = ({ user }) => {
   const produtosFiltrados = useMemo(() => produtos.filter(p => {
     const termoBusca = pesquisa.toLowerCase();
     const matchBusca = !pesquisa || p.nome.toLowerCase().includes(termoBusca) || p.codigo.includes(pesquisa);
-    const matchCat   = catFiltro === 'TODAS' || p.categoria === catFiltro;
+    const matchCat   = catFiltro === 'TODAS' || p.pai === catFiltro;
     return matchBusca && matchCat;
   }), [produtos, pesquisa, catFiltro]);
 
   const abrirEditar = (prod) => {
-    setForm({ codigo: prod.codigo, nome: prod.nome, categoria: prod.categoria, unidade: prod.unidade, preco: prod.preco ? String(prod.preco) : '', status: 'ATIVO' });
+    setForm({ codigo: prod.codigo, nome: prod.nome, pai: prod.pai, filho: prod.filho, unidade: prod.unidade, preco: prod.preco ? String(prod.preco) : '', status: 'ATIVO' });
     setEditando(true);
     setModalAberto(true);
   };
@@ -175,15 +174,23 @@ const GestaoEstoque = ({ user }) => {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                {/* Categoria */}
+                {/* Categoria Pai */}
                 <div>
-                  <label style={{fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)',display:'block',marginBottom:4}}>Categoria</label>
-                  <select value={form.categoria} onChange={e=>setForm({...form,categoria:e.target.value})}
+                  <label style={{fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)',display:'block',marginBottom:4}}>Categoria Pai</label>
+                  <select value={form.pai} onChange={e=>setForm({...form,pai:e.target.value})}
                     disabled={editando}
                     className="w-full p-4 rounded-2xl font-bold text-xs uppercase outline-none"
                     style={{backgroundColor:'var(--bg-elevated)',color:'var(--text-primary)',border:'1px solid var(--border)'}}>
-                    {CATEGORIAS.map(c=><option key={c} value={c}>{c}</option>)}
+                    {ORDEM_CATEGORIAS_PAI.map(c=><option key={c} value={c}>{c}</option>)}
                   </select>
+                </div>
+                {/* Filho / Finalidade */}
+                <div>
+                  <label style={{fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)',display:'block',marginBottom:4}}>Subcategoria</label>
+                  <input value={form.filho} onChange={e=>setForm({...form,filho:e.target.value.toUpperCase()})}
+                    disabled={editando}
+                    className="w-full p-4 rounded-2xl font-bold text-xs uppercase outline-none"
+                    style={{backgroundColor:'var(--bg-elevated)',color:'var(--text-primary)',border:'1px solid var(--border)'}}/>
                 </div>
                 {/* Unidade */}
                 <div>
@@ -265,7 +272,7 @@ const GestaoEstoque = ({ user }) => {
           <button style={chip(catFiltro==='SEM_PRECO')} onClick={()=>setCatFiltro('SEM_PRECO')}>
             — Sem preço ({semPreco})
           </button>
-          {CATEGORIAS.map(c=>(
+          {ORDEM_CATEGORIAS_PAI.map(c=>(
             <button key={c} style={chip(catFiltro===c)} onClick={()=>setCatFiltro(catFiltro===c?'TODAS':c)}>{c}</button>
           ))}
         </div>
@@ -277,7 +284,7 @@ const GestaoEstoque = ({ user }) => {
           <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.7rem'}}>
             <thead>
               <tr style={{backgroundColor:'var(--bg-elevated)',position:'sticky',top:0,zIndex:1}}>
-                {['SKU / Código','Nome','Categoria','Unidade','Preço de Venda','Status', podeEditar?'Ações':''].map(h=>(
+                {['SKU / Código','Nome','Grupo / Subgrupo','Unidade','Preço de Venda','Status', podeEditar?'Ações':''].map(h=>(
                   <th key={h} style={{padding:'0.75rem 1rem',textAlign:'left',fontWeight:800,textTransform:'uppercase',letterSpacing:'0.05em',color:'var(--text-muted)',whiteSpace:'nowrap',borderBottom:'1px solid var(--border)'}}>{h}</th>
                 ))}
               </tr>
@@ -294,7 +301,10 @@ const GestaoEstoque = ({ user }) => {
                   <td style={{padding:'0.6rem 1rem',fontWeight:700,color:'var(--accent-bright)',whiteSpace:'nowrap',fontFamily:'monospace'}}>{p.codigoOriginal || p.codigo}</td>
                   <td style={{padding:'0.6rem 1rem',fontWeight:600,color:'var(--text-primary)',maxWidth:260}}>{p.nome}</td>
                   <td style={{padding:'0.6rem 1rem',whiteSpace:'nowrap'}}>
-                    <span style={{fontSize:'0.6rem',fontWeight:700,padding:'2px 8px',borderRadius:'999px',backgroundColor:'var(--bg-elevated)',color:'var(--text-secondary)',textTransform:'uppercase'}}>{p.categoria}</span>
+                    <div style={{display:'flex',flexDirection:'column',gap:2}}>
+                      <span style={{fontSize:'0.55rem',fontWeight:900,padding:'1px 8px',borderRadius:'999px',backgroundColor:'var(--bg-elevated)',color:'var(--accent-bright)',textTransform:'uppercase',width:'fit-content'}}>{p.pai}</span>
+                      <span style={{fontSize:'0.5rem',fontWeight:700,padding:'1px 8px',borderRadius:'999px',backgroundColor:'transparent',color:'var(--text-muted)',textTransform:'uppercase',border:'1px solid var(--border)',width:'fit-content'}}>{p.filho}</span>
+                    </div>
                   </td>
                   <td style={{padding:'0.6rem 1rem',fontWeight:700,color:'var(--text-secondary)',textAlign:'center'}}>{p.unidade}</td>
                   <td style={{padding:'0.6rem 1rem',fontWeight:800,color:p.preco>0?'#10b981':'var(--text-muted)',textAlign:'right',whiteSpace:'nowrap'}}>

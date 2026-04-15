@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Minus, Trash2, ArrowRight, Package, Barcode, X, Send, Repeat } from 'lucide-react';
-import { BANCO_PADRAO } from '../data/bancoPadrao';
+import { BANCO_COMPLETO } from '../data/bancoPadrao';
 import { api } from '../services/api';
 import { getEstoque } from '../services/cache';
 
@@ -24,9 +24,9 @@ const PaginaTransferenciaAvulsa = ({ user }) => {
   useEffect(() => {
     getEstoque().then(setCatalogo).catch(() => {
       const precos = JSON.parse(localStorage.getItem('precos_cdc') || '{}');
-      const dados = Object.entries(BANCO_PADRAO).map(([nome, v]) => {
+      const dados = Object.entries(BANCO_COMPLETO).map(([nome, v]) => {
         const cod = String(v.codigo ?? '').trim();
-        return { id: cod, codigo: cod, nome, unidade: v.unidade, categoria: v.categoria, preco: precos[cod] ?? 0 };
+        return { id: cod, codigo: cod, nome, unidade: v.unidade, pai: v.pai || 'Outros', filho: v.filho || 'Outros', preco: precos[cod] ?? 0 };
       });
       setCatalogo(dados);
     });
@@ -211,7 +211,7 @@ const PaginaTransferenciaAvulsa = ({ user }) => {
                   <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--accent-bright)',fontWeight:700}}>{p.codigo}</span>
                   <p style={{fontWeight:800,textTransform:'uppercase',fontSize:'0.8rem',color:'var(--text-primary)'}}>{p.nome}</p>
                 </div>
-                <span style={{fontSize:'0.6rem',color:'var(--text-muted)',textTransform:'uppercase'}}>{p.unidade} · {p.categoria}</span>
+                <span style={{fontSize:'0.6rem',color:'var(--text-muted)',textTransform:'uppercase'}}>{p.unidade} · {p.pai} ({p.filho})</span>
               </button>
             ))}
           </div>
