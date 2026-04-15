@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ShoppingCart, Trash2, ChevronDown, ChevronRight, CheckCircle, AlertCircle, X, Search, ArrowRight, Building2, Package, Briefcase } from 'lucide-react';
-import { BANCO_PADRAO } from '../data/bancoPadrao';
+import { BANCO_PADRAO, ORDEM_CATEGORIAS_PAI, ORDEM_FILHOS } from '../data/bancoPadrao';
 import { api } from '../services/api';
 import { getPrecos, getFiliais } from '../services/cache';
 
@@ -23,8 +23,6 @@ const Prioridade = ({ valor, onChange }) => (
   </div>
 );
 
-// ── Hierarquia e Ordem ────────────────────────────────────────────────────────
-import { BANCO_PADRAO, ORDEM_CATEGORIAS_PAI, ORDEM_FILHOS } from '../data/bancoPadrao';
 
 // Categorias de uso/consumo
 const CATS_USO_CONSUMO = new Set(['USO/CONSUMO','LIMPEZA','ESCRITORIO','DESCARTAVEL','EMBALAGEM']);
@@ -116,11 +114,11 @@ const PaginaPedidos = ({ user }) => {
   }, [filtrados]);
 
   // Categorias e finalidades disponíveis para chips
-  const catsDisponiveis = useMemo(() =>
+  const paisDisponiveis = useMemo(() =>
     ORDEM_CATEGORIAS_PAI.filter(c => hierarquia[c]),
   [hierarquia]);
 
-  const finsDisponiveis = useMemo(() => {
+  const filhosDisponiveis = useMemo(() => {
     if (paiFiltro === 'TODAS') return [];
     const paiH = hierarquia[paiFiltro] || {};
     const filhos = Object.keys(paiH);
