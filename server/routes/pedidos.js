@@ -101,6 +101,8 @@ router.put('/:id/finalizar', async (req, res) => {
   }
 });
 
+const ItemEstoque = require('../models/ItemEstoque');
+
 // PUT /api/pedidos/:id/receber — confirmar recebimento pelo comercial
 router.put('/:id/receber', async (req, res) => {
   try {
@@ -115,9 +117,33 @@ router.put('/:id/receber', async (req, res) => {
       { new: true }
     );
     if (!pedido) return res.status(404).json({ error: 'Pedido não encontrado' });
+
+    // Salvar itens marcados como recebidos na coleção de Estoque Local
+    const itensRecebidos = req.body.itens.filter(i => i.recebido);
+    const promises = itensRecebidos.map(item => {
+      return new ItemEstoque({
+        codigo: item.codigo,
+        nome: item.nome,
+        pai: item.pai,
+        filho: item.filho,
+        unidadeAlojamento: pedido.destino,
+        origemTransferencia: pedido.unidadeOrigem,
+        qtdRecebida: Number(item.qtdEnviada ?? item.qtd) || 0,
+        qtdAtual: Number(item.qtdEnviada ?? item.qtd) || 0,
+        unidadeMedida: item.unidade || 'KG',
+        lote: item.lote || 'Sem Lote',
+        precoEtiqueta: Number(item.precoEtiqueta) || 0,
+        dtProducao: item.dtProducao,
+        dtValidade: item.dtValidade,
+        recebidoPor: req.body.recebidoPor || 'Sistema',
+      }).save();
+    });
+    
+    await Promise.all(promises);
+
     res.json(pedido);
   } catch (err) {
-    res.status(500).json({ error: 'Erro ao confirmar recebimento' });
+    res.status(500).json({ error: 'Erro ao confirmar recebimento', details: err.message });
   }
 });
 

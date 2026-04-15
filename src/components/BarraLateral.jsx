@@ -35,6 +35,7 @@ const BarraLateral = ({ usuario, abaAtiva, setAbaAtiva, onLogout, menuAberto, se
     { id: 'recebimento',  label: 'Recebimento',      icon: PackageCheck,  roles: ['comercial', 'adm', 'master'], badge: pendentesRecebimento },
     { id: 'relatorios',   label: 'Relatórios',       icon: FileText,      roles: ['adm', 'master'] },
     { id: 'gestao',       label: 'Gestão',           icon: Users,         roles: ['adm', 'master', 'gestorestoque', 'estoque'] },
+    { id: 'estoque_local',label: 'Itens Recebidos',  icon: Package,       roles: ['adm', 'master', 'gestorestoque', 'estoque'], label_short: 'Estoque' },
     { id: 'buscador',     label: 'Pesquisar Produto',icon: Search,        roles: ['adm', 'master', 'gestorestoque', 'comercial', 'pcp', 'estoque'] },
     { id: 'gerador',      label: 'Gerador Cód/Lote', icon: QrCode,        roles: ['adm', 'master', 'pcp', 'comercial', 'gestorestoque', 'estoque'] },
   ];

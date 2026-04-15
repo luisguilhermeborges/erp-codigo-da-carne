@@ -38,4 +38,11 @@ export const api = {
     salvar:     (u)     => post('/usuarios', u),
     apagar:     (id)    => del(`/usuarios/${id}`),
   },
+  // Estoque Local
+  estoque: {
+    buscarPorUnidade: (unidade)    => get(`/estoque/${encodeURIComponent(unidade)}`),
+    baixa:            (id, qtd)    => post(`/estoque/baixa/${id}`, { qtdAAbater: qtd }),
+    apagar:           (id)         => del(`/estoque/${id}`),
+    limpar:           ()           => del('/estoque'),
+  },
 };

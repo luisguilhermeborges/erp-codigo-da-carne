@@ -12,6 +12,7 @@ import PaginaAdmin from './pages/PaginaAdmin';
 import PaginaImportacao from './pages/PaginaImportacao';
 import PaginaBuscador from './pages/PaginaBuscador';
 import PaginaRecebimento from './pages/PaginaRecebimento';
+import PaginaGestaoEstoqueLocal from './pages/Gestao/PaginaGestaoEstoqueLocal';
 
 // Importação de Componentes
 import BarraLateral from './components/BarraLateral';
@@ -148,6 +149,7 @@ function App() {
               <div className={abaAtiva === 'transferencia' ? 'block h-full' : 'hidden'}><PaginaTransferenciaAvulsa user={usuario} /></div>
               <div className={abaAtiva === 'recebimento' ? 'block h-full' : 'hidden'}><PaginaRecebimento user={usuario} /></div>
               <div className={abaAtiva === 'gestao' ? 'block h-full' : 'hidden'}><PaginaGestao user={usuario} /></div>
+              <div className={abaAtiva === 'estoque_local' ? 'block h-full' : 'hidden'}><PaginaGestaoEstoqueLocal user={usuario} /></div>
               <div className={abaAtiva === 'buscador' ? 'block h-full' : 'hidden'}><PaginaBuscador user={usuario} /></div>
             </div>
           )}

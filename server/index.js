@@ -22,6 +22,7 @@ const Filial = require('./models/Filial');
 app.use('/api/precos',   require('./routes/precos'));
 app.use('/api/pedidos',  require('./routes/pedidos'));
 app.use('/api/filiais',  require('./routes/filiais'));
+app.use('/api/estoque',  require('./routes/estoque'));
 
 // ── Rotas de Usuários ────────────────────────────────────────────────────────
 app.get('/api/usuarios', async (req, res) => {
