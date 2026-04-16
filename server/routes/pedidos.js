@@ -32,7 +32,7 @@ router.get('/todos', async (req, res) => {
   }
 });
 
-// GET /api/pedidos/para-receber?destino=XXX — transferências pendentes para uma unidade
+// GET /api/pedidos/para-receber?destino=XXX — transferências pendentes e pedidos finalizados para uma unidade
 router.get('/para-receber', async (req, res) => {
   try {
     const { destino } = req.query;
@@ -41,11 +41,17 @@ router.get('/para-receber', async (req, res) => {
     // O destino pode ser o código (ex: "001") ou o nome completo (ex: "001 - CENTRO")
     const codigoDestino = destino.split(' - ')[0]?.trim();
     const pendentes = await Pedido.find({
-      tipo: 'TRANSFERENCIA_AVULSA',
-      status: 'Pendente',
       $or: [
-        { destino: destino },
-        { destino: codigoDestino },
+        { tipo: 'TRANSFERENCIA_AVULSA', status: 'Pendente' },
+        { tipo: { $in: ['PEDIDO_LOJA', 'PEDIDO_USO_CONSUMO'] }, status: 'Finalizado' }
+      ],
+      $and: [
+        {
+          $or: [
+            { destino: destino },
+            { destino: codigoDestino },
+          ]
+        }
       ]
     }).sort({ criadoEm: -1 });
 
