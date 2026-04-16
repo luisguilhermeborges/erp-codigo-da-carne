@@ -3,39 +3,57 @@ import { LayoutDashboard, ShoppingCart, Package, Users, FileText, Repeat, LogOut
 import { api } from '../services/api';
 
 const BarraLateral = ({ usuario, abaAtiva, setAbaAtiva, onLogout, menuAberto, setMenuAberto }) => {
-  const [tema, setTema]                       = useState(() => localStorage.getItem('tema_cdc') || 'light');
-  const [pendentesRecebimento, setPendentes]  = useState(0);
+  const [tema, setTema]                         = useState(() => localStorage.getItem('tema_cdc') || 'light');
+  const [pendentesRecebimento, setPendentesRec] = useState(0);
+  const [pendentesAtendimento, setPendentesAt]  = useState(0);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', tema);
     localStorage.setItem('tema_cdc', tema);
   }, [tema]);
 
-  // Polling para badge de recebimentos pendentes
+  // Polling para badges
   useEffect(() => {
     const unidade = usuario?.unidade;
-    if (!unidade) return;
-    const buscar = () => {
-      api.pedidos.paraReceber(unidade)
-        .then(data => setPendentes(Array.isArray(data) ? data.length : 0))
+    const cargo = usuario?.cargo?.toLowerCase();
+    
+    const buscarBadges = async () => {
+      // 1. Recebimento
+      if (unidade) {
+        api.pedidos.paraReceber(unidade)
+          .then(data => setPendentesRec(Array.isArray(data) ? data.length : 0))
+          .catch(() => {});
+      }
+
+      // 2. Atendimento (Fila)
+      api.pedidos.fila()
+        .then(data => {
+          if (Array.isArray(data)) {
+            const filtrados = ['master', 'adm'].includes(cargo)
+              ? data
+              : data.filter(p => p.unidadeOrigem === unidade || !p.unidadeOrigem);
+            setPendentesAt(filtrados.length);
+          }
+        })
         .catch(() => {});
     };
-    buscar();
-    const interval = setInterval(buscar, 60000); // re-polling a cada 60s
+
+    buscarBadges();
+    const interval = setInterval(buscarBadges, 60000); 
     return () => clearInterval(interval);
-  }, [usuario?.unidade]);
+  }, [usuario]);
 
   const alternarTema = () => setTema(t => t === 'dark' ? 'light' : 'dark');
 
   const menuItens = [
     { id: 'mural',        label: 'Home',              icon: Heart,         roles: ['comercial', 'adm', 'master', 'pcp', 'gestorestoque', 'estoque'] },
-    { id: 'atendimento',  label: 'Atendimento',      icon: LayoutDashboard, roles: ['comercial', 'adm', 'master', 'gestorestoque', 'estoque'] },
+    { id: 'atendimento',  label: 'Atendimento',      icon: LayoutDashboard, roles: ['comercial', 'adm', 'master', 'gestorestoque', 'estoque'], badge: pendentesAtendimento },
     { id: 'pedidos',      label: 'Fazer Pedidos',    icon: ShoppingCart,  roles: ['comercial', 'adm', 'master', 'estoque'] },
     { id: 'transferencia',label: 'Transferência',    icon: Repeat,        roles: ['comercial', 'adm', 'master', 'gestorestoque', 'estoque'] },
     { id: 'recebimento',  label: 'Recebimento',      icon: PackageCheck,  roles: ['comercial', 'adm', 'master'], badge: pendentesRecebimento },
     { id: 'relatorios',   label: 'Relatórios',       icon: FileText,      roles: ['adm', 'master'] },
     { id: 'gestao',       label: 'Gestão',           icon: Users,         roles: ['adm', 'master', 'gestorestoque', 'estoque'] },
-    { id: 'estoque_local',label: 'Itens Recebidos',  icon: Package,       roles: ['adm', 'master', 'gestorestoque', 'estoque'], label_short: 'Estoque' },
+    { id: 'estoque_local',label: 'Itens Recebidos',  icon: Package,       roles: ['adm', 'master', 'gestorestoque', 'estoque', 'comercial'], label_short: 'Estoque' },
     { id: 'buscador',     label: 'Pesquisar Produto',icon: Search,        roles: ['adm', 'master', 'gestorestoque', 'comercial', 'pcp', 'estoque'] },
     { id: 'gerador',      label: 'Gerador Cód/Lote', icon: QrCode,        roles: ['adm', 'master', 'pcp', 'comercial', 'gestorestoque', 'estoque'] },
   ];
