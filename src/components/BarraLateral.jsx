@@ -46,16 +46,16 @@ const BarraLateral = ({ usuario, abaAtiva, setAbaAtiva, onLogout, menuAberto, se
   const alternarTema = () => setTema(t => t === 'dark' ? 'light' : 'dark');
 
   const menuItens = [
-    { id: 'mural',        label: 'Home',              icon: Heart,         roles: ['comercial', 'adm', 'master', 'pcp', 'gestorestoque', 'estoque'] },
-    { id: 'atendimento',  label: 'Atendimento',      icon: LayoutDashboard, roles: ['comercial', 'adm', 'master', 'gestorestoque', 'estoque'], badge: pendentesAtendimento },
+    { id: 'mural',        label: 'Home',              icon: Heart,         roles: ['adm', 'master', 'pcp', 'gestorestoque', 'estoque'] },
+    { id: 'atendimento',  label: 'Atendimento',      icon: LayoutDashboard, roles: ['adm', 'master', 'gestorestoque', 'estoque'], badge: pendentesAtendimento },
     { id: 'pedidos',      label: 'Fazer Pedidos',    icon: ShoppingCart,  roles: ['comercial', 'adm', 'master', 'estoque'] },
     { id: 'transferencia',label: 'Transferência',    icon: Repeat,        roles: ['comercial', 'adm', 'master', 'gestorestoque', 'estoque'] },
     { id: 'recebimento',  label: 'Recebimento',      icon: PackageCheck,  roles: ['comercial', 'adm', 'master'], badge: pendentesRecebimento },
     { id: 'relatorios',   label: 'Relatórios',       icon: FileText,      roles: ['adm', 'master'] },
     { id: 'gestao',       label: 'Gestão',           icon: Users,         roles: ['adm', 'master', 'gestorestoque', 'estoque'] },
     { id: 'estoque_local',label: 'Itens Recebidos',  icon: Package,       roles: ['adm', 'master', 'gestorestoque', 'estoque', 'comercial'], label_short: 'Estoque' },
-    { id: 'buscador',     label: 'Pesquisar Produto',icon: Search,        roles: ['adm', 'master', 'gestorestoque', 'comercial', 'pcp', 'estoque'] },
-    { id: 'gerador',      label: 'Gerador Cód/Lote', icon: QrCode,        roles: ['adm', 'master', 'pcp', 'comercial', 'gestorestoque', 'estoque'] },
+    { id: 'buscador',     label: 'Pesquisar Produto',icon: Search,        roles: ['adm', 'master', 'gestorestoque', 'pcp', 'estoque'] },
+    { id: 'gerador',      label: 'Gerador Cód/Lote', icon: QrCode,        roles: ['adm', 'master', 'pcp', 'gestorestoque', 'estoque'] },
   ];
 
   const itensVisiveis = menuItens.filter(item =>
