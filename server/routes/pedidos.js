@@ -38,18 +38,26 @@ router.get('/para-receber', async (req, res) => {
     const { destino } = req.query;
     if (!destino) return res.status(400).json({ error: 'Parâmetro destino obrigatório' });
 
-    // O destino pode ser o código (ex: "001") ou o nome completo (ex: "001 - CENTRO")
-    const codigoDestino = destino.split(' - ')[0]?.trim();
+    // O destino pode ser o código (ex: "001"), o nome (ex: "CENTRO") ou o conjunto (ex: "001 - CENTRO")
+    const parts = destino.split(' - ').map(p => p.trim());
+    const codigo = parts[0];
+    const nome = parts[parts.length - 1];
+
     const pendentes = await Pedido.find({
-      $or: [
-        { tipo: 'TRANSFERENCIA_AVULSA', status: 'Pendente' },
-        { tipo: { $in: ['PEDIDO_LOJA', 'PEDIDO_USO_CONSUMO'] }, status: 'Finalizado' }
-      ],
       $and: [
         {
           $or: [
+            { tipo: 'TRANSFERENCIA_AVULSA', status: 'Pendente' },
+            { tipo: { $in: ['PEDIDO_LOJA', 'PEDIDO_USO_CONSUMO'] }, status: 'Finalizado' }
+          ]
+        },
+        {
+          $or: [
             { destino: destino },
-            { destino: codigoDestino },
+            { destino: codigo },
+            { destino: nome },
+            { destino: new RegExp(`^${codigo}$`, 'i') },
+            { destino: new RegExp(`^${nome}$`, 'i') }
           ]
         }
       ]

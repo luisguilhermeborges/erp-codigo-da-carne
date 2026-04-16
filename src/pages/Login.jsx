@@ -81,7 +81,8 @@ const Login = ({ onLogin }) => {
       login: user.login,
       nome: user.nome,
       cargo: user.cargo,
-      unidades: user.unidades
+      unidades: user.unidades,
+      unidade: user.unidades?.[0] || '' // Adiciona a unidade principal para exibição no topo
     };
     localStorage.setItem('usuario_logado', JSON.stringify(sessao));
     onLogin(sessao);

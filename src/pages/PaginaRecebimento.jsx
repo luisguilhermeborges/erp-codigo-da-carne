@@ -43,7 +43,6 @@ const ModalRecebimento = ({ transferencia, user, onClose, onConfirmado }) => {
       recebido: item.recebido ?? true,
       dtProducao: item.dtProducao || '',
       dtValidade: item.dtValidade || '',
-      lote: item.lote || '',
       precoEtiqueta: item.precoEtiqueta || '',
     }))
   );
@@ -54,11 +53,11 @@ const ModalRecebimento = ({ transferencia, user, onClose, onConfirmado }) => {
     setItens(prev => prev.map((it, i) => i === idx ? { ...it, [campo]: valor } : it));
   };
 
-  const todosConfirmados = itens.every(i => !i.recebido || (i.dtProducao && i.dtValidade && i.lote && i.precoEtiqueta));
+  const todosConfirmados = itens.every(i => !i.recebido || (i.dtProducao && i.dtValidade && i.precoEtiqueta));
 
   const confirmar = async () => {
     if (!todosConfirmados) {
-      setErro('Preencha Lote, Preço Etiqueta, Data de Produção e Validade para todos os itens recebidos.');
+      setErro('Preencha Preço Etiqueta, Data de Produção e Validade para todos os itens recebidos.');
       return;
     }
     setErro('');
@@ -115,7 +114,7 @@ const ModalRecebimento = ({ transferencia, user, onClose, onConfirmado }) => {
           <table className="w-full border-collapse" style={{ fontSize: '0.75rem' }}>
             <thead style={{ position: 'sticky', top: 0, zIndex: 5 }}>
               <tr style={{ backgroundColor: 'var(--bg-elevated)' }}>
-                {['✓', 'Produto', 'Qtd', 'Lote', 'Preço Et.', 'Produção', 'Validade'].map(h => (
+                {['✓', 'Produto', 'Qtd', 'Preço Et.', 'Produção', 'Validade'].map(h => (
                   <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontSize: '0.6rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', whiteSpace: 'nowrap', borderBottom: '1px solid var(--border)' }}>
                     {h}
                   </th>
@@ -145,40 +144,29 @@ const ModalRecebimento = ({ transferencia, user, onClose, onConfirmado }) => {
                       {Number(item.qtdEnviada ?? item.qtd).toFixed(item.unidade === 'KG' ? 3 : 0)} {item.unidade}
                     </span>
                   </td>
-                  {/* Lote */}
-                  <td style={{ padding: '10px 12px' }}>
-                    <input
-                      type="text"
-                      placeholder="Lote"
-                      value={item.lote}
-                      disabled={!item.recebido}
-                      onChange={e => atualizarItem(idx, 'lote', e.target.value)}
-                      style={{
-                        backgroundColor: item.recebido ? 'var(--bg-elevated)' : 'transparent',
-                        border: `1px solid ${item.recebido && !item.lote ? '#f59e0b' : 'var(--border)'}`,
-                        borderRadius: 10, padding: '5px 8px', fontSize: '0.7rem', fontWeight: 700,
-                        color: 'var(--text-primary)', outline: 'none', width: '100%'
-                      }}
-                    />
-                  </td>
                   {/* Preço Etiqueta */}
-                  <td style={{ padding: '10px 12px' }}>
-                    <input
-                      type="text"
-                      placeholder="0,00"
-                      value={item.precoEtiqueta}
-                      disabled={!item.recebido}
-                      onChange={e => {
-                        const val = e.target.value.replace(/[^\d,]/g, '');
-                        atualizarItem(idx, 'precoEtiqueta', val);
-                      }}
-                      style={{
-                        backgroundColor: item.recebido ? 'var(--bg-elevated)' : 'transparent',
-                        border: `1px solid ${item.recebido && !item.precoEtiqueta ? '#f59e0b' : 'var(--border)'}`,
-                        borderRadius: 10, padding: '5px 8px', fontSize: '0.7rem', fontWeight: 700,
-                        color: 'var(--text-primary)', outline: 'none', width: '100%'
-                      }}
-                    />
+                  <td style={{ padding: '10px 12px', width: '120px' }}>
+                    <div style={{ position: 'relative' }}>
+                      <span style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', fontSize: '0.65rem', fontWeight: 900, color: 'var(--text-muted)' }}>R$</span>
+                      <input
+                        type="text"
+                        placeholder="0,00"
+                        value={item.precoEtiqueta}
+                        disabled={!item.recebido}
+                        onChange={e => {
+                          const val = e.target.value.replace(/[^\d,]/g, '');
+                          atualizarItem(idx, 'precoEtiqueta', val);
+                        }}
+                        style={{
+                          backgroundColor: item.recebido ? 'var(--bg-elevated)' : 'transparent',
+                          border: `2px solid ${item.recebido && !item.precoEtiqueta ? '#f59e0b' : 'var(--border)'}`,
+                          borderRadius: 12, padding: '8px 8px 8px 28px', fontSize: '0.85rem', fontWeight: 900,
+                          color: 'var(--accent-bright)', outline: 'none', width: '100%',
+                          transition: 'all 0.2s',
+                          boxShadow: item.recebido && item.precoEtiqueta ? '0 2px 8px rgba(59,130,246,0.1)' : 'none'
+                        }}
+                      />
+                    </div>
                   </td>
                   {/* Data de produção */}
                   <td style={{ padding: '10px 12px' }}>
