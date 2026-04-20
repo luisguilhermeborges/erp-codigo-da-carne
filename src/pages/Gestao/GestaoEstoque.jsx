@@ -43,7 +43,7 @@ const GestaoEstoque = ({ user }) => {
         unidade:   v.unidade,
         preco:     precos[cod] ?? 0,
       };
-    });
+    }).sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
   }, [precos]);
 
   const produtosFiltrados = useMemo(() => produtos.filter(p => {

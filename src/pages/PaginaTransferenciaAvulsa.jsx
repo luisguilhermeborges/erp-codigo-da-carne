@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Minus, Trash2, ArrowRight, Package, Barcode, X, Send, Repeat } from 'lucide-react';
-import { BANCO_COMPLETO } from '../data/bancoPadrao';
+import { BANCO_COMPLETO, BANCO_PADRAO } from '../data/bancoPadrao';
 import { api } from '../services/api';
 import { getEstoque } from '../services/cache';
 
@@ -24,13 +24,17 @@ const PaginaTransferenciaAvulsa = ({ user }) => {
   const isComercial = user?.cargo?.toLowerCase() === 'comercial';
 
   useEffect(() => {
-    getEstoque({ apenasComPreco: isComercial }).then(setCatalogo).catch(() => {
+    getEstoque({ apenasLoja: isComercial, apenasComPreco: isComercial }).then(dados => {
+      setCatalogo([...dados].sort((a,b) => (a.nome||'').localeCompare(b.nome||'')));
+    }).catch(() => {
       const precos = JSON.parse(localStorage.getItem('precos_cdc') || '{}');
-      const dados = Object.entries(BANCO_COMPLETO).map(([nome, v]) => {
+      const bancoUsado = isComercial ? BANCO_PADRAO : BANCO_COMPLETO;
+      const dados = Object.entries(bancoUsado).map(([nome, v]) => {
         const cod = String(v.codigo ?? '').trim();
         return { id: cod, codigo: cod, nome, unidade: v.unidade, pai: v.pai || 'Outros', filho: v.filho || 'Outros', preco: precos[cod] ?? 0 };
       });
-      setCatalogo(isComercial ? dados.filter(d => d.preco > 0) : dados);
+      const filtrados = isComercial ? dados.filter(d => d.preco > 0) : dados;
+      setCatalogo([...filtrados].sort((a,b) => (a.nome||'').localeCompare(b.nome||'')));
     });
   }, [isComercial]);
 

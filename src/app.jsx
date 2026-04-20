@@ -19,7 +19,7 @@ import BarraLateral from './components/BarraLateral';
 import BannerBoasVindas from './components/BannerBoasVindas';
 // import MuralSonhos from './components/MuralSonhos'; — desabilitado temporariamente
 
-import { Heart, Wrench, QrCode, Menu, ChevronDown, User, MapPin } from 'lucide-react';
+import { Heart, Wrench, QrCode, Menu, ChevronDown, User, MapPin, ClipboardList } from 'lucide-react';
 
 // Placeholder reutilizável para páginas em desenvolvimento
 const EmDesenvolvimento = ({ icone: Icone, titulo, descricao }) => (
@@ -147,6 +147,11 @@ function App() {
               {/* Gerador de Códigos e Lote — em desenvolvimento */}
               <div className={abaAtiva === 'gerador' ? 'block h-full' : 'hidden'}>
                 <EmDesenvolvimento icone={QrCode} titulo="Gerador de Códigos e Lote" descricao="Módulo em construção — em breve disponível" />
+              </div>
+
+              {/* Fichas de Produção — em desenvolvimento */}
+              <div className={abaAtiva === 'fichas_producao' ? 'block h-full' : 'hidden'}>
+                <EmDesenvolvimento icone={ClipboardList} titulo="Fichas de Produção" descricao="Em construção — vou criar a estrutura perfeita" />
               </div>
 
               <div className={abaAtiva === 'atendimento' ? 'block h-full' : 'hidden'}><PaginaAtendimento user={usuario} /></div>

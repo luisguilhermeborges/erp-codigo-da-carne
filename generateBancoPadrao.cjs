@@ -1,7 +1,15 @@
 const xlsx = require('xlsx');
 const fs = require('fs');
 
-function getCategoriaPai(nome) {
+const CODIGOS_KIT_BURGUER = new Set([
+  '210121', '3009', '003010', '20930', '20920', 
+  '389008', '389021', '022074', '201'
+]);
+
+function getCategoriaPai(nome, codigo) {
+  const cod = String(codigo ?? '').trim();
+  if (CODIGOS_KIT_BURGUER.has(cod)) return 'Kit Burguer';
+
   const n = nome.toUpperCase();
   if (n.includes('BOV') || n.includes('WAGYU') || n.includes('ANGUS')) return 'Bovino';
   if (n.includes('FRANGO') || n.includes('GALETO') || n.includes('TULIPA')) return 'Frango';
@@ -17,12 +25,12 @@ function getCategoriaPai(nome) {
   if (n.includes('GRELHA') || n.includes('FACAS') || n.includes('AFIADOR') || n.includes('ABRIDOR') || n.includes('CHURRASQUEIRA') || n.includes('TABUA') || n.includes('LUVA') || n.includes('TERMIC') || n.includes('ISOPOR') || n.includes('CARVÃO') || n.includes('CARVAO') || n.includes('ACENDEDOR') || n.includes('GEL ') || n.includes('FÓSFORO') || n.includes('ALUMÍNIO') || n.includes('ASSAR') || n.includes('FILME')) return 'Acessório';
   if (n.includes('LENHA') || n.includes('SERRAGEM')) return 'Acessório';
   if (n.includes('TORRESMO') || n.includes('TORRESMINHO')) return 'Outros'; 
-  if (n.includes('SORVETE') || n.includes('PICOLE')) return 'Sobremesa';
-  if (n.includes('KIT BURGUER') || n.includes('BURGUER')) return 'Dia a Dia'; 
-  return 'Outros';
+  if (n.includes('KIT BURGUER') || n.includes('BURGUER')) return 'Kit Burguer'; 
+  if (n.includes('SORVETE') || n.includes('PICOLE')) return 'Sobremesa';  return 'Outros';
 }
 
 function getFilho(nome, pai) {
+  if (pai === 'Kit Burguer') return 'Kit Burguer';
   const n = nome.toUpperCase();
   if (n.includes('LD') || n.includes('DUQUESA') || n.includes('MOIDA') || n.includes('MOÍDA') || n.includes('BIFE') || n.includes('CUBOS') || n.includes('PANELA') || n.includes('PICADINHO') || n.includes('EMPANADO') || n.includes('ISCA') || n.includes('MEDALHAO') || n.includes('ALMONDEGA')) {
     return 'Dia a Dia';
@@ -66,7 +74,7 @@ function getNeto(nome, filho) {
 }
 
 function processItem(nomeO, info) {
-    const pai = getCategoriaPai(nomeO);
+    const pai = getCategoriaPai(nomeO, info.codigo);
     const filho = getFilho(nomeO, pai);
     const neto = getNeto(nomeO, filho);
     const bisneto = getBisneto(nomeO);
@@ -142,10 +150,12 @@ export const ORDEM_CATEGORIAS_PAI = [
   "Outros",
   "Sobremesa",
   "Acessório",
-  "Dia a Dia"
+  "Dia a Dia",
+  "Kit Burguer"
 ];
 
 export const ORDEM_FILHOS = [
+  "Kit Burguer",
   "Churrasco",
   "Dia a Dia",
   "Bebida",

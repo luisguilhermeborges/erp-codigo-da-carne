@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, ShoppingCart, Package, Users, FileText, Repeat, LogOut, Heart, Sun, Moon, QrCode, FileDown, Shield, X, Search, PackageCheck } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Package, Users, FileText, Repeat, LogOut, Heart, Sun, Moon, QrCode, FileDown, Shield, X, Search, PackageCheck, ClipboardList } from 'lucide-react';
 import { api } from '../services/api';
 
 const BarraLateral = ({ usuario, abaAtiva, setAbaAtiva, onLogout, menuAberto, setMenuAberto }) => {
@@ -46,7 +46,7 @@ const BarraLateral = ({ usuario, abaAtiva, setAbaAtiva, onLogout, menuAberto, se
   const alternarTema = () => setTema(t => t === 'dark' ? 'light' : 'dark');
 
   const menuItens = [
-    { id: 'mural',        label: 'Home',              icon: Heart,         roles: ['comercial', 'adm', 'master', 'pcp', 'gestorestoque', 'estoque'] },
+    { id: 'mural',        label: 'Home',              icon: Heart,         roles: ['comercial', 'adm', 'master', 'pcp', 'gestorestoque', 'estoque', 'producao'] },
     { id: 'atendimento',  label: 'Atendimento',      icon: LayoutDashboard, roles: ['adm', 'master', 'gestorestoque', 'estoque'], badge: pendentesAtendimento },
     { id: 'pedidos',      label: 'Fazer Pedidos',    icon: ShoppingCart,  roles: ['comercial', 'adm', 'master', 'estoque'] },
     { id: 'transferencia',label: 'Transferência',    icon: Repeat,        roles: ['comercial', 'adm', 'master', 'gestorestoque', 'estoque'] },
@@ -54,7 +54,8 @@ const BarraLateral = ({ usuario, abaAtiva, setAbaAtiva, onLogout, menuAberto, se
     { id: 'relatorios',   label: 'Relatórios',       icon: FileText,      roles: ['adm', 'master'] },
     { id: 'gestao',       label: 'Gestão',           icon: Users,         roles: ['adm', 'master', 'gestorestoque', 'estoque'] },
     { id: 'estoque_local',label: 'Itens Recebidos',  icon: Package,       roles: ['adm', 'master', 'gestorestoque', 'estoque', 'comercial'], label_short: 'Estoque' },
-    { id: 'buscador',     label: 'Pesquisar Produto',icon: Search,        roles: ['comercial', 'adm', 'master', 'gestorestoque', 'pcp', 'estoque'] },
+    { id: 'buscador',     label: 'Pesquisar Produto',icon: Search,        roles: ['comercial', 'adm', 'master', 'gestorestoque', 'pcp', 'estoque', 'producao'] },
+    { id: 'fichas_producao', label: 'Fichas Produção', icon: ClipboardList, roles: ['producao', 'adm', 'master'] },
     { id: 'gerador',      label: 'Gerador Cód/Lote', icon: QrCode,        roles: ['adm', 'master', 'pcp', 'gestorestoque', 'estoque'] },
   ];
 

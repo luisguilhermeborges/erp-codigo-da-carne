@@ -4,13 +4,18 @@ import * as XLSX from 'xlsx';
 import { getHistorico } from '../services/cache';
 
 // ── Utilitários ───────────────────────────────────────────────────────────────
+const parseDataBR = (str) => {
+  if (!str) return 0;
+  const p = str.match(/(\d{2})\/(\d{2})\/(\d{4}),?\s+(\d{2}):(\d{2})/);
+  if (!p) return 0;
+  return new Date(`${p[3]}-${p[2]}-${p[1]}T${p[4]}:${p[5]}:00`).getTime();
+};
+
 const tempoDecorrido = (dataStr) => {
   if (!dataStr) return '—';
-  // Tenta parsear o formato brasileiro: "24/03/2026, 14:30:00"
-  const partes = dataStr.match(/(\d{2})\/(\d{2})\/(\d{4}),?\s+(\d{2}):(\d{2})/);
-  if (!partes) return dataStr;
-  const data = new Date(`${partes[3]}-${partes[2]}-${partes[1]}T${partes[4]}:${partes[5]}:00`);
-  const diff  = Date.now() - data.getTime();
+  const ts = parseDataBR(dataStr);
+  if (!ts) return dataStr;
+  const diff  = Date.now() - ts;
   if (isNaN(diff)) return '—';
   const min  = Math.floor(diff / 60000);
   const h    = Math.floor(min / 60);
@@ -287,8 +292,14 @@ const PaginaRelatorios = ({ user }) => {
 
   const carregar = async () => {
     setCarregando(true);
-    try { const d = await getHistorico(); setHistorico(d.slice().reverse()); }
-    catch { setHistorico(JSON.parse(localStorage.getItem('historico_pedidos')||'[]').reverse()); }
+    try { 
+      const d = await getHistorico(); 
+      setHistorico([...d].sort((a,b) => parseDataBR(b.data) - parseDataBR(a.data))); 
+    }
+    catch { 
+      const d = JSON.parse(localStorage.getItem('historico_pedidos')||'[]');
+      setHistorico([...d].sort((a,b) => parseDataBR(b.data) - parseDataBR(a.data))); 
+    }
     finally { setCarregando(false); }
   };
 

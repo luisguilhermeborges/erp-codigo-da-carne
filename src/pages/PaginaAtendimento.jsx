@@ -4,6 +4,13 @@ import * as XLSX from 'xlsx';
 import { api } from '../services/api';
 import { getFila, getEstoque } from '../services/cache';
 
+const parseDataBR = (str) => {
+  if (!str) return 0;
+  const p = str.match(/(\d{2})\/(\d{2})\/(\d{4}),?\s+(\d{2}):(\d{2})/);
+  if (!p) return 0;
+  return new Date(`${p[3]}-${p[2]}-${p[1]}T${p[4]}:${p[5]}:00`).getTime();
+};
+
 // ── Folha de impressão ────────────────────────────────────────────────────────
 const FolhaImpressao = ({ pedido, onFechar }) => {
   // Para itens genéricos de corte, expandir sub-itens para impressão
@@ -190,7 +197,7 @@ const PaginaAtendimento = ({ user }) => {
       const filtrados = ['master','adm'].includes(user?.cargo?.toLowerCase())
         ? dados
         : dados.filter(p => p.unidadeOrigem === user?.unidade || !p.unidadeOrigem);
-      setFila(filtrados.slice().reverse());
+      setFila([...filtrados].sort((a,b) => parseDataBR(b.data) - parseDataBR(a.data)));
     } catch { } finally { setCarregando(false); }
   }, [user]);
 

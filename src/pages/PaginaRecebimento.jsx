@@ -7,6 +7,13 @@ import {
 import { api } from '../services/api';
 
 // ── Utilitário: formatar data ISO para pt-BR ──────────────────────────────────
+const parseDataBR = (str) => {
+  if (!str) return 0;
+  const p = str.match(/(\d{2})\/(\d{2})\/(\d{4}),?\s+(\d{2}):(\d{2})/);
+  if (!p) return 0;
+  return new Date(`${p[3]}-${p[2]}-${p[1]}T${p[4]}:${p[5]}:00`).getTime();
+};
+
 const fmtData = (iso) => {
   if (!iso) return '—';
   try {
@@ -317,7 +324,7 @@ const PaginaRecebimento = ({ user }) => {
       const data = await api.pedidos.paraReceber(unidade);
       // Garante que pegamos a lista de transferências mesmo se vier em um objeto { pedidos: [...] }
       const lista = Array.isArray(data) ? data : (data?.pedidos || data?.transferencias || []);
-      setTransferencias(lista);
+      setTransferencias([...lista].sort((a,b) => parseDataBR(b.data) - parseDataBR(a.data)));
     } catch {
       setErro('Erro ao carregar transferências. Verifique a conexão.');
     } finally {

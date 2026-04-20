@@ -26,10 +26,11 @@ const PaginaBuscador = ({ user }) => {
     setCarregando(true);
     try {
       const [dados, hist] = await Promise.all([
-        getEstoque({ apenasComPreco: isComercial }),
+        getEstoque({ apenasLoja: isComercial, apenasComPreco: isComercial }),
         getHistorico().catch(()=>[])
       ]);
-      setCatalogo(dados);
+      const dadosOrdenados = [...dados].sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
+      setCatalogo(dadosOrdenados);
 
       const mapa = {};
       hist.forEach(ped => {

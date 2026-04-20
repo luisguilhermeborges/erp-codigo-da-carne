@@ -7,8 +7,8 @@ export const BANCO_PADRAO = {
     "codigo": "290223",
     "unidade": "UN",
     "preco_venda": "79,9",
-    "pai": "Dia a Dia",
-    "filho": "Outros",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -115,9 +115,9 @@ export const BANCO_PADRAO = {
     "codigo": "389008",
     "unidade": "KG",
     "preco_venda": "66,67",
-    "pai": "Bovino",
-    "filho": "Dia a Dia",
-    "neto": "",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
+    "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
   "MATAMBRITO SUINO PEÇ TEMPERADO": {
@@ -826,8 +826,8 @@ export const BANCO_PADRAO = {
     "codigo": "3009",
     "unidade": "UN",
     "preco_venda": "15",
-    "pai": "Queijo",
-    "filho": "Outros",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -952,8 +952,8 @@ export const BANCO_PADRAO = {
     "codigo": "003010",
     "unidade": "UN",
     "preco_venda": "9",
-    "pai": "Outros",
-    "filho": "Outros",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -1069,8 +1069,8 @@ export const BANCO_PADRAO = {
     "codigo": "20920",
     "unidade": "UN",
     "preco_venda": "4",
-    "pai": "Acompanhamento",
-    "filho": "Acompanhamento",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -1294,8 +1294,8 @@ export const BANCO_PADRAO = {
     "codigo": "290224",
     "unidade": "UN",
     "preco_venda": "65,9",
-    "pai": "Dia a Dia",
-    "filho": "Outros",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -1492,17 +1492,17 @@ export const BANCO_PADRAO = {
     "codigo": "389021",
     "unidade": "KG",
     "preco_venda": "53,33",
-    "pai": "Suíno",
-    "filho": "Dia a Dia",
-    "neto": "",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
+    "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
   "KIT MINI BURGUER": {
     "codigo": "290226",
     "unidade": "UN",
     "preco_venda": "79,9",
-    "pai": "Dia a Dia",
-    "filho": "Outros",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -1555,8 +1555,8 @@ export const BANCO_PADRAO = {
     "codigo": "20930",
     "unidade": "UN",
     "preco_venda": "3",
-    "pai": "Acompanhamento",
-    "filho": "Acompanhamento",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -2428,8 +2428,8 @@ export const BANCO_PADRAO = {
     "codigo": "201",
     "unidade": "UN",
     "preco_venda": "3",
-    "pai": "Acompanhamento",
-    "filho": "Acompanhamento",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -2752,9 +2752,9 @@ export const BANCO_PADRAO = {
     "codigo": "022074",
     "unidade": "KG",
     "preco_venda": "133,33",
-    "pai": "Bovino",
-    "filho": "Dia a Dia",
-    "neto": "",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
+    "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
   "AGUA MINERAL CANCAO NOVA 510ML": {
@@ -2779,8 +2779,8 @@ export const BANCO_PADRAO = {
     "codigo": "290225",
     "unidade": "UN",
     "preco_venda": "74,9",
-    "pai": "Dia a Dia",
-    "filho": "Outros",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -3265,8 +3265,8 @@ export const BANCO_PADRAO = {
     "codigo": "027102",
     "unidade": "UN",
     "preco_venda": "19,5",
-    "pai": "Dia a Dia",
-    "filho": "Outros",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -4043,8 +4043,8 @@ export const BANCO_COMPLETO = {
     "codigo": "003010",
     "unidade": "UN",
     "preco_venda": "9",
-    "pai": "Outros",
-    "filho": "Outros",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -4448,8 +4448,8 @@ export const BANCO_COMPLETO = {
     "codigo": "027102",
     "unidade": "UN",
     "preco_venda": "19,5",
-    "pai": "Dia a Dia",
-    "filho": "Outros",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -4493,8 +4493,8 @@ export const BANCO_COMPLETO = {
     "codigo": "002226",
     "unidade": "UN",
     "preco_venda": "3,39",
-    "pai": "Dia a Dia",
-    "filho": "Outros",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -4646,9 +4646,9 @@ export const BANCO_COMPLETO = {
     "codigo": "389008",
     "unidade": "KG",
     "preco_venda": "66,67",
-    "pai": "Bovino",
-    "filho": "Dia a Dia",
-    "neto": "",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
+    "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
   "CARNE BOV MOIDA BLEND 150G/12,3 FSW": {
@@ -4772,18 +4772,18 @@ export const BANCO_COMPLETO = {
     "codigo": "022074",
     "unidade": "KG",
     "preco_venda": "133,33",
-    "pai": "Bovino",
-    "filho": "Dia a Dia",
-    "neto": "",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
+    "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
   "CARNE MOIDA BLEND HAMBURGUER LM": {
     "codigo": "076444",
     "unidade": "KG",
     "preco_venda": "45,9",
-    "pai": "Dia a Dia",
-    "filho": "Dia a Dia",
-    "neto": "",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
+    "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
   "CARNE MOIDA BOV CDC": {
@@ -4835,9 +4835,9 @@ export const BANCO_COMPLETO = {
     "codigo": "389021",
     "unidade": "KG",
     "preco_venda": "53,33",
-    "pai": "Suíno",
-    "filho": "Dia a Dia",
-    "neto": "",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
+    "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
   "CARNE SUINA MOIDA 180G": {
@@ -7733,8 +7733,8 @@ export const BANCO_COMPLETO = {
     "codigo": "000140",
     "unidade": "UN",
     "preco_venda": "20",
-    "pai": "Dia a Dia",
-    "filho": "Outros",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -7742,8 +7742,8 @@ export const BANCO_COMPLETO = {
     "codigo": "027101",
     "unidade": "UN",
     "preco_venda": "14,8",
-    "pai": "Dia a Dia",
-    "filho": "Outros",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -7877,8 +7877,8 @@ export const BANCO_COMPLETO = {
     "codigo": "290225",
     "unidade": "UN",
     "preco_venda": "74,9",
-    "pai": "Dia a Dia",
-    "filho": "Outros",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -7886,8 +7886,8 @@ export const BANCO_COMPLETO = {
     "codigo": "290223",
     "unidade": "UN",
     "preco_venda": "79,9",
-    "pai": "Dia a Dia",
-    "filho": "Outros",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -7895,8 +7895,8 @@ export const BANCO_COMPLETO = {
     "codigo": "290224",
     "unidade": "UN",
     "preco_venda": "65,9",
-    "pai": "Dia a Dia",
-    "filho": "Outros",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -7931,8 +7931,8 @@ export const BANCO_COMPLETO = {
     "codigo": "290226",
     "unidade": "UN",
     "preco_venda": "79,9",
-    "pai": "Dia a Dia",
-    "filho": "Outros",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -9308,8 +9308,8 @@ export const BANCO_COMPLETO = {
     "codigo": "20930",
     "unidade": "UN",
     "preco_venda": "3",
-    "pai": "Acompanhamento",
-    "filho": "Acompanhamento",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -9317,8 +9317,8 @@ export const BANCO_COMPLETO = {
     "codigo": "20920",
     "unidade": "UN",
     "preco_venda": "4",
-    "pai": "Acompanhamento",
-    "filho": "Acompanhamento",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -10091,8 +10091,8 @@ export const BANCO_COMPLETO = {
     "codigo": "210121",
     "unidade": "UN",
     "preco_venda": "16",
-    "pai": "Queijo",
-    "filho": "Outros",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -10100,8 +10100,8 @@ export const BANCO_COMPLETO = {
     "codigo": "3009",
     "unidade": "UN",
     "preco_venda": "15",
-    "pai": "Queijo",
-    "filho": "Outros",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -10307,8 +10307,8 @@ export const BANCO_COMPLETO = {
     "codigo": "201",
     "unidade": "UN",
     "preco_venda": "3",
-    "pai": "Acompanhamento",
-    "filho": "Acompanhamento",
+    "pai": "Kit Burguer",
+    "filho": "Kit Burguer",
     "neto": "OUTROS",
     "bisneto": "Outras Marcas"
   },
@@ -11453,10 +11453,12 @@ export const ORDEM_CATEGORIAS_PAI = [
   "Outros",
   "Sobremesa",
   "Acessório",
-  "Dia a Dia"
+  "Dia a Dia",
+  "Kit Burguer"
 ];
 
 export const ORDEM_FILHOS = [
+  "Kit Burguer",
   "Churrasco",
   "Dia a Dia",
   "Bebida",

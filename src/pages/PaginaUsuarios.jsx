@@ -74,6 +74,7 @@ const PaginaUsuarios = () => {
           <select className="w-full bg-slate-50 p-3 rounded-xl border-none text-xs font-bold" value={novoUser.cargo} onChange={e => setNovoUser({...novoUser, cargo: e.target.value})}>
             <option value="comercial">Comercial</option>
             <option value="estoque">Adm Estoque</option>
+            <option value="producao">Produção</option>
             <option value="adm">Administrador</option>
           </select>
         </div>

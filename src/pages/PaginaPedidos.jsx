@@ -75,7 +75,7 @@ const PaginaPedidos = ({ user }) => {
           eUsoConsumo,
         };
       }).filter(p => p.preco > 0);
-      setEstoque(lista);
+      setEstoque([...lista].sort((a,b) => (a.nome||'').localeCompare(b.nome||'')));
     })();
   }, [user]);
 
