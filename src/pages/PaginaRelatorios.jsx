@@ -273,13 +273,17 @@ const CardRelatorio = ({ reg }) => {
 };
 
 // ── Página principal ──────────────────────────────────────────────────────────
-const PaginaRelatorios = () => {
+const PaginaRelatorios = ({ user }) => {
   const [pesquisa, setPesquisa]   = useState('');
   const [filtroData, setFiltroData] = useState('');
   const [filtroTipo, setFiltroTipo] = useState('TODOS');
+  const [filtroFilial, setFiltroFilial] = useState('TODAS');
   const [historico, setHistorico] = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [imprimindo, setImprimindo] = useState(false);
+
+  const isAdminOrEstoque = user?.cargo === 'master' || user?.cargo === 'adm' || user?.cargo === 'estoque' || user?.cargo === 'gestorestoque';
+  const filialUsuario = user?.unidade || '';
 
   const carregar = async () => {
     setCarregando(true);
@@ -297,12 +301,16 @@ const PaginaRelatorios = () => {
         if (!reg) return false;
         const matchTipo = filtroTipo==='TODOS' || reg.tipo===filtroTipo;
         const matchData = !filtroData || (reg.data&&reg.data.includes(filtroData));
+        const matchFilialCombo = filtroFilial==='TODAS' || reg.filial===filtroFilial || reg.destino===filtroFilial || reg.unidadeOrigem===filtroFilial;
+        const matchRestricaoRole = isAdminOrEstoque || reg.filial===filialUsuario || reg.destino===filialUsuario || reg.unidadeOrigem===filialUsuario;
+        
         const matchTexto =
           (reg.idExterno?.toString().toLowerCase().includes(termo)) ||
           (reg.id?.toString().toLowerCase().includes(termo)) ||
           (reg.cliente?.toLowerCase().includes(termo)) ||
           (reg.itens?.some(i=>i.nome?.toLowerCase().includes(termo)||i.codigo?.toString().includes(termo)));
-        return matchTipo && matchData && matchTexto;
+          
+        return matchTipo && matchData && matchFilialCombo && matchRestricaoRole && matchTexto;
       });
       // A ordem base já vem invertida cronologicamente (último feito no topo).
   }, [pesquisa, filtroData, filtroTipo, historico]);
@@ -365,6 +373,23 @@ const PaginaRelatorios = () => {
           </div>
         </div>
       </div>
+      
+      {isAdminOrEstoque && (
+        <div className="p-5 mt-3 rounded-[28px] border" style={{backgroundColor:'var(--bg-card)',borderColor:'var(--border)'}}>
+           <div className="space-y-1.5 max-w-sm">
+             <label style={{fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)',display:'block',paddingLeft:4}}>Filial</label>
+             <div className="flex items-center gap-2 p-3 rounded-2xl" style={{backgroundColor:'var(--bg-elevated)'}}>
+               <Filter size={14} style={{color:'var(--text-muted)',flexShrink:0}}/>
+               <select className="bg-transparent border-none outline-none w-full text-xs font-bold uppercase" style={{color:'var(--text-primary)'}} value={filtroFilial} onChange={e=>setFiltroFilial(e.target.value)}>
+                 <option value="TODAS">Todas as Filiais</option>
+                 {Array.from(new Set(historico.map(r=>r.filial||r.destino||r.unidadeOrigem).filter(Boolean))).sort().map(fil => (
+                   <option key={fil} value={fil}>{fil}</option>
+                 ))}
+               </select>
+             </div>
+           </div>
+        </div>
+      )}
 
       {/* Lista de relatórios — fechados por padrão */}
       <div className="space-y-3">

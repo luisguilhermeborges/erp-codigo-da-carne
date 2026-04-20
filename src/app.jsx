@@ -57,7 +57,13 @@ function App() {
       const salvo = localStorage.getItem('usuario_logado');
       if (salvo) {
         const userObj = JSON.parse(salvo);
-        if (userObj && userObj.login) setUsuario(userObj);
+        if (userObj && userObj.login) {
+          setUsuario(userObj);
+          // Redireciona comercial para pedidos por padrão, se a aba mural estiver restrita
+          if (userObj.cargo?.toLowerCase() === 'comercial' && abaAtiva === 'mural') {
+            setAbaAtiva('pedidos');
+          }
+        }
       }
     } catch (e) {
       console.error("Erro ao carregar sessão:", e);

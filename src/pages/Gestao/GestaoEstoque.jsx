@@ -178,7 +178,6 @@ const GestaoEstoque = ({ user }) => {
                 <div>
                   <label style={{fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)',display:'block',marginBottom:4}}>Categoria Pai</label>
                   <select value={form.pai} onChange={e=>setForm({...form,pai:e.target.value})}
-                    disabled={editando}
                     className="w-full p-4 rounded-2xl font-bold text-xs uppercase outline-none"
                     style={{backgroundColor:'var(--bg-elevated)',color:'var(--text-primary)',border:'1px solid var(--border)'}}>
                     {ORDEM_CATEGORIAS_PAI.map(c=><option key={c} value={c}>{c}</option>)}
@@ -188,7 +187,6 @@ const GestaoEstoque = ({ user }) => {
                 <div>
                   <label style={{fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)',display:'block',marginBottom:4}}>Subcategoria</label>
                   <input value={form.filho} onChange={e=>setForm({...form,filho:e.target.value.toUpperCase()})}
-                    disabled={editando}
                     className="w-full p-4 rounded-2xl font-bold text-xs uppercase outline-none"
                     style={{backgroundColor:'var(--bg-elevated)',color:'var(--text-primary)',border:'1px solid var(--border)'}}/>
                 </div>
@@ -196,7 +194,6 @@ const GestaoEstoque = ({ user }) => {
                 <div>
                   <label style={{fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)',display:'block',marginBottom:4}}>Unidade</label>
                   <select value={form.unidade} onChange={e=>setForm({...form,unidade:e.target.value})}
-                    disabled={editando}
                     className="w-full p-4 rounded-2xl font-bold text-xs uppercase outline-none"
                     style={{backgroundColor:'var(--bg-elevated)',color:'var(--text-primary)',border:'1px solid var(--border)'}}>
                     {UNIDADES.map(u=><option key={u} value={u}>{u}</option>)}
@@ -216,7 +213,7 @@ const GestaoEstoque = ({ user }) => {
               {editando && (
                 <div style={{padding:'0.75rem',borderRadius:'0.875rem',backgroundColor:'rgba(59,130,246,0.06)',border:'1px solid rgba(59,130,246,0.15)',fontSize:'0.65rem',color:'var(--text-secondary)',display:'flex',alignItems:'center',gap:'0.5rem'}}>
                   <Package size={14} style={{color:'var(--accent-bright)',flexShrink:0}}/>
-                  Nome, categoria e unidade são definidos pelo banco de dados CDC. Aqui você altera apenas o <strong>preço</strong>.
+                  Agora você pode editar nome, categoria e unidade além do <strong>preço</strong>.
                 </div>
               )}
             </div>

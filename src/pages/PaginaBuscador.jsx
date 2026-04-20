@@ -4,7 +4,7 @@ import * as XLSX from 'xlsx';
 import { getEstoque, getHistorico, getPrecos } from '../services/cache';
 import { api } from '../services/api';
 
-const PaginaBuscador = () => {
+const PaginaBuscador = ({ user }) => {
   const [termo, setTermo]                     = useState('');
   const [catalogo, setCatalogo]               = useState([]);
   const [mapaDatas, setMapaDatas]             = useState({});
@@ -13,6 +13,8 @@ const PaginaBuscador = () => {
   const [ultimaImportacao, setUltimaImportacao] = useState(null);
   const [avisoImport, setAvisoImport]         = useState(null); // { tipo, msg }
   const fileInputRef = useRef();
+
+  const isComercial = user?.cargo?.toLowerCase() === 'comercial';
 
   // ── Carregar data da última importação do localStorage ──
   useEffect(() => {
@@ -24,7 +26,7 @@ const PaginaBuscador = () => {
     setCarregando(true);
     try {
       const [dados, hist] = await Promise.all([
-        getEstoque({ apenasComPreco: false }),
+        getEstoque({ apenasComPreco: isComercial }),
         getHistorico().catch(()=>[])
       ]);
       setCatalogo(dados);

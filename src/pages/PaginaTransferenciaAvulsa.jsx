@@ -21,16 +21,18 @@ const PaginaTransferenciaAvulsa = ({ user }) => {
   const [sucesso, setSucesso]           = useState(false);
   const inputRef = useRef(null);
 
+  const isComercial = user?.cargo?.toLowerCase() === 'comercial';
+
   useEffect(() => {
-    getEstoque().then(setCatalogo).catch(() => {
+    getEstoque({ apenasComPreco: isComercial }).then(setCatalogo).catch(() => {
       const precos = JSON.parse(localStorage.getItem('precos_cdc') || '{}');
       const dados = Object.entries(BANCO_COMPLETO).map(([nome, v]) => {
         const cod = String(v.codigo ?? '').trim();
         return { id: cod, codigo: cod, nome, unidade: v.unidade, pai: v.pai || 'Outros', filho: v.filho || 'Outros', preco: precos[cod] ?? 0 };
       });
-      setCatalogo(dados);
+      setCatalogo(isComercial ? dados.filter(d => d.preco > 0) : dados);
     });
-  }, []);
+  }, [isComercial]);
 
   // Atualizar sugestões conforme digita
   useEffect(() => {

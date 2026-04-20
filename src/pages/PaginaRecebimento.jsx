@@ -38,12 +38,11 @@ const ChipValidade = ({ dtValidade }) => {
 // ── Modal de recebimento de uma transferência ─────────────────────────────────
 const ModalRecebimento = ({ transferencia, user, onClose, onConfirmado }) => {
   const [itens, setItens] = useState(
-    (transferencia.itens || []).map(item => ({
+    (transferencia.itens || []).filter(item => Number(item.qtdEnviada ?? item.qtd) > 0).map(item => ({
       ...item,
       recebido: item.recebido ?? true,
       dtProducao: item.dtProducao || '',
       dtValidade: item.dtValidade || '',
-      precoEtiqueta: item.precoEtiqueta || '',
     }))
   );
   const [enviando, setEnviando] = useState(false);
@@ -53,11 +52,11 @@ const ModalRecebimento = ({ transferencia, user, onClose, onConfirmado }) => {
     setItens(prev => prev.map((it, i) => i === idx ? { ...it, [campo]: valor } : it));
   };
 
-  const todosConfirmados = itens.every(i => !i.recebido || (i.dtProducao && i.dtValidade && i.precoEtiqueta));
+  const todosConfirmados = itens.every(i => !i.recebido || (i.dtProducao && i.dtValidade));
 
   const confirmar = async () => {
     if (!todosConfirmados) {
-      setErro('Preencha Preço Etiqueta, Data de Produção e Validade para todos os itens recebidos.');
+      setErro('Preencha Data de Produção e Validade para todos os itens recebidos.');
       return;
     }
     setErro('');
@@ -143,30 +142,6 @@ const ModalRecebimento = ({ transferencia, user, onClose, onConfirmado }) => {
                     <span style={{ fontWeight: 800, color: 'var(--accent-bright)' }}>
                       {Number(item.qtdEnviada ?? item.qtd).toFixed(item.unidade === 'KG' ? 3 : 0)} {item.unidade}
                     </span>
-                  </td>
-                  {/* Preço Etiqueta */}
-                  <td style={{ padding: '10px 12px', width: '120px' }}>
-                    <div style={{ position: 'relative' }}>
-                      <span style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', fontSize: '0.65rem', fontWeight: 900, color: 'var(--text-muted)' }}>R$</span>
-                      <input
-                        type="text"
-                        placeholder="0,00"
-                        value={item.precoEtiqueta}
-                        disabled={!item.recebido}
-                        onChange={e => {
-                          const val = e.target.value.replace(/[^\d,]/g, '');
-                          atualizarItem(idx, 'precoEtiqueta', val);
-                        }}
-                        style={{
-                          backgroundColor: item.recebido ? 'var(--bg-elevated)' : 'transparent',
-                          border: `2px solid ${item.recebido && !item.precoEtiqueta ? '#f59e0b' : 'var(--border)'}`,
-                          borderRadius: 12, padding: '8px 8px 8px 28px', fontSize: '0.85rem', fontWeight: 900,
-                          color: 'var(--accent-bright)', outline: 'none', width: '100%',
-                          transition: 'all 0.2s',
-                          boxShadow: item.recebido && item.precoEtiqueta ? '0 2px 8px rgba(59,130,246,0.1)' : 'none'
-                        }}
-                      />
-                    </div>
                   </td>
                   {/* Data de produção */}
                   <td style={{ padding: '10px 12px' }}>
@@ -306,7 +281,7 @@ const CardTransferencia = ({ transferencia, onAbrir }) => {
       {expandido && (
         <div style={{ borderTop: '1px solid var(--border)', padding: '1rem 1.25rem' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {(transferencia.itens || []).map((item, idx) => (
+            {(transferencia.itens || []).filter(item => Number(item.qtdEnviada ?? item.qtd) > 0).map((item, idx) => (
               <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--border)', opacity: 0.85 }}>
                 <div>
                   <p style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-primary)' }}>{item.nome}</p>

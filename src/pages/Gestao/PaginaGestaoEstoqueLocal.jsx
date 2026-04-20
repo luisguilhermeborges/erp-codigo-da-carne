@@ -12,7 +12,11 @@ const PaginaGestaoEstoqueLocal = ({ user }) => {
   const [estoque, setEstoque] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [pesquisa, setPesquisa] = useState('');
-  const [filtroUnidade, setFiltroUnidade] = useState('TODAS');
+  const [filtroUnidade, setFiltroUnidade] = useState(() => {
+    const cargo = user?.cargo?.toLowerCase();
+    const isGestor = ['master', 'adm', 'gestorestoque'].includes(cargo);
+    return isGestor ? 'TODAS' : (user?.unidade || 'TODAS');
+  });
   const [filtroStatus, setFiltroStatus] = useState('TODOS');
   const [filiais, setFiliais] = useState([]);
 
@@ -115,19 +119,21 @@ const PaginaGestaoEstoqueLocal = ({ user }) => {
             </div>
           </div>
 
-          <div className="min-w-[150px]">
-            <label className="block text-[10px] font-bold uppercase mb-2 text-[var(--text-muted)]">Unidade</label>
-            <select 
-              value={filtroUnidade} 
-              onChange={e => setFiltroUnidade(e.target.value)}
-              className="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl py-2.5 px-4 text-sm font-bold outline-none cursor-pointer"
-            >
-              <option value="TODAS">TODAS AS UNIDADES</option>
-              {filiais.map(f => (
-                <option key={f._id} value={f.nome}>{f.nome}</option>
-              ))}
-            </select>
-          </div>
+          {['master', 'adm', 'gestorestoque'].includes(user?.cargo?.toLowerCase()) && (
+            <div className="min-w-[150px]">
+              <label className="block text-[10px] font-bold uppercase mb-2 text-[var(--text-muted)]">Unidade</label>
+              <select 
+                value={filtroUnidade} 
+                onChange={e => setFiltroUnidade(e.target.value)}
+                className="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl py-2.5 px-4 text-sm font-bold outline-none cursor-pointer"
+              >
+                <option value="TODAS">TODAS AS UNIDADES</option>
+                {filiais.map(f => (
+                  <option key={f._id} value={f.nome}>{f.nome}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="min-w-[150px]">
             <label className="block text-[10px] font-bold uppercase mb-2 text-[var(--text-muted)]">Status Validade</label>
