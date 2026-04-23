@@ -1,16 +1,6 @@
 // Configuração central da API
-const hostname = window.location.hostname;
-const isLocal = hostname === 'localhost' || 
-                hostname === '127.0.0.1' || 
-                hostname.startsWith('192.168.') || 
-                hostname.startsWith('10.') ||
-                hostname === 'sistema.codigodacarne.com.br';
-
-// Se estiver no domínio oficial ou local, a API deve apontar para a porta 5000 do próprio servidor
-const protocol = window.location.protocol;
-const BASE = isLocal 
-  ? `${protocol}//${hostname}:5000/api` 
-  : 'https://api-codigo-da-carne.onrender.com/api';
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const BASE = isLocal ? 'http://localhost:5000/api' : 'https://api-codigo-da-carne.onrender.com/api';
 
 const get  = (path)       => fetch(`${BASE}${path}`).then(r => r.json());
 const post = (path, body) => fetch(`${BASE}${path}`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }).then(r => r.json());
