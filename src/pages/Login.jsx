@@ -47,7 +47,8 @@ const Login = ({ onLogin }) => {
 
     // 2. VERIFICAÇÃO NO MONGODB
     try {
-      const user = await api.usuarios.buscarUm(username);
+      const loginTratado = username.trim().toLowerCase();
+      const user = await api.usuarios.buscarUm(loginTratado);
       
       if (!user || user.error) {
         setErro('UTILIZADOR NÃO ENCONTRADO');
@@ -160,6 +161,9 @@ const Login = ({ onLogin }) => {
                   className="w-full bg-white/5 border border-white/10 p-5 pl-14 rounded-2xl text-white font-black text-xs uppercase outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all placeholder:text-slate-700"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck="false"
                   required
                 />
               </div>
