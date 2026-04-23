@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { api } from '../services/api';
 import {
   Heart, ExternalLink, ShoppingBag, Trash2, Plus, X,
   Beef, Shield, Clock, Users, Flame, Star, ChevronDown,

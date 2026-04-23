@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Heart, Camera, Trash2, Plus, X, Save, CheckSquare, Square, ArrowLeft, ArrowRight } from 'lucide-react';
+import { api } from '../services/api';
 
 const MuralSonhos = ({ user }) => {
   if (!user) return null;
