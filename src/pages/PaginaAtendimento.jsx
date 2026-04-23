@@ -101,21 +101,25 @@ const FolhaImpressao = ({ pedido, onFechar }) => {
 
         {naoAtendidos.length > 0 && (
           <>
-            <h2 style={{fontSize:'0.7rem',fontWeight:800,textTransform:'uppercase',marginBottom:'0.25rem',color:'#dc2626'}}>✗ Itens Não Atendidos ({naoAtendidos.length})</h2>
+            <h2 style={{fontSize:'0.7rem',fontWeight:800,textTransform:'uppercase',marginBottom:'0.25rem',color:'#dc2626'}}>✗ Itens a Separar ({naoAtendidos.length})</h2>
             <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.6rem',marginBottom:'1rem'}}>
               <thead>
                 <tr style={{backgroundColor:'#7f1d1d',color:'#fff'}}>
-                  {['#','Corte','Qtd Solicitada'].map(h=>(
+                  {['#','Produto','Código','Prioridade','Qtd Separada'].map(h=>(
                     <th key={h} style={{padding:'0.25rem 0.4rem',textAlign:'left',fontWeight:700,textTransform:'uppercase'}}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {naoAtendidos.map((item,i)=>(
-                  <tr key={i} style={{borderBottom:'1px solid #fecaca',backgroundColor:i%2===0?'#fff7f7':'#fff',height:'1.5rem'}}>
+                  <tr key={i} style={{borderBottom:'1px solid #fecaca',backgroundColor:i%2===0?'#fff7f7':'#fff',height:'1.8rem'}}>
                     <td style={{padding:'0.25rem 0.4rem',color:'#94a3b8',fontWeight:600}}>{i+1}</td>
-                    <td style={{padding:'0.25rem 0.4rem',fontWeight:700,textTransform:'uppercase'}}>{item.nome}</td>
-                    <td style={{padding:'0.25rem 0.4rem',fontWeight:700}}>{item.qtdSolicitada||item.qtd||'—'} {item.unidade}</td>
+                    <td style={{padding:'0.25rem 0.4rem',fontWeight:800,textTransform:'uppercase',color:'#450a0a'}}>{item.nome}</td>
+                    <td style={{padding:'0.25rem 0.4rem',fontFamily:'monospace',color:'#991b1b'}}>{item.codigo||'—'}</td>
+                    <td style={{padding:'0.25rem 0.4rem',fontWeight:900,color:item.prioridade===3?'#dc2626':item.prioridade===2?'#16a34a':'#2563eb'}}>
+                      {item.prioridade === 3 ? 'ALTA' : item.prioridade === 2 ? 'NORMAL' : 'BAIXA'}
+                    </td>
+                    <td style={{padding:'0.25rem 0.4rem',fontWeight:700,color:'#94a3b8'}}>_________________ {item.unidade}</td>
                   </tr>
                 ))}
               </tbody>
