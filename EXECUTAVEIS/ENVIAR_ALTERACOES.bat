@@ -1,8 +1,7 @@
 @echo off
+cd /d "%~dp0.."
 setlocal enabledelayedexpansion
 title CODIGO DA CARNE - GIT SYNC
-
-:: Configuração de cores (Fundo azul escuro, texto branco brilhante)
 color 1f
 
 echo.
@@ -13,16 +12,13 @@ echo  #                                                      #
 echo  ########################################################
 echo.
 
-:: 1. Verificar status
 echo [+] Verificando alteracoes...
 git status -s
 echo.
 
-:: 2. Adicionar arquivos
 echo [+] Preparando arquivos...
 git add .
 
-:: 3. Solicitar mensagem ou usar padrão
 set /p msg=">> Digite o que foi feito (ou ENTER para automatico): "
 
 if "!msg!"=="" (
@@ -33,7 +29,6 @@ echo.
 echo [+] Realizando commit...
 git commit -m "!msg!"
 
-:: 4. Enviar para o servidor
 echo.
 echo [+] Enviando para o GitHub...
 git push origin main
