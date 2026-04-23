@@ -158,6 +158,27 @@ const PaginaTransferenciaAvulsa = ({ user }) => {
         </div>
       </header>
 
+      {/* LEGENDA DE PRIORIDADES (Apenas Informativa) */}
+      <div className="p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4" style={{backgroundColor:'var(--bg-elevated)', border:'1px dashed var(--border-bright)'}}>
+        <div className="flex items-center gap-2">
+          <span style={{fontSize:'0.65rem',fontWeight:800,textTransform:'uppercase',color:'var(--text-secondary)'}}>Guia de Prioridades:</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <div style={{width:10,height:10,borderRadius:'50%',backgroundColor:'#3b82f6',boxShadow:'0 0 8px rgba(59,130,246,0.5)'}}></div>
+            <span style={{fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)'}}>Baixa <span style={{opacity:0.6}}>(Pouco Urgente)</span></span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div style={{width:10,height:10,borderRadius:'50%',backgroundColor:'#10b981',boxShadow:'0 0 8px rgba(16,185,129,0.5)'}}></div>
+            <span style={{fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)'}}>Normal <span style={{opacity:0.6}}>(Estoque ok, precisa repor)</span></span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div style={{width:10,height:10,borderRadius:'50%',backgroundColor:'#ef4444',boxShadow:'0 0 8px rgba(239,68,68,0.5)'}}></div>
+            <span style={{fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)'}}>Alta <span style={{opacity:0.6}}>(Urgente)</span></span>
+          </div>
+        </div>
+      </div>
+
       {/* ── CAMPO PRINCIPAL DE BUSCA / LEITOR ── */}
       <div className="relative">
         <div

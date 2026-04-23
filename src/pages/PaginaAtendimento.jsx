@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { CheckCircle, Package, XCircle, RefreshCw, Printer, Barcode, Plus, Search, Trash2, ChevronUp, ChevronDown, Layers, ArrowRight } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { api } from '../services/api';
@@ -43,8 +44,8 @@ const FolhaImpressao = ({ pedido, onFechar }) => {
   const atendidos    = expandirItens(pedido.itens);
   const naoAtendidos = naoAtendidosItens(pedido.itens);
 
-  return (
-    <div className="fixed inset-0 z-[9999] bg-white overflow-auto" style={{color:'#000',fontFamily:'sans-serif'}}>
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] bg-white overflow-auto folha-print-wrapper" style={{color:'#000',fontFamily:'sans-serif'}}>
       <div style={{maxWidth:820,margin:'0 auto',padding:'2rem'}}>
         <div className="flex gap-3 mb-6 print:hidden">
           <button onClick={()=>window.print()} style={{padding:'0.75rem 1.5rem',backgroundColor:'#1e40af',color:'#fff',borderRadius:'0.75rem',fontWeight:700,fontSize:'0.8rem',textTransform:'uppercase',cursor:'pointer',border:'none',display:'flex',alignItems:'center',gap:'0.5rem'}}>
@@ -132,8 +133,35 @@ const FolhaImpressao = ({ pedido, onFechar }) => {
           <span>Código da Carne © 2026</span>
         </div>
       </div>
-      <style>{`@media print { .print\\:hidden { display: none !important; } }`}</style>
-    </div>
+      <style>{`
+        @media print { 
+          #root { display: none !important; }
+          body, html { 
+            background: white !important; 
+            overflow: visible !important; 
+            height: auto !important; 
+          }
+          .print\\:hidden { display: none !important; }
+          
+          .folha-print-wrapper {
+            position: static !important;
+            display: block !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: visible !important;
+            height: auto !important;
+            max-height: none !important;
+          }
+          
+          table { page-break-inside: auto; width: 100%; }
+          tr { page-break-inside: avoid; page-break-after: auto; }
+          thead { display: table-header-group; }
+          tfoot { display: table-footer-group; }
+        }
+      `}</style>
+    </div>,
+    document.body
   );
 };
 
@@ -198,7 +226,7 @@ const PaginaAtendimento = ({ user }) => {
     setCarregando(true);
     try {
       const dados = await getFila();
-      const filtrados = ['master','adm'].includes(user?.cargo?.toLowerCase())
+      const filtrados = ['master','adm','dev'].includes(user?.cargo?.toLowerCase())
         ? dados
         : dados.filter(p => p.unidadeOrigem === user?.unidade || !p.unidadeOrigem);
       setFila([...filtrados].sort((a,b) => parseDataBR(b.data) - parseDataBR(a.data)));
@@ -372,6 +400,27 @@ const PaginaAtendimento = ({ user }) => {
       <div className="flex-1 min-w-0">
         {pedidoSelecionado ? (
           <div className="space-y-4">
+
+            {/* LEGENDA DE PRIORIDADES */}
+            <div className="p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4" style={{backgroundColor:'var(--bg-elevated)', border:'1px dashed var(--border-bright)'}}>
+              <div className="flex items-center gap-2">
+                <span style={{fontSize:'0.65rem',fontWeight:800,textTransform:'uppercase',color:'var(--text-secondary)'}}>Guia de Prioridades:</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div style={{width:10,height:10,borderRadius:'50%',backgroundColor:'#3b82f6',boxShadow:'0 0 8px rgba(59,130,246,0.5)'}}></div>
+                  <span style={{fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)'}}>Baixa <span style={{opacity:0.6}}>(Pouco Urgente)</span></span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div style={{width:10,height:10,borderRadius:'50%',backgroundColor:'#10b981',boxShadow:'0 0 8px rgba(16,185,129,0.5)'}}></div>
+                  <span style={{fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)'}}>Normal <span style={{opacity:0.6}}>(Estoque ok, precisa repor)</span></span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div style={{width:10,height:10,borderRadius:'50%',backgroundColor:'#ef4444',boxShadow:'0 0 8px rgba(239,68,68,0.5)'}}></div>
+                  <span style={{fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)'}}>Alta <span style={{opacity:0.6}}>(Urgente)</span></span>
+                </div>
+              </div>
+            </div>
 
             {/* Header */}
             <header className="p-5 rounded-[28px] border" style={{backgroundColor:'var(--bg-card)',borderColor:'var(--border)'}}>

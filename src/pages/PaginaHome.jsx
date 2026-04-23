@@ -57,7 +57,8 @@ const VALORES = [
 
 // ── Contatos Gerenciáveis ─────────────────────────────────────────────────────
 const ContatosGerenciaveis = ({ user }) => {
-  const isMaster = user?.cargo?.toLowerCase() === 'master' || user?.cargo?.toLowerCase() === 'adm';
+  const cargoStr = user?.cargo?.toLowerCase() || '';
+  const isMaster = cargoStr === 'master' || cargoStr === 'adm' || cargoStr === 'dev';
   const padrao = [
     { id: 1, label: 'SUPORTE INTERNO', valor: '(44) 99999-0000' },
     { id: 2, label: 'RH / GESTÃO', valor: '(44) 98888-0001' },
@@ -145,7 +146,7 @@ const ContatosGerenciaveis = ({ user }) => {
 const Classificados = ({ user }) => {
   const [anuncios, setAnuncios]       = useState([]);
   const [modal, setModal]             = useState(false);
-  const [novo, setNovo]               = useState({ titulo: '', preco: '', contato: '' });
+  const [novo, setNovo]               = useState({ titulo: '', preco: '', contato: '', foto: null });
 
   useEffect(() => {
     api.home.anuncios.buscar().then(setAnuncios).catch(() => {});
@@ -157,7 +158,7 @@ const Classificados = ({ user }) => {
       const item = { ...novo, id: Date.now(), autor: user.nome, userId: user.login };
       const salvo = await api.home.anuncios.salvar(item);
       setAnuncios([salvo, ...anuncios]);
-      setNovo({ titulo:'', preco:'', contato:'' });
+      setNovo({ titulo:'', preco:'', contato:'', foto: null });
       setModal(false);
     } catch {
       alert("Erro ao publicar anúncio");
@@ -212,6 +213,11 @@ const Classificados = ({ user }) => {
                   <Trash2 size={13}/>
                 </button>
               )}
+              {a.foto && (
+                <div style={{width:'100%', height:'140px', marginBottom:'0.75rem', borderRadius:'0.75rem', overflow:'hidden'}}>
+                  <img src={a.foto} alt="Anúncio" style={{width:'100%', height:'100%', objectFit:'cover'}} />
+                </div>
+              )}
               <h4 style={{fontSize:'0.75rem',fontWeight:800,textTransform:'uppercase',fontStyle:'italic',color:'var(--text-primary)',marginBottom:4,paddingRight:20}}>{a.titulo}</h4>
               {a.preco && <p style={{fontSize:'0.85rem',fontWeight:900,color:'#10b981'}}>R$ {a.preco}</p>}
               <div style={{marginTop:'0.75rem',paddingTop:'0.5rem',borderTop:'1px solid var(--border)',fontSize:'0.65rem',color:'var(--text-muted)'}}>
@@ -248,6 +254,33 @@ const Classificados = ({ user }) => {
                   if (n.length>7) f = '(' + n.slice(0,2) + ') ' + n.slice(2,3) + ' ' + n.slice(3,7) + '-' + n.slice(7,11);
                   setNovo({...novo,contato:f});
                 }}/>
+            </div>
+            
+            <div className="flex flex-col gap-2">
+              <label style={{fontSize:'0.65rem',fontWeight:800,textTransform:'uppercase',color:'var(--text-muted)'}}>Adicionar Foto (Opcional)</label>
+              <div className="flex items-center gap-3">
+                <label className="flex items-center justify-center gap-2 p-3 rounded-xl cursor-pointer transition-colors"
+                  style={{backgroundColor:'var(--bg-elevated)',border:'1px dashed var(--border-bright)', color:'var(--text-secondary)'}}
+                  onMouseEnter={e=>e.currentTarget.style.borderColor='var(--accent)'}
+                  onMouseLeave={e=>e.currentTarget.style.borderColor='var(--border-bright)'}>
+                  <Camera size={16} />
+                  <span style={{fontSize:'0.65rem',fontWeight:700,textTransform:'uppercase'}}>{novo.foto ? 'Trocar Imagem' : 'Escolher Imagem'}</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (file.size > 2 * 1024 * 1024) return alert("Imagem muito grande! Máximo 2MB.");
+                    const reader = new FileReader();
+                    reader.onload = ev => setNovo({...novo, foto: ev.target.result});
+                    reader.readAsDataURL(file);
+                  }} />
+                </label>
+                {novo.foto && (
+                  <div className="relative">
+                    <img src={novo.foto} alt="Preview" style={{width:40,height:40,borderRadius:8,objectFit:'cover'}} />
+                    <button onClick={()=>setNovo({...novo,foto:null})} style={{position:'absolute',top:-6,right:-6,background:'red',color:'white',border:'none',borderRadius:'50%',width:16,height:16,fontSize:10,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex gap-3 pt-2">
               <button onClick={postar} className="flex-1 py-4 rounded-2xl font-black uppercase text-xs text-white" style={{backgroundColor:'var(--accent)',boxShadow:'0 4px 16px var(--accent-glow)',border:'none',cursor:'pointer'}}>Publicar</button>

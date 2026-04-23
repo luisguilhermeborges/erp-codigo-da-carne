@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { api } from './services/api';
 
 // Importação das Páginas
 import Login from './pages/Login';
@@ -47,6 +48,50 @@ const EmDesenvolvimento = ({ icone: Icone, titulo, descricao }) => (
   </div>
 );
 
+const TermosDeUso = ({ user, onAccept }) => {
+  const [salvando, setSalvando] = useState(false);
+  
+  const aceitar = async () => {
+    setSalvando(true);
+    try {
+      const u = { ...user, termosAceitos: true };
+      await api.usuarios.salvar(u);
+      localStorage.setItem('usuario_logado', JSON.stringify(u));
+      onAccept(u);
+    } catch {
+      alert("Erro ao salvar aceite.");
+      setSalvando(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-3xl p-8 max-w-2xl w-full shadow-2xl flex flex-col max-h-[90vh]">
+        <h2 className="text-xl font-black uppercase mb-4 text-slate-900">Termos de Uso e Privacidade</h2>
+        <div className="flex-1 overflow-auto pr-2 text-xs text-slate-600 space-y-4 font-medium custom-scrollbar">
+          <p>Bem-vindo(a) ao ERP Código da Carne. Ao utilizar este sistema, você concorda com as seguintes condições:</p>
+          <h3 className="font-bold text-slate-800 uppercase mt-4">1. Uso da Plataforma</h3>
+          <p>O sistema é de uso exclusivo para as operações internas. O acesso é pessoal e intransferível. É expressamente proibido compartilhar suas credenciais de acesso com terceiros.</p>
+          <h3 className="font-bold text-slate-800 uppercase mt-4">2. Confidencialidade</h3>
+          <p>Todas as informações disponíveis no sistema (pedidos, valores, relatórios, cadastros, etc.) são estritamente confidenciais e de propriedade exclusiva da empresa.</p>
+          <h3 className="font-bold text-slate-800 uppercase mt-4">3. Conduta e Responsabilidade</h3>
+          <p>O colaborador deve utilizar a plataforma de maneira ética e profissional. Os registros, como no Mural dos Sonhos e Classificados, não devem conter material ofensivo ou inadequado.</p>
+          <h3 className="font-bold text-slate-800 uppercase mt-4">4. Política de Cookies e Dados</h3>
+          <p>Utilizamos armazenamento local (cookies/local storage) para manter sua sessão ativa e salvar preferências. Ao continuar, você concorda com a coleta e uso dos dados estritamente necessários para o funcionamento do sistema.</p>
+        </div>
+        <div className="mt-6 pt-6 border-t border-slate-100 flex justify-end gap-3">
+          <button 
+            onClick={aceitar} 
+            disabled={salvando}
+            className="px-6 py-4 bg-blue-600 text-white rounded-xl font-black uppercase text-xs hover:bg-blue-700 disabled:opacity-50 transition-colors">
+            {salvando ? 'Salvando...' : 'Li e Aceito os Termos'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 function App() {
   const [usuario, setUsuario] = useState(null);
   const [abaAtiva, setAbaAtiva] = useState('mural');
@@ -72,6 +117,11 @@ function App() {
 
   if (!usuario) {
     return <Login onLogin={(user) => setUsuario(user)} />;
+  }
+
+  // Se o usuário já passou pelo primeiro acesso (trocou a senha) e ainda não aceitou os termos:
+  if (usuario.primeiroAcesso === false && !usuario.termosAceitos) {
+    return <TermosDeUso user={usuario} onAccept={(user) => setUsuario(user)} />;
   }
 
   return (

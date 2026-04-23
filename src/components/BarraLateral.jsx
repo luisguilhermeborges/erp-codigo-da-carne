@@ -63,10 +63,10 @@ const BarraLateral = ({ usuario, abaAtiva, setAbaAtiva, onLogout, menuAberto, se
       id: 'estoque_menu',
       label: 'Gestão de Estoque',
       icon: Package,
-      roles: ['adm', 'master', 'gestorestoque', 'estoque', 'comercial', 'dev'],
+      roles: ['adm', 'master', 'gestorestoque', 'estoque', 'comercial', 'producao', 'dev'],
       subItems: [
         { id: 'pedidos', label: 'Fazer Pedido', icon: ShoppingCart, roles: ['comercial', 'adm', 'master', 'estoque'] },
-        { id: 'atendimento', label: 'Atendimento', icon: LayoutDashboard, roles: ['adm', 'master', 'gestorestoque', 'estoque'], badge: pendentesAtendimento },
+        { id: 'atendimento', label: 'Atendimento', icon: LayoutDashboard, roles: ['adm', 'master', 'gestorestoque', 'estoque', 'producao'], badge: pendentesAtendimento },
         { id: 'transferencia', label: 'Transferência', icon: Repeat, roles: ['comercial', 'adm', 'master', 'gestorestoque', 'estoque'] },
         { id: 'recebimento', label: 'Recebimento', icon: PackageCheck, roles: ['comercial', 'adm', 'master'], badge: pendentesRecebimento, isDevelopment: true },
         { id: 'relatorios_estoque', label: 'Relatórios', icon: FileText, roles: ['adm', 'master', 'gestorestoque', 'estoque', 'dev'] },

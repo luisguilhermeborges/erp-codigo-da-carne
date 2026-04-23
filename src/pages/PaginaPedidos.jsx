@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ShoppingCart, Trash2, ChevronDown, ChevronRight, CheckCircle, AlertCircle, X, Search, ArrowRight, Building2, Package, Briefcase } from 'lucide-react';
+import { ShoppingCart, Trash2, ChevronDown, ChevronRight, CheckCircle, AlertCircle, X, Search, ArrowRight, Building2, Package, Briefcase, Info } from 'lucide-react';
 import { BANCO_PADRAO, ORDEM_CATEGORIAS_PAI, ORDEM_FILHOS } from '../data/bancoPadrao';
+import { ITENS_USO_CONSUMO } from '../data/itensUsoConsumo';
 import { api } from '../services/api';
 import { getPrecos, getFiliais } from '../services/cache';
 
@@ -75,7 +76,9 @@ const PaginaPedidos = ({ user }) => {
           eUsoConsumo,
         };
       }).filter(p => p.preco > 0);
-      setEstoque([...lista].sort((a,b) => (a.nome||'').localeCompare(b.nome||'')));
+      
+      const listaCompleta = [...lista, ...ITENS_USO_CONSUMO.map(i => ({...i, id: i.codigo}))];
+      setEstoque(listaCompleta.sort((a,b) => (a.nome||'').localeCompare(b.nome||'')));
     })();
   }, [user]);
 
@@ -249,6 +252,28 @@ const PaginaPedidos = ({ user }) => {
 
       {/* ══════════════════ LISTA DE PRODUTOS ═══════════════════════ */}
       <div className={`flex-1 overflow-y-auto space-y-3 pr-2 pb-24 xl:pb-0 ${mostrarCarrinhoMobile ? 'hidden xl:block' : 'block'}`}>
+        
+        {/* LEGENDA DE PRIORIDADES */}
+        <div className="mb-6 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4" style={{backgroundColor:'var(--bg-elevated)', border:'1px dashed var(--border-bright)'}}>
+          <div className="flex items-center gap-2">
+            <Info size={16} style={{color:'var(--text-muted)'}} />
+            <span style={{fontSize:'0.65rem',fontWeight:800,textTransform:'uppercase',color:'var(--text-secondary)'}}>Guia de Prioridades:</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div style={{width:10,height:10,borderRadius:'50%',backgroundColor:'#3b82f6',boxShadow:'0 0 8px rgba(59,130,246,0.5)'}}></div>
+              <span style={{fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)'}}>Baixa <span style={{opacity:0.6}}>(Precisamos de pouco)</span></span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div style={{width:10,height:10,borderRadius:'50%',backgroundColor:'#10b981',boxShadow:'0 0 8px rgba(16,185,129,0.5)'}}></div>
+              <span style={{fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)'}}>Normal <span style={{opacity:0.6}}>(Estoque ok, precisa repor)</span></span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div style={{width:10,height:10,borderRadius:'50%',backgroundColor:'#ef4444',boxShadow:'0 0 8px rgba(239,68,68,0.5)'}}></div>
+              <span style={{fontSize:'0.6rem',fontWeight:700,textTransform:'uppercase',color:'var(--text-muted)'}}>Alta <span style={{opacity:0.6}}>(Urgente)</span></span>
+            </div>
+          </div>
+        </div>
 
         {/* Cabeçalho */}
         <div className="flex justify-between items-end mb-4">

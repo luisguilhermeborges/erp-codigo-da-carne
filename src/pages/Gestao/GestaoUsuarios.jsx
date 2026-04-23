@@ -6,13 +6,16 @@ const GestaoUsuarios = ({ user }) => {
   const [usuarios, setUsuarios] = useState([]);
   const [aviso, setAviso] = useState({ show: false, titulo: '', msg: '', tipo: 'sucesso' });
   const [form, setForm] = useState({ nome: '', login: '', senha: '', cargo: 'comercial', unidades: [] });
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const ITENS_POR_PAGINA = 15;
 
   const filiaisMaster = ["000 - PRODUÇÃO", "001 - CENTRO", "002 - ALPHAVILLE", "003 - GLEBA"];
 
   const carregar = async () => {
     try {
       const data = await api.usuarios.buscar();
-      setUsuarios(data);
+      const ordenados = data.sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
+      setUsuarios(ordenados);
     } catch (e) {
       console.error(e);
     }
@@ -104,14 +107,15 @@ const GestaoUsuarios = ({ user }) => {
         <button type="submit" className="md:col-span-2 py-5 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs">Salvar Usuário</button>
       </form>
 
-      <div className="bg-white rounded-[40px] border border-slate-100 overflow-hidden shadow-sm">
-        <table className="w-full text-left">
-          <thead className="bg-slate-50 border-b font-black text-[10px] uppercase text-slate-400">
-            <tr><th className="p-6">Nome</th><th className="p-6">Acessos</th><th className="p-6">Status</th><th className="p-6 text-right">Ações</th></tr>
-          </thead>
-          <tbody>
-            {usuarios.map(u => {
-              const isTargetMaster = u.cargo?.toLowerCase() === 'master';
+      <div className="bg-white rounded-[40px] border border-slate-100 overflow-hidden shadow-sm flex flex-col">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead className="bg-slate-50 border-b font-black text-[10px] uppercase text-slate-400">
+              <tr><th className="p-6">Nome</th><th className="p-6">Acessos</th><th className="p-6">Status</th><th className="p-6 text-right">Ações</th></tr>
+            </thead>
+            <tbody>
+              {usuarios.slice((paginaAtual - 1) * ITENS_POR_PAGINA, paginaAtual * ITENS_POR_PAGINA).map(u => {
+                const isTargetMaster = u.cargo?.toLowerCase() === 'master';
               const canEdit = !isTargetMaster || user?.cargo?.toLowerCase() === 'master';
               const isPrimeiroAcesso = u.primeiroAcesso !== false;
 
@@ -156,6 +160,32 @@ const GestaoUsuarios = ({ user }) => {
             })}
           </tbody>
         </table>
+        </div>
+        
+        {/* Controles de Paginação */}
+        {usuarios.length > ITENS_POR_PAGINA && (
+          <div className="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50">
+            <span className="text-[10px] font-black uppercase text-slate-400 pl-4">
+              Página {paginaAtual} de {Math.ceil(usuarios.length / ITENS_POR_PAGINA)}
+            </span>
+            <div className="flex gap-2">
+              <button 
+                disabled={paginaAtual === 1}
+                onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
+                className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase text-slate-600 hover:bg-slate-100 disabled:opacity-50 transition-colors"
+              >
+                Anterior
+              </button>
+              <button 
+                disabled={paginaAtual >= Math.ceil(usuarios.length / ITENS_POR_PAGINA)}
+                onClick={() => setPaginaAtual(prev => prev + 1)}
+                className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase text-slate-600 hover:bg-slate-100 disabled:opacity-50 transition-colors"
+              >
+                Próxima
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
