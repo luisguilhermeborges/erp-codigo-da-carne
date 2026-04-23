@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { UserPlus, Trash2, Edit2, CheckCircle, AlertCircle } from 'lucide-react';
+import { UserPlus, Trash2, Edit2, CheckCircle, AlertCircle, KeyRound, RefreshCw } from 'lucide-react';
+import { api } from '../../services/api';
 
 const GestaoUsuarios = ({ user }) => {
   const [usuarios, setUsuarios] = useState([]);
@@ -9,9 +10,12 @@ const GestaoUsuarios = ({ user }) => {
   const filiaisMaster = ["000 - PRODUÇÃO", "001 - CENTRO", "002 - ALPHAVILLE", "003 - GLEBA"];
 
   const carregar = async () => {
-    const res = await fetch('https://api-codigo-da-carne.onrender.com/api/usuarios');
-    const data = await res.json();
-    setUsuarios(data);
+    try {
+      const data = await api.usuarios.buscar();
+      setUsuarios(data);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   useEffect(() => { carregar(); }, []);
@@ -26,18 +30,33 @@ const GestaoUsuarios = ({ user }) => {
   const salvar = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('https://api-codigo-da-carne.onrender.com/api/usuarios', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
-      });
-      if (res.ok) {
-        setAviso({ show: true, titulo: "Sucesso", msg: "Utilizador atualizado no MongoDB.", tipo: "sucesso" });
-        setForm({ nome: '', login: '', senha: '', cargo: 'comercial', unidades: [] });
-        carregar();
-      }
+      await api.usuarios.salvar(form);
+      setAviso({ show: true, titulo: "Sucesso", msg: "Utilizador salvo no banco de dados.", tipo: "sucesso" });
+      setForm({ nome: '', login: '', senha: '', cargo: 'comercial', unidades: [] });
+      carregar();
     } catch {
       setAviso({ show: true, titulo: "Erro", msg: "Falha na conexão.", tipo: "erro" });
+    }
+  };
+
+  const resetarSenha = async (userToReset) => {
+    if (!window.confirm(`Deseja realmente resetar a senha de ${userToReset.nome}? O acesso voltará a ser '123'.`)) return;
+    try {
+      await api.usuarios.salvar({ ...userToReset, senha: '', primeiroAcesso: true });
+      setAviso({ show: true, titulo: "Sucesso", msg: "Senha resetada para '123'.", tipo: "sucesso" });
+      carregar();
+    } catch {
+      setAviso({ show: true, titulo: "Erro", msg: "Falha ao resetar senha.", tipo: "erro" });
+    }
+  };
+
+  const apagar = async (id) => {
+    if (!window.confirm('Deseja realmente excluir este usuário?')) return;
+    try {
+      await api.usuarios.apagar(id);
+      carregar();
+    } catch {
+      setAviso({ show: true, titulo: "Erro", msg: "Falha ao apagar.", tipo: "erro" });
     }
   };
 
@@ -49,6 +68,7 @@ const GestaoUsuarios = ({ user }) => {
           <div className="bg-white rounded-[40px] p-10 text-center max-w-md w-full shadow-2xl">
             {aviso.tipo === 'erro' ? <AlertCircle size={64} className="text-red-500 mx-auto" /> : <CheckCircle size={64} className="text-emerald-500 mx-auto" />}
             <h3 className="text-2xl font-black uppercase mt-4">{aviso.titulo}</h3>
+            <p className="text-slate-500 mt-2 font-bold uppercase text-[10px]">{aviso.msg}</p>
             <button onClick={() => setAviso({ ...aviso, show: false })} className="mt-8 w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs">OK</button>
           </div>
         </div>
@@ -67,6 +87,7 @@ const GestaoUsuarios = ({ user }) => {
           <option value="comercial">Comercial</option>
           <option value="adm">Administrador</option>
           <option value="estoque">Estoque</option>
+          <option value="producao">Produção</option>
           {user?.cargo?.toLowerCase() === 'master' && <option value="master">Master</option>}
         </select>
 
@@ -80,31 +101,54 @@ const GestaoUsuarios = ({ user }) => {
             ))}
           </div>
         </div>
-        <button type="submit" className="md:col-span-2 py-5 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs">Gravar no MongoDB</button>
+        <button type="submit" className="md:col-span-2 py-5 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs">Salvar Usuário</button>
       </form>
 
       <div className="bg-white rounded-[40px] border border-slate-100 overflow-hidden shadow-sm">
         <table className="w-full text-left">
           <thead className="bg-slate-50 border-b font-black text-[10px] uppercase text-slate-400">
-            <tr><th className="p-6">Nome</th><th className="p-6">Acessos</th><th className="p-6 text-right">Ações</th></tr>
+            <tr><th className="p-6">Nome</th><th className="p-6">Acessos</th><th className="p-6">Status</th><th className="p-6 text-right">Ações</th></tr>
           </thead>
           <tbody>
             {usuarios.map(u => {
               const isTargetMaster = u.cargo?.toLowerCase() === 'master';
               const canEdit = !isTargetMaster || user?.cargo?.toLowerCase() === 'master';
+              const isPrimeiroAcesso = u.primeiroAcesso !== false;
 
               return (
               <tr key={u._id} className="border-b border-slate-50 hover:bg-slate-50/50">
                 <td className="p-6 font-black text-xs uppercase">{u.nome} {isTargetMaster && <span className="ml-2 text-amber-500">★</span>}<span className="block text-[8px] text-blue-500">{u.cargo}</span></td>
-                <td className="p-6 flex flex-wrap gap-1">
-                  {u.unidades?.map(un => <span key={un} className="bg-slate-100 text-slate-500 text-[8px] font-black px-2 py-1 rounded uppercase">{un}</span>)}
+                <td className="p-6">
+                  <div className="flex flex-wrap gap-1">
+                    {u.unidades?.map(un => <span key={un} className="bg-slate-100 text-slate-500 text-[8px] font-black px-2 py-1 rounded uppercase">{un.split(' - ')[0]}</span>)}
+                  </div>
+                </td>
+                <td className="p-6">
+                  {isPrimeiroAcesso ? (
+                    <span className="flex items-center gap-1 text-[9px] font-black text-amber-500 uppercase">
+                      <KeyRound size={12} /> 1º Acesso
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-[9px] font-black text-emerald-500 uppercase">
+                      <CheckCircle size={12} /> Ativo
+                    </span>
+                  )}
                 </td>
                 <td className="p-6 text-right">
                   {canEdit && (
-                    <>
-                      <button onClick={() => setForm(u)} className="p-2 text-blue-400"><Edit2 size={16} /></button>
-                      <button onClick={async () => { await fetch(`https://api-codigo-da-carne.onrender.com/api/usuarios/${u._id}`, { method: 'DELETE' }); carregar(); }} className="p-2 text-red-300"><Trash2 size={16} /></button>
-                    </>
+                    <div className="flex justify-end gap-2">
+                      {!isPrimeiroAcesso && (
+                        <button 
+                          onClick={() => resetarSenha(u)} 
+                          className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg transition-colors" 
+                          title="Resetar para Senha Padrão"
+                        >
+                          <RefreshCw size={16} />
+                        </button>
+                      )}
+                      <button onClick={() => setForm(u)} className="p-2 text-blue-400 hover:bg-blue-50 rounded-lg transition-colors" title="Editar"><Edit2 size={16} /></button>
+                      <button onClick={() => apagar(u._id)} className="p-2 text-red-300 hover:bg-red-50 rounded-lg transition-colors" title="Excluir"><Trash2 size={16} /></button>
+                    </div>
                   )}
                 </td>
               </tr>

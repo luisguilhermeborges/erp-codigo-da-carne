@@ -63,23 +63,43 @@ const ContatosGerenciaveis = ({ user }) => {
     { id: 3, label: 'LOJA MATRIZ', valor: '(44) 3333-3333' }
   ];
   
-  const [contatos, setContatos] = useState(() => JSON.parse(localStorage.getItem('contatos_lojas') || JSON.stringify(padrao)));
+  const [contatos, setContatos] = useState([]);
   const [editando, setEditando] = useState(false);
-  const [tempContatos, setTempContatos] = useState([...contatos]);
+  const [tempContatos, setTempContatos] = useState([]);
 
   useEffect(() => {
-    localStorage.setItem('contatos_lojas', JSON.stringify(contatos));
-  }, [contatos]);
+    api.home.contatos.buscar()
+      .then(dados => {
+        if (dados && dados.length > 0) {
+          setContatos(dados);
+          setTempContatos(dados);
+        } else {
+          setContatos(padrao);
+          setTempContatos(padrao);
+        }
+      })
+      .catch(() => {
+        setContatos(padrao);
+        setTempContatos(padrao);
+      });
+  }, []);
+
+  const salvarContatos = async () => {
+    try {
+      const novos = await api.home.contatos.salvar(tempContatos);
+      setContatos(novos);
+      setEditando(false);
+    } catch {
+      alert("Erro ao salvar contatos");
+    }
+  };
 
   if (editando) {
     return (
       <div style={{backgroundColor:'var(--bg-card)',border:'1px solid var(--accent)',borderRadius:'1.5rem',padding:'1.5rem'}}>
         <div className="flex justify-between items-center mb-3">
           <p style={{fontSize:'0.65rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'0.08em',color:'var(--accent)'}}>Editar Contatos</p>
-          <button onClick={() => {
-            setContatos(tempContatos);
-            setEditando(false);
-          }} style={{fontSize:'0.6rem',fontWeight:800,textTransform:'uppercase',padding:'4px 10px',backgroundColor:'var(--accent)',color:'#fff',borderRadius:'999px',border:'none'}}>Salvar</button>
+          <button onClick={salvarContatos} style={{fontSize:'0.6rem',fontWeight:800,textTransform:'uppercase',padding:'4px 10px',backgroundColor:'var(--accent)',color:'#fff',borderRadius:'999px',border:'none'}}>Salvar</button>
         </div>
         <div className="space-y-3">
           {tempContatos.map((c, i) => (
@@ -122,31 +142,35 @@ const ContatosGerenciaveis = ({ user }) => {
 
 // ── Classificados ─────────────────────────────────────────────────────────────
 const Classificados = ({ user }) => {
-  const [anuncios, setAnuncios]       = useState(() => JSON.parse(localStorage.getItem('quadro_anuncios') || '[]'));
+  const [anuncios, setAnuncios]       = useState([]);
   const [modal, setModal]             = useState(false);
   const [novo, setNovo]               = useState({ titulo: '', preco: '', contato: '' });
 
-  const fmt = (val) => {
-    const n = val.replace(/\D/g,'');
-    if (n.length<=2) return `(${n}`;
-    if (n.length<=3) return `(${n.slice(0,2)}) ${n.slice(2)}`;
-    if (n.length<=7) return `(${n.slice(0,2)}) ${n.slice(2,3)} ${n.slice(3)}`;
-    return `(${n.slice(0,2)}) ${n.slice(2,3)} ${n.slice(3,7)}-${n.slice(7,11)}`;
-  };
+  useEffect(() => {
+    api.home.anuncios.buscar().then(setAnuncios).catch(() => {});
+  }, []);
 
-  const postar = () => {
+  const postar = async () => {
     if (!novo.titulo || novo.contato.length < 16) return alert("Preencha título e WhatsApp completo!");
-    const lista = [{ ...novo, id: Date.now(), autor: user.nome, userId: user.login }, ...anuncios];
-    setAnuncios(lista);
-    localStorage.setItem('quadro_anuncios', JSON.stringify(lista));
-    setNovo({ titulo:'', preco:'', contato:'' });
-    setModal(false);
+    try {
+      const item = { ...novo, id: Date.now(), autor: user.nome, userId: user.login };
+      const salvo = await api.home.anuncios.salvar(item);
+      setAnuncios([salvo, ...anuncios]);
+      setNovo({ titulo:'', preco:'', contato:'' });
+      setModal(false);
+    } catch {
+      alert("Erro ao publicar anúncio");
+    }
   };
 
-  const remover = (id) => {
-    const lista = anuncios.filter(a => a.id !== id);
-    setAnuncios(lista);
-    localStorage.setItem('quadro_anuncios', JSON.stringify(lista));
+  const remover = async (id) => {
+    if (!window.confirm("Deseja remover este anúncio?")) return;
+    try {
+      await api.home.anuncios.apagar(id);
+      setAnuncios(anuncios.filter(a => a.id !== id));
+    } catch {
+      alert("Erro ao remover anúncio");
+    }
   };
 
   return (
@@ -214,7 +238,15 @@ const Classificados = ({ user }) => {
                 placeholder="Valor (R$)" value={novo.preco} onChange={e=>setNovo({...novo,preco:e.target.value})}/>
               <input className="w-full p-4 rounded-2xl text-xs font-bold outline-none"
                 style={{backgroundColor:'var(--bg-elevated)',border:'1px solid var(--border)',color:'var(--text-primary)'}}
-                placeholder="WhatsApp" maxLength={16} value={novo.contato} onChange={e=>setNovo({...novo,contato:fmt(e.target.value)})}/>
+                placeholder="WhatsApp" maxLength={16} value={novo.contato} onChange={e=>{
+                  const n = e.target.value.replace(/\D/g,'');
+                  let f = n;
+                  if (n.length>0) f = '(' + n;
+                  if (n.length>2) f = '(' + n.slice(0,2) + ') ' + n.slice(2);
+                  if (n.length>3) f = '(' + n.slice(0,2) + ') ' + n.slice(2,3) + ' ' + n.slice(3);
+                  if (n.length>7) f = '(' + n.slice(0,2) + ') ' + n.slice(2,3) + ' ' + n.slice(3,7) + '-' + n.slice(7,11);
+                  setNovo({...novo,contato:f});
+                }}/>
             </div>
             <div className="flex gap-3 pt-2">
               <button onClick={postar} className="flex-1 py-4 rounded-2xl font-black uppercase text-xs text-white" style={{backgroundColor:'var(--accent)',boxShadow:'0 4px 16px var(--accent-glow)',border:'none',cursor:'pointer'}}>Publicar</button>

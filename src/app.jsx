@@ -8,18 +8,18 @@ import PaginaPedidos from './pages/PaginaPedidos';
 import PaginaRelatorios from './pages/PaginaRelatorios';
 import PaginaTransferenciaAvulsa from './pages/PaginaTransferenciaAvulsa';
 import PaginaGestao from './pages/PaginaGestao';
-import PaginaAdmin from './pages/PaginaAdmin';
 import PaginaImportacao from './pages/PaginaImportacao';
 import PaginaBuscador from './pages/PaginaBuscador';
 import PaginaRecebimento from './pages/PaginaRecebimento';
 import PaginaGestaoEstoqueLocal from './pages/Gestao/PaginaGestaoEstoqueLocal';
+import PaginaDP from './pages/DP/PaginaDP';
+import PaginaFinanceiro from './pages/Financeiro/PaginaFinanceiro';
 
 // Importação de Componentes
 import BarraLateral from './components/BarraLateral';
 import BannerBoasVindas from './components/BannerBoasVindas';
-// import MuralSonhos from './components/MuralSonhos'; — desabilitado temporariamente
 
-import { Heart, Wrench, QrCode, Menu, ChevronDown, User, MapPin, ClipboardList } from 'lucide-react';
+import { Heart, Wrench, QrCode, Menu, ChevronDown, User, MapPin, ClipboardList, Package, DollarSign, Users } from 'lucide-react';
 
 // Placeholder reutilizável para páginas em desenvolvimento
 const EmDesenvolvimento = ({ icone: Icone, titulo, descricao }) => (
@@ -112,7 +112,7 @@ function App() {
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border" style={{borderColor:'var(--border)', backgroundColor:'var(--bg-elevated)'}}>
                 <MapPin size={14} style={{color:'var(--accent-bright)'}}/>
                 <span className="text-[10px] font-bold uppercase" style={{color:'var(--text-secondary)'}}>Filial:</span>
-                {['master', 'adm'].includes(usuario.cargo?.toLowerCase()) ? (
+                {['master', 'adm', 'dev'].includes(usuario.cargo?.toLowerCase()) ? (
                   <select 
                     className="bg-transparent border-none text-[10px] font-black uppercase outline-none cursor-pointer"
                     style={{color:'var(--text-primary)'}}
@@ -121,7 +121,7 @@ function App() {
                        const nu = {...usuario, unidade: e.target.value};
                        setUsuario(nu);
                        localStorage.setItem('usuario_logado', JSON.stringify(nu));
-                       window.location.reload();
+                       setAbaAtiva('mural'); // Redireciona para Home sem recarregar
                     }}
                   >
                     <option value="001 - CENTRO">001 - Centro</option>
@@ -144,22 +144,37 @@ function App() {
               {/* Envelopa cada aba em div para cache */}
               <div className={abaAtiva === 'mural' ? 'block h-full' : 'hidden'}><PaginaHome user={usuario} /></div>
 
-              {/* Gerador de Códigos e Lote — em desenvolvimento */}
+              {/* Gerador de Códigos e Lote */}
               <div className={abaAtiva === 'gerador' ? 'block h-full' : 'hidden'}>
                 <EmDesenvolvimento icone={QrCode} titulo="Gerador de Códigos e Lote" descricao="Módulo em construção — em breve disponível" />
               </div>
 
-              {/* Fichas de Produção — em desenvolvimento */}
+              {/* Fichas de Produção */}
               <div className={abaAtiva === 'fichas_producao' ? 'block h-full' : 'hidden'}>
                 <EmDesenvolvimento icone={ClipboardList} titulo="Fichas de Produção" descricao="Em construção — vou criar a estrutura perfeita" />
               </div>
 
+              {/* DP */}
+              <div className={abaAtiva.startsWith('dp_') ? 'block h-full' : 'hidden'}>
+                <PaginaDP user={usuario} abaInicial={abaAtiva.replace('dp_', '')} />
+              </div>
+
+              {/* Financeiro */}
+              <div className={abaAtiva === 'financeiro' ? 'block h-full' : 'hidden'}>
+                <PaginaFinanceiro />
+              </div>
+
               <div className={abaAtiva === 'atendimento' ? 'block h-full' : 'hidden'}><PaginaAtendimento user={usuario} /></div>
               <div className={abaAtiva === 'pedidos' ? 'block h-full' : 'hidden'}><PaginaPedidos user={usuario} /></div>
-              <div className={abaAtiva === 'relatorios' ? 'block h-full' : 'hidden'}><PaginaRelatorios user={usuario} /></div>
+              <div className={abaAtiva === 'relatorios_estoque' ? 'block h-full' : 'hidden'}><PaginaRelatorios user={usuario} /></div>
               <div className={abaAtiva === 'transferencia' ? 'block h-full' : 'hidden'}><PaginaTransferenciaAvulsa user={usuario} /></div>
               <div className={abaAtiva === 'recebimento' ? 'block h-full' : 'hidden'}><PaginaRecebimento user={usuario} /></div>
-              <div className={abaAtiva === 'gestao' ? 'block h-full' : 'hidden'}><PaginaGestao user={usuario} /></div>
+              
+              {/* Gestão */}
+              <div className={abaAtiva.startsWith('gestao_') ? 'block h-full' : 'hidden'}>
+                <PaginaGestao user={usuario} abaInicial={abaAtiva.replace('gestao_', '')} />
+              </div>
+
               <div className={abaAtiva === 'estoque_local' ? 'block h-full' : 'hidden'}><PaginaGestaoEstoqueLocal user={usuario} /></div>
               <div className={abaAtiva === 'buscador' ? 'block h-full' : 'hidden'}><PaginaBuscador user={usuario} /></div>
             </div>
@@ -170,4 +185,4 @@ function App() {
   );
 }
 
-export default App;
+export default App;

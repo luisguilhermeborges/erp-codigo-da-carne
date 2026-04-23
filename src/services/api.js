@@ -1,5 +1,6 @@
 // Configuração central da API
-const BASE = 'https://api-codigo-da-carne.onrender.com/api';
+const isLocal = window.location.hostname === 'localhost';
+const BASE = isLocal ? 'http://localhost:5000/api' : 'https://api-codigo-da-carne.onrender.com/api';
 
 const get  = (path)       => fetch(`${BASE}${path}`).then(r => r.json());
 const post = (path, body) => fetch(`${BASE}${path}`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }).then(r => r.json());
@@ -44,5 +45,22 @@ export const api = {
     baixa:            (id, qtd)    => post(`/estoque/baixa/${id}`, { qtdAAbater: qtd }),
     apagar:           (id)         => del(`/estoque/${id}`),
     limpar:           ()           => del('/estoque'),
+  },
+  // Home (Mural, Contatos, Anúncios)
+  home: {
+    contatos: {
+      buscar: () => get('/home/contatos'),
+      salvar: (c) => post('/home/contatos', c),
+    },
+    mural: {
+      buscar: () => get('/home/mural'),
+      salvar: (c) => post('/home/mural', c),
+      apagar: (id) => del(`/home/mural/${id}`),
+    },
+    anuncios: {
+      buscar: () => get('/home/anuncios'),
+      salvar: (a) => post('/home/anuncios', a),
+      apagar: (id) => del(`/home/anuncios/${id}`),
+    },
   },
 };

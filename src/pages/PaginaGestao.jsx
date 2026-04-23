@@ -8,25 +8,24 @@ import GestaoFiliais from './Gestao/GestaoFiliais';
 import PaginaImportacao from './PaginaImportacao';
 import PaginaAdmin from './PaginaAdmin';
 
-const PaginaGestao = ({ user }) => {
-  // Define a aba inicial como 'estoque'
-  const [abaAtiva, setAbaAtiva] = useState('estoque');
+const PaginaGestao = ({ user, abaInicial = 'estoque' }) => {
+  // Define a aba inicial vinda das props ou padrão
+  const [abaAtiva, setAbaAtiva] = useState(abaInicial);
 
   // Configuração das abas com a restrição para o cargo PCP
-  // O PCP ou gestorestoque não têm permissão para ver ou editar a equipe ou filiais
-  const isMasterOrAdm = ['master', 'adm'].includes(user?.cargo?.toLowerCase());
-  const isLogistica = ['master', 'adm', 'estoque', 'gestorestoque'].includes(user?.cargo?.toLowerCase());
+  const isMasterOrAdm = ['master', 'adm', 'dev'].includes(user?.cargo?.toLowerCase());
+  const isLogistica = ['master', 'adm', 'estoque', 'gestorestoque', 'dev'].includes(user?.cargo?.toLowerCase());
 
   const abas = [
     {
       id: 'estoque',
       rotulo: 'Estoque / Produtos',
       icone: Beef,
-      permissao: true // Todos os gestores acedem
+      permissao: true 
     },
     {
       id: 'usuarios',
-      rotulo: 'Usuários / Gestão de Equipe',
+      rotulo: 'Usuários / Equipe',
       icone: Users,
       permissao: isMasterOrAdm
     },
@@ -34,6 +33,12 @@ const PaginaGestao = ({ user }) => {
       id: 'filiais',
       rotulo: 'Filiais / Lojas',
       icone: MapPin,
+      permissao: isMasterOrAdm
+    },
+    {
+      id: 'cargos',
+      rotulo: 'Cargos / Acessos',
+      icone: ShieldCheck,
       permissao: isMasterOrAdm
     },
     {
@@ -116,6 +121,14 @@ const PaginaGestao = ({ user }) => {
 
           {abaAtiva === 'filiais' && isMasterOrAdm && <GestaoFiliais user={user} />}
 
+          {abaAtiva === 'cargos' && isMasterOrAdm && (
+             <div className="flex flex-col items-center justify-center py-20 opacity-50">
+               <ShieldCheck size={48} className="mb-4" />
+               <h3 className="font-black uppercase">Gestão de Cargos</h3>
+               <p className="text-xs uppercase font-bold">Módulo em desenvolvimento</p>
+             </div>
+          )}
+
           {abaAtiva === 'importacao' && isLogistica && <PaginaImportacao user={user} />}
 
           {abaAtiva === 'admin' && user?.cargo?.toLowerCase() === 'master' && <PaginaAdmin user={user} />}
@@ -137,5 +150,6 @@ const PaginaGestao = ({ user }) => {
     </div>
   );
 };
+
 
 export default PaginaGestao;

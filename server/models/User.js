@@ -4,7 +4,8 @@ const UserSchema = new mongoose.Schema({
   nome: { type: String, required: true },
   login: { type: String, required: true, unique: true },
   senha: { type: String, default: '' },
-  cargo: { type: String, enum: ['adm', 'comercial', 'pcp'], default: 'comercial' },
+  primeiroAcesso: { type: Boolean, default: true },
+  cargo: { type: String, enum: ['adm', 'comercial', 'pcp', 'estoque', 'producao', 'dev'], default: 'comercial' },
   unidades: [{ type: String }] // Array de nomes das filiais autorizadas
 });
 

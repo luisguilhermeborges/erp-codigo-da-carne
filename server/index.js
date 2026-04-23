@@ -23,6 +23,7 @@ app.use('/api/precos',   require('./routes/precos'));
 app.use('/api/pedidos',  require('./routes/pedidos'));
 app.use('/api/filiais',  require('./routes/filiais'));
 app.use('/api/estoque',  require('./routes/estoque'));
+app.use('/api/home',     require('./routes/home'));
 
 // ── Rotas de Usuários ────────────────────────────────────────────────────────
 app.get('/api/usuarios', async (req, res) => {

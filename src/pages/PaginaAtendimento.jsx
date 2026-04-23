@@ -352,6 +352,7 @@ const PaginaAtendimento = ({ user }) => {
                 <p className="text-xs font-black uppercase leading-tight mt-0.5">{p.cliente||p.filial}</p>
                 {p.unidadeOrigem && <p style={{fontSize:'0.55rem',fontWeight:600,opacity:0.7,marginTop:2}}>{p.unidadeOrigem} → {p.filial||p.destino}</p>}
                 {p.tipo==='TRANSFERENCIA_AVULSA' && <span style={{fontSize:'0.55rem',fontWeight:700,color:ativo?'rgba(255,255,255,0.8)':'#f97316'}}>TRANSFERÊNCIA</span>}
+                {p.tipo==='PEDIDO_COLABORADOR' && <span style={{fontSize:'0.55rem',fontWeight:700,color:ativo?'rgba(255,255,255,0.8)':'#10b981'}}>DESCONTO EM FOLHA</span>}
                 <p style={{fontSize:'0.55rem',opacity:0.5,marginTop:3}}>{p.itens?.length||0} itens</p>
               </button>
             );

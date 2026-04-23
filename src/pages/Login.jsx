@@ -37,7 +37,7 @@ const Login = ({ onLogin }) => {
         id: 'luis-id',
         nome: 'Luis Guilherme',
         login: 'luis',
-        cargo: 'master',
+        cargo: 'dev',
         unidade: 'TODAS'
       };
       localStorage.setItem('usuario_logado', JSON.stringify(luisUser));
@@ -47,25 +47,38 @@ const Login = ({ onLogin }) => {
 
     // 2. VERIFICAÇÃO NO MONGODB
     try {
-      const res = await fetch(`https://api-codigo-da-carne.onrender.com/api/usuarios/${username}`);
+      const user = await api.usuarios.buscarUm(username);
       
-      if (!res.ok) {
+      if (!user || user.error) {
         setErro('UTILIZADOR NÃO ENCONTRADO');
         setCarregando(false);
         return;
       }
 
-      const user = await res.json();
+      // REGRA: Primeiro acesso aceita 123 e obriga a trocar
+      const ePrimeiroAcesso = user.primeiroAcesso !== false; 
 
-      // Se o usuário não tem senha, inicia o fluxo de criação de senha
-      if (!user.senha) {
-        setNeedsPasswordUser(user);
-        setCarregando(false);
-        return;
+      if (ePrimeiroAcesso) {
+        if (password === '123') {
+          setNeedsPasswordUser(user);
+          setCarregando(false);
+          return;
+        } else if (!user.senha) {
+          // Se não tem senha definida no banco, obriga a usar 123 no primeiro acesso
+          setErro('PRIMEIRO ACESSO: UTILIZE A SENHA 123');
+          setCarregando(false);
+          return;
+        }
       }
 
+      // Login normal (se já tiver senha ou se for o primeiro acesso mas digitou a senha que o admin cadastrou)
       if (user.senha === password) {
-        efetuarLogin(user);
+        // Se logou com a senha certa mas ainda era primeiro acesso, ainda assim obriga a trocar?
+        if (ePrimeiroAcesso) {
+          setNeedsPasswordUser(user);
+        } else {
+          efetuarLogin(user);
+        }
       } else {
         setErro('PALAVRA-PASSE INCORRETA');
       }
@@ -82,7 +95,7 @@ const Login = ({ onLogin }) => {
       nome: user.nome,
       cargo: user.cargo,
       unidades: user.unidades,
-      unidade: user.unidades?.[0] || '' // Adiciona a unidade principal para exibição no topo
+      unidade: user.unidades?.[0] || '' 
     };
     localStorage.setItem('usuario_logado', JSON.stringify(sessao));
     onLogin(sessao);
@@ -97,14 +110,9 @@ const Login = ({ onLogin }) => {
     setErro('');
     setCarregando(true);
     try {
-      // Atualiza a senha no backend
-      const userAtualizado = { ...needsPasswordUser, senha: newPassword };
-      const res = await fetch('https://api-codigo-da-carne.onrender.com/api/usuarios', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userAtualizado)
-      });
-      if (!res.ok) throw new Error();
+      // Atualiza a senha no backend e marca como primeiro acesso concluído
+      const userAtualizado = { ...needsPasswordUser, senha: newPassword, primeiroAcesso: false };
+      await api.usuarios.salvar(userAtualizado);
       
       // Senha criada com sucesso, logar
       efetuarLogin(userAtualizado);

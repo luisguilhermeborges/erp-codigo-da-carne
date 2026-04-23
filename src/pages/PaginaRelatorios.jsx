@@ -287,7 +287,7 @@ const PaginaRelatorios = ({ user }) => {
   const [carregando, setCarregando] = useState(false);
   const [imprimindo, setImprimindo] = useState(false);
 
-  const isAdminOrEstoque = user?.cargo === 'master' || user?.cargo === 'adm' || user?.cargo === 'estoque' || user?.cargo === 'gestorestoque';
+  const isAdminOrEstoque = ['master', 'adm', 'estoque', 'gestorestoque', 'dev'].includes(user?.cargo?.toLowerCase());
   const filialUsuario = user?.unidade || '';
 
   const carregar = async () => {

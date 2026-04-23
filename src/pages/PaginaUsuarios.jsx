@@ -95,7 +95,7 @@ const PaginaUsuarios = () => {
       <div className="bg-white rounded-[32px] overflow-hidden border border-slate-100 shadow-sm">
         <table className="w-full text-left">
           <thead className="bg-slate-50 text-[10px] font-black uppercase text-slate-400">
-            <tr><th className="p-6">Nome</th><th>Cargo</th><th>Login</th><th>S/ Senha</th><th>Lojas</th><th className="text-right p-6">Ação</th></tr>
+            <tr><th className="p-6">Nome</th><th>Cargo</th><th>Login</th><th>1º Acesso</th><th>Lojas</th><th className="text-right p-6">Ação</th></tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
             {usuarios.map(u => (
@@ -103,7 +103,7 @@ const PaginaUsuarios = () => {
                 <td className="p-6 font-bold">{u.nome}</td>
                 <td className="uppercase text-[10px] font-black text-blue-600">{u.cargo}</td>
                 <td className="text-xs text-slate-400">{u.login}</td>
-                <td className="text-xs text-slate-400">{!u.senha ? 'Sim' : 'Não'}</td>
+                <td className="text-xs text-slate-400">{u.primeiroAcesso !== false ? 'Sim' : 'Não'}</td>
                 <td>
                   <div className="flex gap-1 flex-wrap">
                     {(u.unidades || []).map(un => (

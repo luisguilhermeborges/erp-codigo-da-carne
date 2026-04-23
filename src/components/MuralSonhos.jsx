@@ -4,21 +4,18 @@ import { Heart, Camera, Trash2, Plus, X, Save, CheckSquare, Square, ArrowLeft, A
 const MuralSonhos = ({ user }) => {
   if (!user) return null;
 
-  const [cards, setCards] = useState(() => {
-    try {
-      const salvo = localStorage.getItem('mural_sonhos_v3');
-      return salvo ? JSON.parse(salvo) : [];
-    } catch (e) { return []; }
-  });
+  const [cards, setCards] = useState([]);
+
+  useEffect(() => {
+    api.home.mural.buscar().then(setCards).catch(() => {});
+  }, []);
 
   const [modalAberto, setModalAberto] = useState(false);
   const meuCard = cards.find(c => c.userLogin === user.login);
   const [tempSonho, setTempSonho] = useState({ foto: '', sonhos: [] });
   const [novoInputSonho, setNovoInputSonho] = useState('');
 
-  useEffect(() => {
-    localStorage.setItem('mural_sonhos_v3', JSON.stringify(cards));
-  }, [cards]);
+  // Removido useEffect que salvava no localStorage
 
   const moverCard = (index, direcao) => {
     if (user.cargo !== 'master') return;
@@ -43,31 +40,37 @@ const MuralSonhos = ({ user }) => {
     }
   };
 
-  const salvarCard = () => {
+  const salvarCard = async () => {
     if (tempSonho.sonhos.length === 0) return alert("Adicione pelo menos um sonho!");
-    const novoCard = {
-      id: meuCard ? meuCard.id : Date.now(),
-      userLogin: user.login,
-      userName: user.nome,
-      foto: tempSonho.foto,
-      sonhos: tempSonho.sonhos,
-      data: new Date().toLocaleDateString('pt-BR')
-    };
-    const novaLista = meuCard ? cards.map(c => c.userLogin === user.login ? novoCard : c) : [...cards, novoCard];
-    setCards(novaLista);
-    setModalAberto(false);
+    try {
+      const cardDados = {
+        id: meuCard ? meuCard.id : Date.now(),
+        userLogin: user.login,
+        userName: user.nome,
+        foto: tempSonho.foto,
+        sonhos: tempSonho.sonhos,
+        data: new Date().toLocaleDateString('pt-BR')
+      };
+      const salvo = await api.home.mural.salvar(cardDados);
+      setCards(meuCard ? cards.map(c => c.userLogin === user.login ? salvo : c) : [salvo, ...cards]);
+      setModalAberto(false);
+    } catch {
+      alert("Erro ao salvar card no mural");
+    }
   };
 
-  const toggleRealizado = (cardId, sonhoIdx) => {
-    if (user.cargo !== 'master') return;
-    const novosCards = cards.map(card => {
-      if (card.id === cardId) {
-        const novosSonhos = card.sonhos.map((s, idx) => idx === sonhoIdx ? { ...s, realizado: !s.realizado } : s);
-        return { ...card, sonhos: novosSonhos };
-      }
-      return card;
-    });
-    setCards(novosCards);
+  const toggleRealizado = async (cardId, sonhoIdx) => {
+    if (user.cargo !== 'master' && user.cargo !== 'adm' && user.cargo !== 'dev') return;
+    const card = cards.find(c => c.id === cardId);
+    if (!card) return;
+    
+    const novosSonhos = card.sonhos.map((s, idx) => idx === sonhoIdx ? { ...s, realizado: !s.realizado } : s);
+    try {
+      const salvo = await api.home.mural.salvar({ ...card, sonhos: novosSonhos });
+      setCards(cards.map(c => c.id === cardId ? salvo : c));
+    } catch {
+      alert("Erro ao atualizar sonho");
+    }
   };
 
   return (
@@ -99,8 +102,14 @@ const MuralSonhos = ({ user }) => {
                     <button onClick={() => moverCard(index, 1)} className="text-slate-400 hover:text-blue-600 p-1"><ArrowRight size={14}/></button>
                   </>
                 )}
-                {(user.cargo === 'master' || card.userLogin === user.login) && (
-                  <button onClick={() => setCards(cards.filter(c => c.id !== card.id))} className="text-red-200 hover:text-red-500 ml-1"><Trash2 size={14}/></button>
+                {(user.cargo === 'master' || user.cargo === 'adm' || user.cargo === 'dev' || card.userLogin === user.login) && (
+                  <button onClick={async () => {
+                    if (!window.confirm("Deseja apagar seu card do mural?")) return;
+                    try {
+                      await api.home.mural.apagar(card.id);
+                      setCards(cards.filter(c => c.id !== card.id));
+                    } catch { alert("Erro ao apagar card"); }
+                  }} className="text-red-200 hover:text-red-500 ml-1"><Trash2 size={14}/></button>
                 )}
               </div>
             </div>
